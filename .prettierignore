@@ -19,24 +19,3 @@ coverage/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
-.yarn
-.gemini
-.vscode
-
-# Ignore various config files
-*.rc
-*.rc.*
-.prettierrc
-.prettierrc.*
-.eslintrc
-.eslintrc.*
-.stylelintrc
-.stylelintrc.*
-babel.config.*
-tsconfig.json
-jest.config.*
-vite.config.*
-webpack.config.*
-next.config.*
-tailwind.config.*

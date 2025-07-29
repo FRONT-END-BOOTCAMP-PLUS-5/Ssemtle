@@ -26,13 +26,11 @@ const eslintConfig = [
     extends: [
       'next/core-web-vitals',
       'next/typescript',
-      'plugin:storybook/recommended',
     ],
     overrides: [
       {
         files: ['*.ts', '*.tsx', '*.js', '*.jsx'],
         rules: {
-          '@typescript-eslint/no-unused-vars': 'warn',
         },
       },
     ],

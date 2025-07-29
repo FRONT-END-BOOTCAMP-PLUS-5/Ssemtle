@@ -1,0 +1,2 @@
+- I prefer to use npm as node package manager.
+- If any scaffolding code (something like pnpm create next-app) fails because it requires human input, ***do not*** try to do it yourself. Ask me for help.

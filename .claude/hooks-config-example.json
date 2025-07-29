@@ -1,0 +1,59 @@
+{
+  "_comment": "Example Claude Code hooks configuration for your ~/.claude/settings.json",
+  "_instructions": "Copy the hooks array below into your ~/.claude/settings.json file",
+  
+  "hooks": [
+    {
+      "_description": "Git branch protection - prevents commits/pushes to main",
+      "event": "PreToolUse",
+      "matcher": {
+        "tool": "Bash",
+        "pattern": "git (commit|push)"
+      },
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-branch.sh",
+      "block_on_failure": true
+    },
+    {
+      "_description": "Test requirement enforcement - ensures TDD compliance",
+      "event": "PreToolUse", 
+      "matcher": {
+        "tool": ["Edit", "Write", "MultiEdit"]
+      },
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/require-tests.sh",
+      "block_on_failure": true
+    },
+    {
+      "_description": "Auto-lint after code changes",
+      "event": "PostToolUse",
+      "matcher": {
+        "tool": ["Edit", "Write", "MultiEdit"],
+        "pattern": ".*\\.(js|ts|jsx|tsx)$"
+      },
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/auto-lint.sh"
+    },
+    {
+      "_description": "Suggest journaling for architectural changes", 
+      "event": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "pattern": ".*\\.(js|ts|jsx|tsx|py)$"
+      },
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/document-changes.sh"
+    },
+    {
+      "_description": "Inject CLAUDE.md rule reminders",
+      "event": "UserPromptSubmit",
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/inject-rules.sh"
+    },
+    {
+      "_description": "Remind about TodoWrite for complex tasks",
+      "event": "UserPromptSubmit", 
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-todos.sh"
+    },
+    {
+      "_description": "Handle /compact slash command with context injection",
+      "event": "UserPromptSubmit",
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/handle-compact.sh"
+    }
+  ]
+}

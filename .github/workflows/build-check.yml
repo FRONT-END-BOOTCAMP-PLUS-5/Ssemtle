@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: Mollu
+    environment: semtle
 
     steps:
       - name: 📥 Checkout repository

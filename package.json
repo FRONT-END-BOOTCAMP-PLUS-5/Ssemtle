@@ -11,9 +11,13 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@prisma/client": "^6.13.0",
+    "@tanstack/react-query": "^5.84.1",
+    "axios": "^1.11.0",
     "next": "15.4.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/compat": "^1.3.1",
@@ -27,6 +31,7 @@
     "husky": "^9.1.7",
     "jest": "^30.0.5",
     "prettier": "^3.6.2",
+    "prisma": "^6.13.0",
     "typescript": "^5",
     "typescript-eslint": "^8.38.0"
   }

@@ -3,14 +3,14 @@
 
 export class TeacherStudent {
   public readonly id: number;
-  public readonly teacherId: number;
-  public readonly studentId: number;
+  public readonly teacherId: string;
+  public readonly studentId: string;
   public readonly createdAt: Date;
 
   constructor(
     id: number,
-    teacherId: number,
-    studentId: number,
+    teacherId: string,
+    studentId: string,
     createdAt: Date = new Date()
   ) {
     this.id = id;

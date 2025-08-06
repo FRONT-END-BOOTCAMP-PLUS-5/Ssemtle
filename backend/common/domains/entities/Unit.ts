@@ -6,13 +6,13 @@ export class Unit {
   public readonly name: string;
   public readonly vidUrl: string;
   public readonly createdAt: Date;
-  public readonly userId: number;
+  public readonly userId: string;
 
   constructor(
     id: number,
     name: string,
     vidUrl: string,
-    userId: number,
+    userId: string,
     createdAt: Date = new Date()
   ) {
     this.id = id;

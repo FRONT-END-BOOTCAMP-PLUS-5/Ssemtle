@@ -4,14 +4,14 @@
 export class UnitExamAttempt {
   public readonly id: number;
   public readonly unitCode: string;
-  public readonly studentId: number;
+  public readonly studentId: string;
   public readonly createdAt: Date;
   public readonly unitExamId: number;
 
   constructor(
     id: number,
     unitCode: string,
-    studentId: number,
+    studentId: string,
     unitExamId: number,
     createdAt: Date = new Date()
   ) {

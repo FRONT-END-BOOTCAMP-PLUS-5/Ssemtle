@@ -2,7 +2,7 @@
 // ABOUTME: 사용자 인증 데이터, 프로필 정보, 포인트, 연속 기록 및 관련 엔티티를 포함
 
 export class User {
-  public readonly id: number;
+  public readonly id: string;
   public readonly userId: string;
   public readonly password: string;
   public readonly name: string;
@@ -12,7 +12,7 @@ export class User {
   public readonly createdAt: Date;
 
   constructor(
-    id: number,
+    id: string,
     userId: string,
     password: string,
     name: string,

@@ -3,13 +3,13 @@
 
 export class TeacherAuthorization {
   public readonly id: number;
-  public readonly teacherId: number;
+  public readonly teacherId: string;
   public readonly imgUrl: string;
   public readonly createdAt: Date;
 
   constructor(
     id: number,
-    teacherId: number,
+    teacherId: string,
     imgUrl: string,
     createdAt: Date = new Date()
   ) {

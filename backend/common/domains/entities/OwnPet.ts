@@ -3,13 +3,13 @@
 
 export class OwnPet {
   public readonly id: number;
-  public readonly userId: number;
+  public readonly userId: string;
   public readonly petId: number;
   public readonly createdAt: Date;
 
   constructor(
     id: number,
-    userId: number,
+    userId: string,
     petId: number,
     createdAt: Date = new Date()
   ) {

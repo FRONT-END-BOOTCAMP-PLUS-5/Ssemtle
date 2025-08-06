@@ -5,12 +5,12 @@ export class UnitExam {
   public readonly id: number;
   public readonly code: string;
   public readonly createdAt: Date;
-  public readonly teacherId: number;
+  public readonly teacherId: string;
 
   constructor(
     id: number,
     code: string,
-    teacherId: number,
+    teacherId: string,
     createdAt: Date = new Date()
   ) {
     this.id = id;

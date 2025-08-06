@@ -10,7 +10,7 @@ export class UnitQuestion {
   public readonly createdAt: Date;
   public readonly categoryId: number;
   public readonly unitId: number;
-  public readonly userId: number;
+  public readonly userId: string;
 
   constructor(
     id: number,
@@ -20,7 +20,7 @@ export class UnitQuestion {
     helpUrl: string,
     categoryId: number,
     unitId: number,
-    userId: number,
+    userId: string,
     createdAt: Date = new Date()
   ) {
     this.id = id;

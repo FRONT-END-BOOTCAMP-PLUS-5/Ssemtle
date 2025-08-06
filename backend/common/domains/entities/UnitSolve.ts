@@ -7,14 +7,14 @@ export class UnitSolve {
   public readonly isCorrect: boolean;
   public readonly createdAt: Date;
   public readonly questionId: number;
-  public readonly userId: number;
+  public readonly userId: string;
 
   constructor(
     id: number,
     userInput: string,
     isCorrect: boolean,
     questionId: number,
-    userId: number,
+    userId: string,
     createdAt: Date = new Date()
   ) {
     this.id = id;

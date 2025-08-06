@@ -59,7 +59,7 @@ model Store {
   name   String
   imgUrl String @map("img_url")
   price  Int
-  petsId Int    @map("pets_id")
+  petId  Int    @map("pet_id")
   createdAt DateTime @default(now()) @map("created_at")
   
   @@map("stores")

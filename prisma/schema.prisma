@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pet {
+  id      Int    @id @default(autoincrement())
+  name    String
+  imgUrl  String @map("img_url")
+  state   String
+  
+  ownerId Int?   @map("owner_id")
+  owner   User?  @relation(fields: [ownerId], references: [id])
+  
+  @@map("pets")
+}
+
+model OwnPet {
+  id     Int @id @default(autoincrement())
+  userId Int @map("user_id")
+  petId  Int @map("pet_id")
+  
+  @@map("own_pets")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  userId   String @unique @map("user_id")
+  password String
+  name     String
+  role     String
+  point    Int    @default(0)
+  streak   Int    @default(0)
+  
+  pets                Pet[]
+  teacherApprovals    TeacherApproval[]
+  unitMathSolves      UnitMathSolve[]
+  unitMathQuestions   UnitMathQuestion[]
+  mathSolves          MathSolve[]
+  
+  @@map("users")
+}
+
+model Store {
+  id     Int    @id @default(autoincrement())
+  name   String
+  imgUrl String @map("img_url")
+  price  Int
+  petsId Int?   @map("pets_id")
+  
+  @@map("stores")
+}
+
+model UnitCode {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  createdAt  DateTime @default(now()) @map("created_at")
+  teacherId  Int      @map("teacher_id")
+  
+  unitMathSolves UnitMathSolve[]
+  
+  @@map("unit_codes")
+}
+
+model UnitMathSolve {
+  id         Int      @id @default(autoincrement())
+  userInput  String   @map("user_input")
+  isCorrect  Boolean  @map("is_correct")
+  questionId Int      @map("question_id")
+  userId     Int      @map("user_id")
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  unitCodeId Int?      @map("unit_code_id")
+  unitCode   UnitCode? @relation(fields: [unitCodeId], references: [id])
+  
+  @@map("unit_math_solves")
+}
+
+model UnitMathQuestion {
+  id         Int      @id @default(autoincrement())
+  unitCode   String   @map("unit_code")
+  question   String
+  answer     String
+  helpUrl    String   @map("help_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  categoryId Int      @map("category_id")
+  
+  category MathCategory @relation(fields: [categoryId], references: [id])
+  
+  userId Int?  @map("user_id")
+  user   User? @relation(fields: [userId], references: [id])
+  
+  @@map("unit_math_questions")
+}
+
+model MathCategory {
+  id     Int    @id @default(autoincrement())
+  name   String
+  vidUrl String @map("vid_url")
+  
+  unitMathQuestions UnitMathQuestion[]
+  
+  @@map("math_categories")
+}
+
+model MathSolve {
+  id         Int      @id @default(autoincrement())
+  question   String
+  answer     String
+  helpUrl    String   @map("help_url")
+  userInput  String   @map("user_input")
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+  categoryId Int      @map("category_id")
+  userId     Int      @map("user_id")
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("math_solves")
+}
+
+model TeacherApproval {
+  id        Int      @id @default(autoincrement())
+  teacherId Int      @map("teacher_id")
+  imgUrl    String   @map("img_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  teacher User @relation(fields: [teacherId], references: [id])
+  
+  @@map("teacher_approvals")
+}
+
+model StudentManagement {
+  id        Int @id @default(autoincrement())
+  teacherId Int @map("teacher_id")
+  studentId Int @map("student_id")
+  
+  @@map("student_managements")
+}

@@ -1,50 +1,105 @@
 // ABOUTME: Integration tests for authentication API endpoints
-// ABOUTME: Tests user registration and login flows with mocked database operations
-import bcrypt from 'bcrypt';
+// ABOUTME: Tests user registration and login flows with clean architecture layers
+import { CreateUserUseCase } from '@/backend/auth/usecases/UserUsecase';
+import { CreateUserRequestDto } from '@/backend/auth/dtos/UserDto';
+import { User } from '@/backend/common/domains/entities/User';
+
+// Mock the entire PrUserRepository module
+jest.mock('@/backend/common/infrastructures/repositories/PrUserRepository', () => {
+  return {
+    PrUserRepository: jest.fn().mockImplementation(() => ({
+      findByUserId: jest.fn(),
+      findById: jest.fn(),
+      create: jest.fn(),
+    })),
+  };
+});
 
 describe('Auth API Integration Tests', () => {
-  describe('Registration Logic', () => {
+  let createUserUseCase: CreateUserUseCase;
+  let mockUserRepository: jest.Mocked<{
+    findByUserId: jest.Mock;
+    findById: jest.Mock;
+    create: jest.Mock;
+  }>;
+
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrUserRepository } = require('@/backend/common/infrastructures/repositories/PrUserRepository');
+    mockUserRepository = new PrUserRepository();
+    createUserUseCase = new CreateUserUseCase(mockUserRepository);
+  });
+
+  describe('CreateUserUseCase', () => {
     it('should validate user registration input', async () => {
-      const validUser = {
+      const validRequest: CreateUserRequestDto = {
         userId: 'testuser123',
         password: 'password123',
         name: '테스트유저',
         role: 'student',
       };
 
-      // Test validation logic
-      expect(validUser.userId).toBeTruthy();
-      expect(validUser.password).toBeTruthy();
-      expect(validUser.name).toBeTruthy();
-      expect(validUser.password.length).toBeGreaterThanOrEqual(6);
+      mockUserRepository.findByUserId.mockResolvedValue(null);
+      mockUserRepository.create.mockResolvedValue(
+        new User(
+          'user123',
+          validRequest.userId,
+          'hashedpassword',
+          validRequest.name,
+          validRequest.role!,
+          0,
+          0,
+          new Date()
+        )
+      );
+
+      const result = await createUserUseCase.execute(validRequest);
+
+      expect(result.success).toBe(true);
+      expect(result.user?.userId).toBe(validRequest.userId);
+      expect(result.user?.name).toBe(validRequest.name);
     });
 
-    it('should identify invalid registration data', async () => {
-      const invalidCases = [
-        { userId: '', password: 'password123', name: '테스트유저' }, // empty userId
-        { userId: 'testuser', password: '', name: '테스트유저' }, // empty password
-        { userId: 'testuser', password: 'password123', name: '' }, // empty name
-        { userId: 'testuser', password: '12345', name: '테스트유저' }, // short password
+    it('should reject invalid registration data', async () => {
+      const invalidCases: CreateUserRequestDto[] = [
+        { userId: '', password: 'password123', name: '테스트유저' },
+        { userId: 'testuser', password: '', name: '테스트유저' },
+        { userId: 'testuser', password: 'password123', name: '' },
+        { userId: 'testuser', password: '12345', name: '테스트유저' },
       ];
 
-      invalidCases.forEach((data) => {
-        const isValid = !!(data.userId && data.password && data.name && data.password.length >= 6);
-        expect(isValid).toBe(false);
-      });
+      for (const invalidRequest of invalidCases) {
+        const result = await createUserUseCase.execute(invalidRequest);
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      }
     });
 
-    it('should properly hash passwords', async () => {
-      const password = 'testpassword123';
-      const saltRounds = 12;
-      
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      
-      expect(hashedPassword).not.toBe(password);
-      expect(hashedPassword.length).toBeGreaterThan(50);
-      expect(hashedPassword.startsWith('$2b$')).toBe(true);
-      
-      const isValid = await bcrypt.compare(password, hashedPassword);
-      expect(isValid).toBe(true);
+    it('should reject duplicate users', async () => {
+      const request: CreateUserRequestDto = {
+        userId: 'existing_user',
+        password: 'password123',
+        name: '테스트유저',
+        role: 'student',
+      };
+
+      mockUserRepository.findByUserId.mockResolvedValue(
+        new User(
+          'existing123',
+          request.userId,
+          'hashedpassword',
+          request.name,
+          request.role!,
+          0,
+          0,
+          new Date()
+        )
+      );
+
+      const result = await createUserUseCase.execute(request);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('이미 존재하는 아이디입니다.');
     });
   });
 

@@ -11,13 +11,13 @@ datasource db {
 }
 
 model Pet {
-  id      Int    @id @default(autoincrement())
-  name    String
-  imgUrl  String @map("img_url")
-  state   String
+  id     Int    @id @default(autoincrement())
+  name   String
+  imgUrl String @map("img_url")
+  stage  String
+  createdAt DateTime @default(now()) @map("created_at")
   
-  ownerId Int?   @map("owner_id")
-  owner   User?  @relation(fields: [ownerId], references: [id])
+  ownPets OwnPet[]
   
   @@map("pets")
 }
@@ -26,6 +26,10 @@ model OwnPet {
   id     Int @id @default(autoincrement())
   userId Int @map("user_id")
   petId  Int @map("pet_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id])
+  pet  Pet  @relation(fields: [petId], references: [id])
   
   @@map("own_pets")
 }
@@ -38,12 +42,14 @@ model User {
   role     String
   point    Int    @default(0)
   streak   Int    @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
   
-  pets                Pet[]
-  teacherApprovals    TeacherApproval[]
-  unitMathSolves      UnitMathSolve[]
-  unitMathQuestions   UnitMathQuestion[]
-  mathSolves          MathSolve[]
+  ownPets                OwnPet[]
+  teacherAuthorizations  TeacherAuthorization[]
+  units                  Unit[]
+  unitQuestions          UnitQuestion[]
+  solves                 Solve[]
+  unitSolves             UnitSolve[]
   
   @@map("users")
 }
@@ -53,38 +59,47 @@ model Store {
   name   String
   imgUrl String @map("img_url")
   price  Int
-  petsId Int?   @map("pets_id")
+  petsId Int    @map("pets_id")
+  createdAt DateTime @default(now()) @map("created_at")
   
   @@map("stores")
 }
 
-model UnitCode {
-  id         Int      @id @default(autoincrement())
-  code       String   @unique
-  createdAt  DateTime @default(now()) @map("created_at")
-  teacherId  Int      @map("teacher_id")
+model TeacherAuthorization {
+  id        Int      @id @default(autoincrement())
+  teacherId Int      @map("teacher_id")
+  imgUrl    String   @map("img_url")
+  createdAt DateTime @default(now()) @map("created_at")
   
-  unitMathSolves UnitMathSolve[]
+  teacher User @relation(fields: [teacherId], references: [id])
   
-  @@map("unit_codes")
+  @@map("teacher_authorizations")
 }
 
-model UnitMathSolve {
-  id         Int      @id @default(autoincrement())
-  userInput  String   @map("user_input")
-  isCorrect  Boolean  @map("is_correct")
-  questionId Int      @map("question_id")
-  userId     Int      @map("user_id")
+model TeacherStudent {
+  id        Int      @id @default(autoincrement())
+  teacherId Int      @map("teacher_id")
+  studentId Int      @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
   
-  user User @relation(fields: [userId], references: [id])
-  
-  unitCodeId Int?      @map("unit_code_id")
-  unitCode   UnitCode? @relation(fields: [unitCodeId], references: [id])
-  
-  @@map("unit_math_solves")
+  @@map("teacher_students")
 }
 
-model UnitMathQuestion {
+model Unit {
+  id        Int      @id @default(autoincrement())
+  name      String
+  vidUrl    String   @map("vid_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  userId Int @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+  
+  unitQuestions UnitQuestion[]
+  
+  @@map("unit")
+}
+
+model UnitQuestion {
   id         Int      @id @default(autoincrement())
   unitCode   String   @map("unit_code")
   question   String
@@ -93,25 +108,39 @@ model UnitMathQuestion {
   createdAt  DateTime @default(now()) @map("created_at")
   categoryId Int      @map("category_id")
   
-  category MathCategory @relation(fields: [categoryId], references: [id])
+  unitId Int  @map("unit_id")
+  unit   Unit @relation(fields: [unitId], references: [id])
   
-  userId Int?  @map("user_id")
-  user   User? @relation(fields: [userId], references: [id])
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
   
-  @@map("unit_math_questions")
+  @@map("unit_questions")
 }
 
-model MathCategory {
-  id     Int    @id @default(autoincrement())
-  name   String
-  vidUrl String @map("vid_url")
+model UnitExam {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  teacherId Int      @map("teacher_id")
   
-  unitMathQuestions UnitMathQuestion[]
+  unitExamAttempts UnitExamAttempt[]
   
-  @@map("math_categories")
+  @@map("unit_exam")
 }
 
-model MathSolve {
+model UnitExamAttempt {
+  id        Int      @id @default(autoincrement())
+  unitCode  String   @map("unit_code")
+  studentId Int      @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  unitExamId Int      @map("unit_exam_id")
+  unitExam   UnitExam @relation(fields: [unitExamId], references: [id])
+  
+  @@map("unit_exam_attempts")
+}
+
+model Solve {
   id         Int      @id @default(autoincrement())
   question   String
   answer     String
@@ -124,24 +153,18 @@ model MathSolve {
   
   user User @relation(fields: [userId], references: [id])
   
-  @@map("math_solves")
+  @@map("solves")
 }
 
-model TeacherApproval {
-  id        Int      @id @default(autoincrement())
-  teacherId Int      @map("teacher_id")
-  imgUrl    String   @map("img_url")
-  createdAt DateTime @default(now()) @map("created_at")
+model UnitSolve {
+  id         Int      @id @default(autoincrement())
+  userInput  String   @map("user_input")
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+  questionId Int      @map("question_id")
+  userId     Int      @map("user_id")
   
-  teacher User @relation(fields: [teacherId], references: [id])
+  user User @relation(fields: [userId], references: [id])
   
-  @@map("teacher_approvals")
-}
-
-model StudentManagement {
-  id        Int @id @default(autoincrement())
-  teacherId Int @map("teacher_id")
-  studentId Int @map("student_id")
-  
-  @@map("student_managements")
+  @@map("unit_solves")
 }

@@ -17,7 +17,7 @@ This directory contains Claude Code hooks that enforce the rules and workflows d
 ### Medium Priority (Informational)
 
 - **`auto-lint.sh`** - Runs linting after code changes
-- **`document-changes.sh`** - Suggests journaling for architectural changes  
+- **`document-changes.sh`** - Suggests journaling for architectural changes
 - **`inject-rules.sh`** - Injects CLAUDE.md rule reminders into user prompts
 - **`check-todos.sh`** - Reminds about using TodoWrite for complex tasks
 

@@ -7,7 +7,7 @@ export async function callGemini(prompt: string): Promise<string> {
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-002:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,5 +18,7 @@ export async function callGemini(prompt: string): Promise<string> {
   );
 
   const data = await response.json();
+  console.log("📡 Gemini 전체 응답:", JSON.stringify(data, null, 2)) // 🔥 추가
+
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }

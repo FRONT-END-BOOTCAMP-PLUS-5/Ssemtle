@@ -1,7 +1,7 @@
 export interface SolveResponseDto {
   question: string;
   answer: string;
-  helpUrl: string;
+  helpText?: string; // Optional field for additional help text
 }
 
 export interface CreateSolveDto {

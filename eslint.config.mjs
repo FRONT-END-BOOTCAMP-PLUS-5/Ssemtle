@@ -2,6 +2,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import { defineConfig } from 'eslint/config';
 import { includeIgnoreFile } from '@eslint/compat';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import jestPlugin from 'eslint-plugin-jest';
 import { fileURLToPath } from 'node:url';
 
 const gitignorePath = fileURLToPath(new URL('.gitignore', import.meta.url));
@@ -31,6 +32,16 @@ const eslintConfig = [
       },
     ],
   }),
+  // Jest configuration for test files
+  {
+    files: [
+      '**/*.test.{js,ts,jsx,tsx}',
+      'tests/**/*.{js,ts}',
+      'jest.setup.js',
+      'jest.config.mjs',
+    ],
+    ...jestPlugin.configs['flat/recommended'],
+  },
 ];
 
 export default defineConfig([

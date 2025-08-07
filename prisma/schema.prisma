@@ -24,7 +24,7 @@ model Pet {
 
 model OwnPet {
   id     Int @id @default(autoincrement())
-  userId Int @map("user_id")
+  userId String @map("user_id")
   petId  Int @map("pet_id")
   createdAt DateTime @default(now()) @map("created_at")
   
@@ -35,7 +35,7 @@ model OwnPet {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
+  id       String @id @default(uuid())
   userId   String @unique @map("user_id")
   password String
   name     String
@@ -59,7 +59,7 @@ model Store {
   name   String
   imgUrl String @map("img_url")
   price  Int
-  petsId Int    @map("pets_id")
+  petId  Int    @map("pet_id")
   createdAt DateTime @default(now()) @map("created_at")
   
   @@map("stores")
@@ -67,7 +67,7 @@ model Store {
 
 model TeacherAuthorization {
   id        Int      @id @default(autoincrement())
-  teacherId Int      @map("teacher_id")
+  teacherId String      @map("teacher_id")
   imgUrl    String   @map("img_url")
   createdAt DateTime @default(now()) @map("created_at")
   
@@ -78,8 +78,8 @@ model TeacherAuthorization {
 
 model TeacherStudent {
   id        Int      @id @default(autoincrement())
-  teacherId Int      @map("teacher_id")
-  studentId Int      @map("student_id")
+  teacherId String      @map("teacher_id")
+  studentId String      @map("student_id")
   createdAt DateTime @default(now()) @map("created_at")
   
   @@map("teacher_students")
@@ -91,7 +91,7 @@ model Unit {
   vidUrl    String   @map("vid_url")
   createdAt DateTime @default(now()) @map("created_at")
   
-  userId Int @map("user_id")
+  userId String @map("user_id")
   user   User @relation(fields: [userId], references: [id])
   
   unitQuestions UnitQuestion[]
@@ -111,7 +111,7 @@ model UnitQuestion {
   unitId Int  @map("unit_id")
   unit   Unit @relation(fields: [unitId], references: [id])
   
-  userId Int  @map("user_id")
+  userId String  @map("user_id")
   user   User @relation(fields: [userId], references: [id])
   
   @@map("unit_questions")
@@ -121,7 +121,7 @@ model UnitExam {
   id        Int      @id @default(autoincrement())
   code      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
-  teacherId Int      @map("teacher_id")
+  teacherId String      @map("teacher_id")
   
   unitExamAttempts UnitExamAttempt[]
   
@@ -131,7 +131,7 @@ model UnitExam {
 model UnitExamAttempt {
   id        Int      @id @default(autoincrement())
   unitCode  String   @map("unit_code")
-  studentId Int      @map("student_id")
+  studentId String      @map("student_id")
   createdAt DateTime @default(now()) @map("created_at")
   
   unitExamId Int      @map("unit_exam_id")
@@ -149,7 +149,7 @@ model Solve {
   isCorrect  Boolean  @map("is_correct")
   createdAt  DateTime @default(now()) @map("created_at")
   categoryId Int      @map("category_id")
-  userId     Int      @map("user_id")
+  userId     String      @map("user_id")
   
   user User @relation(fields: [userId], references: [id])
   
@@ -162,7 +162,7 @@ model UnitSolve {
   isCorrect  Boolean  @map("is_correct")
   createdAt  DateTime @default(now()) @map("created_at")
   questionId Int      @map("question_id")
-  userId     Int      @map("user_id")
+  userId     String      @map("user_id")
   
   user User @relation(fields: [userId], references: [id])
   

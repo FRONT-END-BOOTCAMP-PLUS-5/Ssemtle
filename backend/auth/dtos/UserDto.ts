@@ -20,3 +20,18 @@ export interface UserCreationResult {
   user?: CreateUserResponseDto;
   error?: string;
 }
+
+export interface CheckDuplicateRequestDto {
+  userId: string;
+}
+
+export interface CheckDuplicateResponseDto {
+  exists: boolean;
+  message?: string;
+}
+
+export interface DuplicateCheckResult {
+  success: boolean;
+  exists?: boolean;
+  error?: string;
+}

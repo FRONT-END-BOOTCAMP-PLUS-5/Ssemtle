@@ -2,8 +2,6 @@
 // ABOUTME: Handles login using userId and password with bcrypt verification
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcrypt';
-import prisma from '@/libs/prisma';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -19,42 +17,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           label: '비밀번호',
           placeholder: '비밀번호',
         },
-      },
-      authorize: async (credentials) => {
-        if (!credentials?.id || !credentials?.password) {
-          return null;
-        }
-
-        try {
-          const user = await prisma.user.findUnique({
-            where: {
-              userId: credentials.id as string,
-            },
-          });
-
-          if (!user) {
-            return null;
-          }
-
-          const isValidPassword = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-          );
-
-          if (!isValidPassword) {
-            return null;
-          }
-
-          return {
-            id: user.id.toString(),
-            name: user.name,
-            userId: user.userId,
-            role: user.role,
-          };
-        } catch (error) {
-          console.error('Auth error:', error);
-          return null;
-        }
       },
     }),
   ],

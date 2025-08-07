@@ -1,6 +1,6 @@
 // ABOUTME: Database test utilities for creating and cleaning test data
 // ABOUTME: Provides helper functions for test user creation and database cleanup
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import prisma from '@/libs/prisma';
 
 // Type assertion for mocked Prisma to avoid type conflicts in tests

@@ -1,5 +1,3 @@
-export const runtime = 'nodejs';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateUnitUseCase } from '@/backend/unit/UseCases/UnitCreateUseCase';
 import { UnitSelectUseCase } from '@/backend/unit/UseCases/UnitSelectUseCase';
@@ -34,7 +32,8 @@ export async function POST(request: NextRequest) {
 }
 
 // Unit 목록 조회
-export async function GET(request: NextRequest) {
+export async function GET() {
+  // request 파라미터 제거
   try {
     const unitRepository = new prUnitRepository(prisma);
     const unitSelectUseCase = new UnitSelectUseCase(unitRepository);

@@ -9,10 +9,7 @@ export class prUnitRepository implements IUnitRepository {
     this.prisma = prisma;
   }
 
-  async create(unitData: {
-    name: string;
-    vidUrl: string;
-  }): Promise<Unit> {
+  async create(unitData: { name: string; vidUrl: string }): Promise<Unit> {
     const unit = await this.prisma.unit.create({
       data: {
         name: unitData.name,

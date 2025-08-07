@@ -1,21 +1,9 @@
 // ABOUTME: Prisma 스키마의 속성을 가진 TeacherAuthorization 엔티티 클래스
 // ABOUTME: 교사 ID와 이미지 URL을 포함한 교사 인증 데이터를 포함
 
-export class TeacherAuthorization {
-  public readonly id: number;
-  public readonly teacherId: string;
-  public readonly imgUrl: string;
-  public readonly createdAt: Date;
-
-  constructor(
-    id: number,
-    teacherId: string,
-    imgUrl: string,
-    createdAt: Date = new Date()
-  ) {
-    this.id = id;
-    this.teacherId = teacherId;
-    this.imgUrl = imgUrl;
-    this.createdAt = createdAt;
-  }
+export interface TeacherAuthorization {
+  readonly id: number;
+  readonly teacherId: string;
+  readonly imgUrl: string;
+  readonly createdAt: Date;
 }

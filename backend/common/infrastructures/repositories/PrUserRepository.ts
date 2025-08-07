@@ -1,8 +1,8 @@
-// ABOUTME: Prisma implementation of user repository for database operations
+// ABOUTME: Prisma implementation of user repository using Prisma User type
 // ABOUTME: Handles all user-related data access and database queries using Prisma
 
 import prisma from '@/libs/prisma';
-import { User } from '../../domains/entities/User';
+import { User } from '@prisma/client';
 import { IUserRepository } from '../../domains/repositories/IUserRepository';
 
 export class PrUserRepository implements IUserRepository {
@@ -13,16 +13,7 @@ export class PrUserRepository implements IUserRepository {
 
     if (!user) return null;
 
-    return new User(
-      user.id,
-      user.userId,
-      user.password,
-      user.name,
-      user.role,
-      user.point,
-      user.streak,
-      user.createdAt
-    );
+    return user;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -32,16 +23,7 @@ export class PrUserRepository implements IUserRepository {
 
     if (!user) return null;
 
-    return new User(
-      user.id,
-      user.userId,
-      user.password,
-      user.name,
-      user.role,
-      user.point,
-      user.streak,
-      user.createdAt
-    );
+    return user;
   }
 
   async create(userData: {
@@ -54,15 +36,6 @@ export class PrUserRepository implements IUserRepository {
       data: userData,
     });
 
-    return new User(
-      user.id,
-      user.userId,
-      user.password,
-      user.name,
-      user.role,
-      user.point,
-      user.streak,
-      user.createdAt
-    );
+    return user;
   }
 }

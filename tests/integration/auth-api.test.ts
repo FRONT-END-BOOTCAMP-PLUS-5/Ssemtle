@@ -2,7 +2,6 @@
 // ABOUTME: Tests user registration and login flows with clean architecture layers
 import { CreateUserUseCase } from '@/backend/auth/usecases/UserUsecase';
 import { CreateUserRequestDto } from '@/backend/auth/dtos/UserDto';
-import { User } from '@/backend/common/domains/entities/User';
 
 // Mock the entire PrUserRepository module
 jest.mock('@/backend/common/infrastructures/repositories/PrUserRepository', () => {
@@ -40,18 +39,16 @@ describe('Auth API Integration Tests', () => {
       };
 
       mockUserRepository.findByUserId.mockResolvedValue(null);
-      mockUserRepository.create.mockResolvedValue(
-        new User(
-          'user123',
-          validRequest.userId,
-          'hashedpassword',
-          validRequest.name,
-          validRequest.role!,
-          0,
-          0,
-          new Date()
-        )
-      );
+      mockUserRepository.create.mockResolvedValue({
+        id: 'user123',
+        userId: validRequest.userId,
+        password: 'hashedpassword',
+        name: validRequest.name,
+        role: validRequest.role!,
+        point: 0,
+        streak: 0,
+        createdAt: new Date()
+      });
 
       const result = await createUserUseCase.execute(validRequest);
 
@@ -83,18 +80,16 @@ describe('Auth API Integration Tests', () => {
         role: 'student',
       };
 
-      mockUserRepository.findByUserId.mockResolvedValue(
-        new User(
-          'existing123',
-          request.userId,
-          'hashedpassword',
-          request.name,
-          request.role!,
-          0,
-          0,
-          new Date()
-        )
-      );
+      mockUserRepository.findByUserId.mockResolvedValue({
+        id: 'existing123',
+        userId: request.userId,
+        password: 'hashedpassword',
+        name: request.name,
+        role: request.role!,
+        point: 0,
+        streak: 0,
+        createdAt: new Date()
+      });
 
       const result = await createUserUseCase.execute(request);
 

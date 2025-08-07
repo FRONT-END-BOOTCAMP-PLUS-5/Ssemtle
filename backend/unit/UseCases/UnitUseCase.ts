@@ -9,8 +9,7 @@ export class CreateUnitUseCase {
   }
 
   async execute(
-    request: CreateUnitRequestDto,
-    userId: string
+    request: CreateUnitRequestDto
   ): Promise<CreateUnitResponseDto> {
     if (!request.name || !request.vidUrl) {
       throw new Error('과목명과 영상 URL을 모두 입력해주세요.');
@@ -30,7 +29,6 @@ export class CreateUnitUseCase {
       const unit = await this.unitRepository.create({
         name: request.name.trim(),
         vidUrl: request.vidUrl.trim(),
-        userId: userId,
       });
 
       return {
@@ -38,7 +36,6 @@ export class CreateUnitUseCase {
         name: unit.name,
         vidUrl: unit.vidUrl,
         createdAt: unit.createdAt,
-        userId: unit.userId,
       };
     } catch (error) {
       console.error('Math unit creation error:', error);

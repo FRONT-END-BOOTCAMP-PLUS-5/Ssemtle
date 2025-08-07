@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Unit } from '../../domains/entities/Unit';
-import { IUnitRepository } from '@/backend/common/domains/repositories/IUnitRepository';
+import { IUnitRepository } from '../../domains/repositories/IUnitRepository';
 
 export class prUnitRepository implements IUnitRepository {
   private prisma: PrismaClient;
@@ -29,5 +29,19 @@ export class prUnitRepository implements IUnitRepository {
       createdAt: unit.createdAt,
       userId: unit.userId,
     };
+  }
+
+  async findAll(): Promise<Unit[]> {
+    const units = await this.prisma.unit.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return units.map(unit => ({
+      id: unit.id,
+      name: unit.name,
+      vidUrl: unit.vidUrl,
+      createdAt: unit.createdAt,
+      userId: unit.userId
+    }));
   }
 }

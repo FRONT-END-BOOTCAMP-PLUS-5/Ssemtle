@@ -1,16 +1,15 @@
-export const runtime = 'nodejs';
-
 import { NextRequest, NextResponse } from 'next/server';
-import { CreateUnitUseCase } from '@/backend/unit/UseCases/UnitUseCase';
-import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository'; 
+import { CreateUnitUseCase } from '@/backend/unit/UseCases/UnitCreateUseCase';
+import { UnitSelectUseCase } from '@/backend/unit/UseCases/UnitSelectUseCase';
+import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository';
 import { CreateUnitRequestDto } from '@/backend/unit/dtos/UnitDto';
 import prisma from '@/libs/prisma';
 
-
+// Unit 생성
 export async function POST(request: NextRequest) {
   try {
     const body: CreateUnitRequestDto = await request.json();
-    const userId = "550e8400-e29b-41d4-a716-446655440000"; // test user id NextAuth 구현  완료 시 변경
+    const userId = '550e8400-e29b-41d4-a716-446655440000'; // test user id NextAuth 구현  완료 시 변경
 
     const unitRepository = new prUnitRepository(prisma);
     const createUnitUseCase = new CreateUnitUseCase(unitRepository);
@@ -30,5 +29,27 @@ export async function POST(request: NextRequest) {
       { error: '서버 오류가 발생했습니다.' },
       { status: 400 }
     );
+  }
+}
+
+// Unit 목록 조회
+export async function GET(request: NextRequest) {
+  try {
+    const unitRepository = new prUnitRepository(prisma);
+    const unitSelectUseCase = new UnitSelectUseCase(unitRepository);
+
+    const result = await unitSelectUseCase.getAllUnits();
+
+    return NextResponse.json({
+      message: '단원 목록 조회가 완료되었습니다.',
+      data: result,
+    });
+  } catch (error) {
+    console.error('Unit list error:', error);
+
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

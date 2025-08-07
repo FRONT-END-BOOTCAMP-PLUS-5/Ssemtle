@@ -1,6 +1,6 @@
 export interface CreateUnitRequestDto {
-  name: string;        
-  vidUrl: string;     
+  name: string;
+  vidUrl: string;
 }
 
 export interface CreateUnitResponseDto {

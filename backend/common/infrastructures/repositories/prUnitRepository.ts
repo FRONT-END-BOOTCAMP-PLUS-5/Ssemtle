@@ -18,8 +18,8 @@ export class prUnitRepository implements IUnitRepository {
       data: {
         name: unitData.name,
         vidUrl: unitData.vidUrl,
-        userId: unitData.userId
-      }
+        userId: unitData.userId,
+      },
     });
 
     return {
@@ -27,7 +27,7 @@ export class prUnitRepository implements IUnitRepository {
       name: unit.name,
       vidUrl: unit.vidUrl,
       createdAt: unit.createdAt,
-      userId: unit.userId
+      userId: unit.userId,
     };
   }
 }

@@ -18,6 +18,7 @@ model Pet {
   createdAt DateTime @default(now()) @map("created_at")
   
   ownPets OwnPet[]
+  stores  Store[]
   
   @@map("pets")
 }
@@ -46,10 +47,12 @@ model User {
   
   ownPets                OwnPet[]
   teacherAuthorizations  TeacherAuthorization[]
-  units                  Unit[]
   unitQuestions          UnitQuestion[]
   solves                 Solve[]
   unitSolves             UnitSolve[]
+  teacherStudentsAsTeacher TeacherStudent[] @relation("TeacherStudentTeacher")
+  teacherStudentsAsStudent TeacherStudent[] @relation("TeacherStudentStudent")
+  unitExams              UnitExam[] @relation("UnitExamTeacher")
   
   @@map("users")
 }
@@ -61,6 +64,8 @@ model Store {
   price  Int
   petId  Int    @map("pet_id")
   createdAt DateTime @default(now()) @map("created_at")
+  
+  pet Pet @relation(fields: [petId], references: [id])
   
   @@map("stores")
 }
@@ -82,6 +87,10 @@ model TeacherStudent {
   studentId String      @map("student_id")
   createdAt DateTime @default(now()) @map("created_at")
   
+  teacher User @relation("TeacherStudentTeacher", fields: [teacherId], references: [id])
+  student User @relation("TeacherStudentStudent", fields: [studentId], references: [id])
+  
+  @@unique([teacherId, studentId])
   @@map("teacher_students")
 }
 
@@ -91,10 +100,8 @@ model Unit {
   vidUrl    String   @map("vid_url")
   createdAt DateTime @default(now()) @map("created_at")
   
-  userId String @map("user_id")
-  user   User @relation(fields: [userId], references: [id])
-  
   unitQuestions UnitQuestion[]
+  solves        Solve[]
   
   @@map("unit")
 }
@@ -106,13 +113,14 @@ model UnitQuestion {
   answer     String
   helpText   String   @map("help_text")
   createdAt  DateTime @default(now()) @map("created_at")
-  categoryId Int      @map("category_id")
   
   unitId Int  @map("unit_id")
   unit   Unit @relation(fields: [unitId], references: [id])
   
   userId String  @map("user_id")
   user   User @relation(fields: [userId], references: [id])
+  
+  unitSolves UnitSolve[]
   
   @@map("unit_questions")
 }
@@ -123,6 +131,7 @@ model UnitExam {
   createdAt DateTime @default(now()) @map("created_at")
   teacherId String      @map("teacher_id")
   
+  teacher User @relation("UnitExamTeacher", fields: [teacherId], references: [id])
   unitExamAttempts UnitExamAttempt[]
   
   @@map("unit_exam")
@@ -148,9 +157,10 @@ model Solve {
   userInput  String   @map("user_input")
   isCorrect  Boolean  @map("is_correct")
   createdAt  DateTime @default(now()) @map("created_at")
-  categoryId Int      @map("category_id")
+  unitId Int      @map("unit_id")
   userId     String      @map("user_id")
   
+  unit Unit @relation(fields: [unitId], references: [id])
   user User @relation(fields: [userId], references: [id])
   
   @@map("solves")
@@ -164,6 +174,7 @@ model UnitSolve {
   questionId Int      @map("question_id")
   userId     String      @map("user_id")
   
+  question UnitQuestion @relation(fields: [questionId], references: [id])
   user User @relation(fields: [userId], references: [id])
   
   @@map("unit_solves")

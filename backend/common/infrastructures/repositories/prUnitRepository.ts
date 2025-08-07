@@ -12,13 +12,11 @@ export class prUnitRepository implements IUnitRepository {
   async create(unitData: {
     name: string;
     vidUrl: string;
-    userId: string;
   }): Promise<Unit> {
     const unit = await this.prisma.unit.create({
       data: {
         name: unitData.name,
         vidUrl: unitData.vidUrl,
-        userId: unitData.userId,
       },
     });
 
@@ -27,7 +25,6 @@ export class prUnitRepository implements IUnitRepository {
       name: unit.name,
       vidUrl: unit.vidUrl,
       createdAt: unit.createdAt,
-      userId: unit.userId,
     };
   }
 
@@ -41,7 +38,6 @@ export class prUnitRepository implements IUnitRepository {
       name: unit.name,
       vidUrl: unit.vidUrl,
       createdAt: unit.createdAt,
-      userId: unit.userId,
     }));
   }
 }

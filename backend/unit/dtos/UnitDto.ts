@@ -8,7 +8,6 @@ export interface CreateUnitResponseDto {
   name: string;
   vidUrl: string;
   createdAt: Date;
-  userId: string;
 }
 
 export interface UnitSelectResponseDto {

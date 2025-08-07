@@ -11,15 +11,15 @@ export class UnitSelectUseCase {
   async getAllUnits(): Promise<UnitListResponseDto> {
     try {
       const units = await this.unitRepository.findAll();
-      
-      const unitList: UnitSelectResponseDto[] = units.map(unit => ({
+
+      const unitList: UnitSelectResponseDto[] = units.map((unit) => ({
         id: unit.id,
-        name: unit.name
+        name: unit.name,
       }));
 
       return {
         units: unitList,
-        total: unitList.length
+        total: unitList.length,
       };
     } catch (error) {
       console.error('Unit select error:', error);

@@ -6,7 +6,7 @@ export interface IUnitRepository {
     vidUrl: string;
     userId: string;
   }): Promise<Unit>;
-  
+
   findAll(): Promise<Unit[]>;
   // findByUserId 제거
 }

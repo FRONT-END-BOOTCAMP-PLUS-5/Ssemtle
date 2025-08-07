@@ -33,15 +33,15 @@ export class prUnitRepository implements IUnitRepository {
 
   async findAll(): Promise<Unit[]> {
     const units = await this.prisma.unit.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
-    return units.map(unit => ({
+    return units.map((unit) => ({
       id: unit.id,
       name: unit.name,
       vidUrl: unit.vidUrl,
       createdAt: unit.createdAt,
-      userId: unit.userId
+      userId: unit.userId,
     }));
   }
 }

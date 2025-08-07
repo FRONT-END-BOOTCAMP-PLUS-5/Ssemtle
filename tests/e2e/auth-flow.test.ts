@@ -1,7 +1,7 @@
 // ABOUTME: End-to-end tests for complete authentication flow
 // ABOUTME: Tests full user registration and login process with NextAuth integration
 import { signIn, signOut } from 'next-auth/react';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const mockSignIn = signIn as jest.MockedFunction<typeof signIn>;
 const mockSignOut = signOut as jest.MockedFunction<typeof signOut>;

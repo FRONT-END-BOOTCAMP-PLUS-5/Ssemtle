@@ -1,6 +1,9 @@
 // ABOUTME: Unit tests for authentication utilities and bcrypt functions
 // ABOUTME: Tests password hashing, validation, and user data processing
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
+import { CheckUserIdDuplicateUseCase } from '@/backend/auth/usecases/UserUsecase';
+import { IUserRepository } from '@/backend/common/domains/repositories/IUserRepository';
+import { User } from '@/backend/common/domains/entities/User';
 
 describe('Authentication Utils', () => {
   describe('Password Hashing', () => {
@@ -72,6 +75,68 @@ describe('Authentication Utils', () => {
     it('should accept valid passwords', () => {
       const validPassword = 'password123';
       expect(validPassword.length).toBeGreaterThanOrEqual(6);
+    });
+  });
+
+  describe('CheckUserIdDuplicateUseCase', () => {
+    let mockRepository: jest.Mocked<IUserRepository>;
+    let useCase: CheckUserIdDuplicateUseCase;
+
+    beforeEach(() => {
+      mockRepository = {
+        findByUserId: jest.fn(),
+        findById: jest.fn(),
+        create: jest.fn(),
+      };
+      useCase = new CheckUserIdDuplicateUseCase(mockRepository);
+    });
+
+    it('should return validation error when userId is empty', async () => {
+      const result = await useCase.execute({ userId: '' });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('아이디를 입력해주세요.');
+      expect(mockRepository.findByUserId).not.toHaveBeenCalled();
+    });
+
+    it('should return exists: true when user exists', async () => {
+      const mockUser: User = {
+        id: '1',
+        userId: 'existinguser',
+        password: 'hashedpassword',
+        name: '기존유저',
+        role: 'student',
+        point: 0,
+        streak: 0,
+        createdAt: new Date(),
+      };
+      mockRepository.findByUserId.mockResolvedValue(mockUser);
+
+      const result = await useCase.execute({ userId: 'existinguser' });
+
+      expect(result.success).toBe(true);
+      expect(result.exists).toBe(true);
+      expect(mockRepository.findByUserId).toHaveBeenCalledWith('existinguser');
+    });
+
+    it('should return exists: false when user does not exist', async () => {
+      mockRepository.findByUserId.mockResolvedValue(null);
+
+      const result = await useCase.execute({ userId: 'newuser' });
+
+      expect(result.success).toBe(true);
+      expect(result.exists).toBe(false);
+      expect(mockRepository.findByUserId).toHaveBeenCalledWith('newuser');
+    });
+
+    it('should handle repository errors gracefully', async () => {
+      mockRepository.findByUserId.mockRejectedValue(new Error('Database error'));
+
+      const result = await useCase.execute({ userId: 'testuser' });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('중복 확인 중 오류가 발생했습니다.');
+      expect(mockRepository.findByUserId).toHaveBeenCalledWith('testuser');
     });
   });
 });

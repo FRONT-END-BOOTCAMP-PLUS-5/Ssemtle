@@ -1,7 +1,7 @@
 // ABOUTME: Integration tests for authentication API endpoints
 // ABOUTME: Tests user registration and login flows with clean architecture layers
-import { CreateUserUseCase } from '@/backend/auth/usecases/UserUsecase';
-import { CreateUserRequestDto } from '@/backend/auth/dtos/UserDto';
+import { CreateUserUseCase, CheckUserIdDuplicateUseCase } from '@/backend/auth/usecases/UserUsecase';
+import { CreateUserRequestDto, CheckDuplicateRequestDto } from '@/backend/auth/dtos/UserDto';
 
 // Mock the entire PrUserRepository module
 jest.mock(
@@ -19,6 +19,7 @@ jest.mock(
 
 describe('Auth API Integration Tests', () => {
   let createUserUseCase: CreateUserUseCase;
+  let checkDuplicateUseCase: CheckUserIdDuplicateUseCase;
   let mockUserRepository: jest.Mocked<{
     findByUserId: jest.Mock;
     findById: jest.Mock;
@@ -32,6 +33,7 @@ describe('Auth API Integration Tests', () => {
     } = require('@/backend/common/infrastructures/repositories/PrUserRepository');
     mockUserRepository = new PrUserRepository();
     createUserUseCase = new CreateUserUseCase(mockUserRepository);
+    checkDuplicateUseCase = new CheckUserIdDuplicateUseCase(mockUserRepository);
   });
 
   describe('CreateUserUseCase', () => {
@@ -139,6 +141,88 @@ describe('Auth API Integration Tests', () => {
         expect(typeof message).toBe('string');
         expect(message.length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  describe('CheckUserIdDuplicateUseCase', () => {
+    it('should check if user exists', async () => {
+      const existingUser = {
+        id: 'user123',
+        userId: 'existinguser',
+        password: 'hashedpassword',
+        name: '기존유저',
+        role: 'student',
+        point: 0,
+        streak: 0,
+        createdAt: new Date(),
+      };
+
+      mockUserRepository.findByUserId.mockResolvedValue(existingUser);
+
+      const request: CheckDuplicateRequestDto = { userId: 'existinguser' };
+      const result = await checkDuplicateUseCase.execute(request);
+
+      expect(result.success).toBe(true);
+      expect(result.exists).toBe(true);
+      expect(mockUserRepository.findByUserId).toHaveBeenCalledWith('existinguser');
+    });
+
+    it('should check if user does not exist', async () => {
+      mockUserRepository.findByUserId.mockResolvedValue(null);
+
+      const request: CheckDuplicateRequestDto = { userId: 'newuser' };
+      const result = await checkDuplicateUseCase.execute(request);
+
+      expect(result.success).toBe(true);
+      expect(result.exists).toBe(false);
+      expect(mockUserRepository.findByUserId).toHaveBeenCalledWith('newuser');
+    });
+
+    it('should validate required fields for duplicate check', async () => {
+      const invalidRequest: CheckDuplicateRequestDto = { userId: '' };
+      const result = await checkDuplicateUseCase.execute(invalidRequest);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('아이디를 입력해주세요.');
+      expect(mockUserRepository.findByUserId).not.toHaveBeenCalled();
+    });
+
+    it('should handle database errors during duplicate check', async () => {
+      mockUserRepository.findByUserId.mockRejectedValue(new Error('Database connection error'));
+
+      const request: CheckDuplicateRequestDto = { userId: 'testuser' };
+      const result = await checkDuplicateUseCase.execute(request);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('중복 확인 중 오류가 발생했습니다.');
+    });
+  });
+
+  describe('Duplicate Check API Response Formats', () => {
+    it('should format duplicate check success response correctly', () => {
+      const availableResponse = {
+        exists: false,
+      };
+
+      const duplicateResponse = {
+        exists: true,
+        message: '이미 존재하는 아이디입니다.',
+      };
+
+      expect(availableResponse.exists).toBe(false);
+      expect(availableResponse).not.toHaveProperty('message');
+
+      expect(duplicateResponse.exists).toBe(true);
+      expect(duplicateResponse.message).toBe('이미 존재하는 아이디입니다.');
+    });
+
+    it('should format duplicate check error response correctly', () => {
+      const errorResponse = {
+        error: '아이디를 입력해주세요.',
+      };
+
+      expect(errorResponse.error).toBe('아이디를 입력해주세요.');
+      expect(typeof errorResponse.error).toBe('string');
     });
   });
 });

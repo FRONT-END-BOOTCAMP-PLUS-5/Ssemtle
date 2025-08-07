@@ -1,9 +1,9 @@
 // ABOUTME: User use cases containing business logic for user operations
 // ABOUTME: Handles validation, password hashing, and user creation workflows
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../../common/domains/repositories/IUserRepository';
-import { CreateUserRequestDto, UserCreationResult } from '../dtos/UserDto';
+import { CreateUserRequestDto, UserCreationResult, CheckDuplicateRequestDto, DuplicateCheckResult } from '../dtos/UserDto';
 
 export class CreateUserUseCase {
   private userRepository: IUserRepository;
@@ -65,6 +65,39 @@ export class CreateUserUseCase {
       return {
         success: false,
         error: '사용자 생성 중 오류가 발생했습니다.',
+      };
+    }
+  }
+}
+
+export class CheckUserIdDuplicateUseCase {
+  private userRepository: IUserRepository;
+
+  constructor(userRepository: IUserRepository) {
+    this.userRepository = userRepository;
+  }
+
+  async execute(request: CheckDuplicateRequestDto): Promise<DuplicateCheckResult> {
+    // Validate required field
+    if (!request.userId) {
+      return {
+        success: false,
+        error: '아이디를 입력해주세요.',
+      };
+    }
+
+    try {
+      const existingUser = await this.userRepository.findByUserId(request.userId);
+      
+      return {
+        success: true,
+        exists: !!existingUser,
+      };
+    } catch (error) {
+      console.error('Duplicate check error:', error);
+      return {
+        success: false,
+        error: '중복 확인 중 오류가 발생했습니다.',
       };
     }
   }

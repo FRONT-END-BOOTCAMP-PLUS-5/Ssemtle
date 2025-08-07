@@ -8,7 +8,6 @@ import { UnitDto } from '@/backend/unit/dtos/UnitDto';
 import { Unit } from '@/backend/common/domains/entities/Unit';
 import prisma from '@/libs/prisma';
 
-
 const mapToDto = (unit: Unit): UnitDto => ({
   id: unit.id,
   name: unit.name,
@@ -22,17 +21,23 @@ export async function POST(request: NextRequest) {
     const body: UnitDto = await request.json();
     const unitRepository = new prUnitRepository(prisma);
     const createUnitUseCase = new CreateUnitUseCase(unitRepository);
-    
+
     const unit = await createUnitUseCase.execute(body);
     const unitDto = mapToDto(unit);
 
-    return NextResponse.json({
-      message: '수학 단원이 성공적으로 생성되었습니다.',
-      data: unitDto,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        message: '수학 단원이 성공적으로 생성되었습니다.',
+        data: unitDto,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Unit creation error:', error);
-    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 400 });
+    return NextResponse.json(
+      { error: '서버 오류가 발생했습니다.' },
+      { status: 400 }
+    );
   }
 }
 
@@ -41,7 +46,7 @@ export async function GET() {
   try {
     const unitRepository = new prUnitRepository(prisma);
     const unitSelectUseCase = new UnitSelectUseCase(unitRepository);
-    
+
     const result = await unitSelectUseCase.getAllUnits();
     const units = result.units.map(mapToDto);
 
@@ -51,7 +56,8 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Unit list error:', error);
-    const errorMessage = error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -62,7 +68,7 @@ export async function PUT(request: NextRequest) {
     const body: UnitDto = await request.json();
     const unitRepository = new prUnitRepository(prisma);
     const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
-    
+
     const { id, ...updateData } = body;
     const unit = await updateUnitUseCase.execute(id!, updateData);
     const unitDto = mapToDto(unit);
@@ -73,7 +79,8 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Unit update error:', error);
-    const errorMessage = error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }
@@ -84,7 +91,7 @@ export async function DELETE(request: NextRequest) {
     const body: UnitDto = await request.json();
     const unitRepository = new prUnitRepository(prisma);
     const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
-    
+
     const unit = await deleteUnitUseCase.execute(body.id!);
 
     return NextResponse.json({
@@ -93,7 +100,8 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Unit delete error:', error);
-    const errorMessage = error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

@@ -8,7 +8,10 @@ export class UnitUpdateUseCase {
     this.unitRepository = unitRepository;
   }
 
-  async execute(id: number, updateData: { name?: string; vidUrl?: string }): Promise<Unit> {
+  async execute(
+    id: number,
+    updateData: { name?: string; vidUrl?: string }
+  ): Promise<Unit> {
     if (!id) {
       throw new Error('업데이트할 단원의 ID가 필요합니다.');
     }

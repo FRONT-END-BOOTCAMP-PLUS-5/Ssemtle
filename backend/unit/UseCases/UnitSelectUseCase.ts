@@ -11,7 +11,7 @@ export class UnitSelectUseCase {
   async getAllUnits(): Promise<{ units: Unit[]; total: number }> {
     try {
       const units = await this.unitRepository.findAll();
-      
+
       return {
         units,
         total: units.length,

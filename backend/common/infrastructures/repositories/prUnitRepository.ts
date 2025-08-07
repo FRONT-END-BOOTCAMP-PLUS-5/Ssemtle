@@ -17,8 +17,8 @@ export class prUnitRepository implements IUnitRepository {
       createdAt: unit.createdAt,
     };
   }
-  
-    // 단원 생성
+
+  // 단원 생성
   async create(unitData: { name: string; vidUrl: string }): Promise<Unit> {
     const unit = await this.prisma.unit.create({
       data: {
@@ -30,17 +30,20 @@ export class prUnitRepository implements IUnitRepository {
     return this.mapToUnit(unit);
   }
 
-    // 단원 목록 조회
+  // 단원 목록 조회
   async findAll(): Promise<Unit[]> {
     const units = await this.prisma.unit.findMany({
       orderBy: { createdAt: 'desc' },
     });
 
-    return units.map(unit => this.mapToUnit(unit));
+    return units.map((unit) => this.mapToUnit(unit));
   }
 
-    // 단원 업데이트
-  async update(id: number, unitData: { name?: string; vidUrl?: string }): Promise<Unit> {
+  // 단원 업데이트
+  async update(
+    id: number,
+    unitData: { name?: string; vidUrl?: string }
+  ): Promise<Unit> {
     const unit = await this.prisma.unit.update({
       where: { id },
       data: unitData,

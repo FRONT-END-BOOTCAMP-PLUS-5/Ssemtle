@@ -3,7 +3,10 @@ import { CreateUnitUseCase } from '@/backend/unit/UseCases/UnitCreateUseCase';
 import { UnitSelectUseCase } from '@/backend/unit/UseCases/UnitSelectUseCase';
 import { UnitUpdateUseCase } from '@/backend/unit/UseCases/UnitUpdateUseCase';
 import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository';
-import { CreateUnitRequestDto, UpdateUnitRequestDto } from '@/backend/unit/dtos/UnitDto';
+import {
+  CreateUnitRequestDto,
+  UpdateUnitRequestDto,
+} from '@/backend/unit/dtos/UnitDto';
 import prisma from '@/libs/prisma';
 
 // Unit 생성
@@ -73,13 +76,10 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     console.error('Unit update error:', error);
-    
-    const errorMessage = 
+
+    const errorMessage =
       error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
-    
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 400 }
-    );
+
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

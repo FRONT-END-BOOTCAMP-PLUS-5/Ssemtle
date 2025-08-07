@@ -45,7 +45,10 @@ export class UnitUpdateUseCase {
     }
 
     try {
-      const updatedUnit = await this.unitRepository.update(request.id, updateData);
+      const updatedUnit = await this.unitRepository.update(
+        request.id,
+        updateData
+      );
 
       return {
         id: updatedUnit.id,

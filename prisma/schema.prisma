@@ -47,7 +47,6 @@ model User {
   
   ownPets                OwnPet[]
   teacherAuthorizations  TeacherAuthorization[]
-  units                  Unit[]
   unitQuestions          UnitQuestion[]
   solves                 Solve[]
   unitSolves             UnitSolve[]
@@ -100,9 +99,6 @@ model Unit {
   name      String
   vidUrl    String   @map("vid_url")
   createdAt DateTime @default(now()) @map("created_at")
-  
-  userId String @map("user_id")
-  user   User @relation(fields: [userId], references: [id])
   
   unitQuestions UnitQuestion[]
   solves        Solve[]

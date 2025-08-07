@@ -104,7 +104,7 @@ model UnitQuestion {
   unitCode   String   @map("unit_code")
   question   String
   answer     String
-  helpUrl    String   @map("help_url")
+  helpText   String   @map("help_text")
   createdAt  DateTime @default(now()) @map("created_at")
   categoryId Int      @map("category_id")
   
@@ -144,7 +144,7 @@ model Solve {
   id         Int      @id @default(autoincrement())
   question   String
   answer     String
-  helpUrl    String   @map("help_url")
+  helpText   String   @map("help_text")
   userInput  String   @map("user_input")
   isCorrect  Boolean  @map("is_correct")
   createdAt  DateTime @default(now()) @map("created_at")

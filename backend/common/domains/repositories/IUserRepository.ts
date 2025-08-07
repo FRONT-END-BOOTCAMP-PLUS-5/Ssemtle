@@ -1,6 +1,3 @@
-// ABOUTME: User repository interface defining data access contracts using Prisma User type
-// ABOUTME: Provides abstraction for user-related database operations
-
 import { User } from '../entities/User';
 
 export interface IUserRepository {

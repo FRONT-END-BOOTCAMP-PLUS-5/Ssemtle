@@ -1,7 +1,13 @@
 // ABOUTME: Integration tests for authentication API endpoints
 // ABOUTME: Tests user registration and login flows with clean architecture layers
-import { CreateUserUseCase, CheckUserIdDuplicateUseCase } from '@/backend/auth/usecases/UserUsecase';
-import { CreateUserRequestDto, CheckDuplicateRequestDto } from '@/backend/auth/dtos/UserDto';
+import {
+  CreateUserUseCase,
+  CheckUserIdDuplicateUseCase,
+} from '@/backend/auth/usecases/UserUsecase';
+import {
+  CreateUserRequestDto,
+  CheckDuplicateRequestDto,
+} from '@/backend/auth/dtos/UserDto';
 
 // Mock the entire PrUserRepository module
 jest.mock(
@@ -164,7 +170,9 @@ describe('Auth API Integration Tests', () => {
 
       expect(result.success).toBe(true);
       expect(result.exists).toBe(true);
-      expect(mockUserRepository.findByUserId).toHaveBeenCalledWith('existinguser');
+      expect(mockUserRepository.findByUserId).toHaveBeenCalledWith(
+        'existinguser'
+      );
     });
 
     it('should check if user does not exist', async () => {
@@ -188,7 +196,9 @@ describe('Auth API Integration Tests', () => {
     });
 
     it('should handle database errors during duplicate check', async () => {
-      mockUserRepository.findByUserId.mockRejectedValue(new Error('Database connection error'));
+      mockUserRepository.findByUserId.mockRejectedValue(
+        new Error('Database connection error')
+      );
 
       const request: CheckDuplicateRequestDto = { userId: 'testuser' };
       const result = await checkDuplicateUseCase.execute(request);

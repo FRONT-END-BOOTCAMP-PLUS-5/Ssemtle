@@ -3,7 +3,12 @@
 
 import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../../common/domains/repositories/IUserRepository';
-import { CreateUserRequestDto, UserCreationResult, CheckDuplicateRequestDto, DuplicateCheckResult } from '../dtos/UserDto';
+import {
+  CreateUserRequestDto,
+  UserCreationResult,
+  CheckDuplicateRequestDto,
+  DuplicateCheckResult,
+} from '../dtos/UserDto';
 
 export class CreateUserUseCase {
   private userRepository: IUserRepository;
@@ -77,7 +82,9 @@ export class CheckUserIdDuplicateUseCase {
     this.userRepository = userRepository;
   }
 
-  async execute(request: CheckDuplicateRequestDto): Promise<DuplicateCheckResult> {
+  async execute(
+    request: CheckDuplicateRequestDto
+  ): Promise<DuplicateCheckResult> {
     // Validate required field
     if (!request.userId) {
       return {
@@ -87,8 +94,10 @@ export class CheckUserIdDuplicateUseCase {
     }
 
     try {
-      const existingUser = await this.userRepository.findByUserId(request.userId);
-      
+      const existingUser = await this.userRepository.findByUserId(
+        request.userId
+      );
+
       return {
         success: true,
         exists: !!existingUser,

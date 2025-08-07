@@ -3,14 +3,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CheckUserIdDuplicateUseCase } from '@/backend/auth/usecases/UserUsecase';
 import { PrUserRepository } from '@/backend/common/infrastructures/repositories/PrUserRepository';
-import { CheckDuplicateRequestDto, CheckDuplicateResponseDto } from '@/backend/auth/dtos/UserDto';
+import {
+  CheckDuplicateRequestDto,
+  CheckDuplicateResponseDto,
+} from '@/backend/auth/dtos/UserDto';
 
 export async function POST(request: NextRequest) {
   try {
     const body: CheckDuplicateRequestDto = await request.json();
 
     const userRepository = new PrUserRepository();
-    const checkDuplicateUseCase = new CheckUserIdDuplicateUseCase(userRepository);
+    const checkDuplicateUseCase = new CheckUserIdDuplicateUseCase(
+      userRepository
+    );
 
     const result = await checkDuplicateUseCase.execute(body);
 

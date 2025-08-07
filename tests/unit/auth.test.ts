@@ -130,7 +130,9 @@ describe('Authentication Utils', () => {
     });
 
     it('should handle repository errors gracefully', async () => {
-      mockRepository.findByUserId.mockRejectedValue(new Error('Database error'));
+      mockRepository.findByUserId.mockRejectedValue(
+        new Error('Database error')
+      );
 
       const result = await useCase.execute({ userId: 'testuser' });
 

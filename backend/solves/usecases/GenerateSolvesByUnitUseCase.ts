@@ -4,12 +4,12 @@ type GeminiGenerator = {
   generate: (prompt: string) => Promise<string>;
 };
 
-export class GenerateSolvesByCategoryUseCase {
+export class GenerateSolvesByUnitUseCase {
   constructor(private readonly gemini: GeminiGenerator) {}
 
-  async execute(category: string): Promise<SolveResponseDto[]> {
+  async execute(unit: string): Promise<SolveResponseDto[]> {
   const prompt = `
-"${category}" 유형의 수학 문제 10개를 아래와 같은 JSON 배열 형식으로 출력해줘.
+"${unit}" 유형의 수학 문제 10개를 아래와 같은 JSON 배열 형식으로 출력해줘.
 
 형식 예시:
 [

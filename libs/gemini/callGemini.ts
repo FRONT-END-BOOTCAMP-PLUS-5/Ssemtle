@@ -18,7 +18,7 @@ export async function callGemini(prompt: string): Promise<string> {
   );
 
   const data = await response.json();
-  console.log("📡 Gemini 전체 응답:", JSON.stringify(data, null, 2)) // 🔥 추가
+  console.log('📡 Gemini 전체 응답:', JSON.stringify(data, null, 2)); // 🔥 추가
 
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }

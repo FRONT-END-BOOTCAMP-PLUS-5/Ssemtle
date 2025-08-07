@@ -8,4 +8,5 @@ export interface IUnitRepository {
     unitData: { name?: string; vidUrl?: string }
   ): Promise<Unit>;
   findById(id: number): Promise<Unit | null>;
+  delete(id: number): Promise<Unit>;
 }

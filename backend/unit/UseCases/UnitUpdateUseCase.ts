@@ -1,4 +1,4 @@
-import { UpdateUnitRequestDto, UpdateUnitResponseDto } from '../dtos/UnitDto';
+import { Unit } from '@/backend/common/domains/entities/Unit';
 import { IUnitRepository } from '@/backend/common/domains/repositories/IUnitRepository';
 
 export class UnitUpdateUseCase {
@@ -8,54 +8,41 @@ export class UnitUpdateUseCase {
     this.unitRepository = unitRepository;
   }
 
-  async execute(request: UpdateUnitRequestDto): Promise<UpdateUnitResponseDto> {
-    if (!request.id) {
+  async execute(id: number, updateData: { name?: string; vidUrl?: string }): Promise<Unit> {
+    if (!id) {
       throw new Error('업데이트할 단원의 ID가 필요합니다.');
     }
 
-    // 기존 단원이 존재하는지 확인
-    const existingUnit = await this.unitRepository.findById(request.id);
+    const existingUnit = await this.unitRepository.findById(id);
     if (!existingUnit) {
       throw new Error('존재하지 않는 단원입니다.');
     }
 
-    // 업데이트할 데이터 검증
-    const updateData: { name?: string; vidUrl?: string } = {};
+    const validatedData: { name?: string; vidUrl?: string } = {};
 
-    if (request.name !== undefined) {
-      if (request.name.trim().length < 2) {
+    if (updateData.name !== undefined) {
+      if (updateData.name.trim().length < 2) {
         throw new Error('과목명은 2자 이상 입력해주세요.');
       }
-      if (request.name.length > 20) {
+      if (updateData.name.length > 20) {
         throw new Error('과목명은 20자 이하로 입력해주세요.');
       }
-      updateData.name = request.name.trim();
+      validatedData.name = updateData.name.trim();
     }
 
-    if (request.vidUrl !== undefined) {
-      if (!request.vidUrl.trim()) {
+    if (updateData.vidUrl !== undefined) {
+      if (!updateData.vidUrl.trim()) {
         throw new Error('영상 URL을 입력해주세요.');
       }
-      updateData.vidUrl = request.vidUrl.trim();
+      validatedData.vidUrl = updateData.vidUrl.trim();
     }
 
-    // 업데이트할 데이터가 없는 경우
-    if (Object.keys(updateData).length === 0) {
+    if (Object.keys(validatedData).length === 0) {
       throw new Error('업데이트할 데이터가 없습니다.');
     }
 
     try {
-      const updatedUnit = await this.unitRepository.update(
-        request.id,
-        updateData
-      );
-
-      return {
-        id: updatedUnit.id,
-        name: updatedUnit.name,
-        vidUrl: updatedUnit.vidUrl,
-        createdAt: updatedUnit.createdAt,
-      };
+      return await this.unitRepository.update(id, validatedData);
     } catch (error) {
       console.error('Unit update error:', error);
       throw new Error('단원 업데이트 중 오류가 발생했습니다.');

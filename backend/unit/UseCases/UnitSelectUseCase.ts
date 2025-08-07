@@ -1,5 +1,5 @@
+import { Unit } from '@/backend/common/domains/entities/Unit';
 import { IUnitRepository } from '@/backend/common/domains/repositories/IUnitRepository';
-import { UnitSelectResponseDto, UnitListResponseDto } from '../dtos/UnitDto';
 
 export class UnitSelectUseCase {
   private unitRepository: IUnitRepository;
@@ -8,18 +8,13 @@ export class UnitSelectUseCase {
     this.unitRepository = unitRepository;
   }
 
-  async getAllUnits(): Promise<UnitListResponseDto> {
+  async getAllUnits(): Promise<{ units: Unit[]; total: number }> {
     try {
       const units = await this.unitRepository.findAll();
-
-      const unitList: UnitSelectResponseDto[] = units.map((unit) => ({
-        id: unit.id,
-        name: unit.name,
-      }));
-
+      
       return {
-        units: unitList,
-        total: unitList.length,
+        units,
+        total: units.length,
       };
     } catch (error) {
       console.error('Unit select error:', error);

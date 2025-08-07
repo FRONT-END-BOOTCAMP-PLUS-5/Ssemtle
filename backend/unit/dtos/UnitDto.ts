@@ -1,34 +1,6 @@
-export interface CreateUnitRequestDto {
-  name: string;
-  vidUrl: string;
-}
-
-export interface CreateUnitResponseDto {
-  id: number;
-  name: string;
-  vidUrl: string;
-  createdAt: Date;
-}
-
-export interface UnitSelectResponseDto {
-  id: number;
-  name: string;
-}
-
-export interface UnitListResponseDto {
-  units: UnitSelectResponseDto[];
-  total: number;
-}
-
-export interface UpdateUnitRequestDto {
-  id: number;
-  name?: string;
-  vidUrl?: string;
-}
-
-export interface UpdateUnitResponseDto {
-  id: number;
-  name: string;
-  vidUrl: string;
-  createdAt: Date;
+export interface UnitDto {
+  readonly id?: number;
+  readonly name: string;
+  readonly vidUrl: string;
+  readonly createdAt?: Date;
 }

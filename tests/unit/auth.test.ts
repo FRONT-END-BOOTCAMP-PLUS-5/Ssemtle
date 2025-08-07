@@ -7,9 +7,9 @@ describe('Authentication Utils', () => {
     it('should hash password with bcrypt', async () => {
       const password = 'testPassword123';
       const saltRounds = 12;
-      
+
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      
+
       expect(hashedPassword).toBeDefined();
       expect(hashedPassword).not.toBe(password);
       expect(hashedPassword.length).toBeGreaterThan(50);
@@ -18,9 +18,9 @@ describe('Authentication Utils', () => {
     it('should verify correct password', async () => {
       const password = 'testPassword123';
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       const isValid = await bcrypt.compare(password, hashedPassword);
-      
+
       expect(isValid).toBe(true);
     });
 
@@ -28,18 +28,18 @@ describe('Authentication Utils', () => {
       const password = 'testPassword123';
       const wrongPassword = 'wrongPassword456';
       const hashedPassword = await bcrypt.hash(password, 12);
-      
+
       const isValid = await bcrypt.compare(wrongPassword, hashedPassword);
-      
+
       expect(isValid).toBe(false);
     });
 
     it('should generate different hashes for same password', async () => {
       const password = 'testPassword123';
-      
+
       const hash1 = await bcrypt.hash(password, 12);
       const hash2 = await bcrypt.hash(password, 12);
-      
+
       expect(hash1).not.toBe(hash2);
       expect(await bcrypt.compare(password, hash1)).toBe(true);
       expect(await bcrypt.compare(password, hash2)).toBe(true);

@@ -15,7 +15,9 @@ export interface TestUser {
   role: string;
 }
 
-export async function createTestUser(userData: Partial<TestUser> = {}): Promise<TestUser> {
+export async function createTestUser(
+  userData: Partial<TestUser> = {}
+): Promise<TestUser> {
   const defaultUser = {
     userId: `testuser_${Date.now()}`,
     password: 'testpassword123',

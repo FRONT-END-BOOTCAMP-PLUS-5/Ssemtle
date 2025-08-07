@@ -1,11 +1,11 @@
 // ABOUTME: Jest configuration for TypeScript and Next.js testing
 // ABOUTME: Configures test environment, module resolution, and TypeScript support
-import nextJest from 'next/jest.js'
+import nextJest from 'next/jest.js';
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files
   dir: './',
-})
+});
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
@@ -26,11 +26,9 @@ const customJestConfig = {
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@prisma|bcrypt))',
-  ],
+  transformIgnorePatterns: ['node_modules/(?!(.*\\.mjs$|@prisma|bcrypt))'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-}
+};
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-export default createJestConfig(customJestConfig)
+export default createJestConfig(customJestConfig);

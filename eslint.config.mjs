@@ -34,7 +34,12 @@ const eslintConfig = [
   }),
   // Jest configuration for test files
   {
-    files: ['**/*.test.{js,ts,jsx,tsx}', 'tests/**/*.{js,ts}', 'jest.setup.js', 'jest.config.mjs'],
+    files: [
+      '**/*.test.{js,ts,jsx,tsx}',
+      'tests/**/*.{js,ts}',
+      'jest.setup.js',
+      'jest.config.mjs',
+    ],
     ...jestPlugin.configs['flat/recommended'],
   },
 ];

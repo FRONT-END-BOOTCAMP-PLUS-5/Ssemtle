@@ -68,8 +68,8 @@ describe('Authentication Flow E2E Tests', () => {
   describe('User Role Management', () => {
     it('should handle different user roles', () => {
       const roles = ['student', 'teacher', 'admin'];
-      
-      roles.forEach(role => {
+
+      roles.forEach((role) => {
         const user = {
           userId: `${role}user123`,
           role: role,
@@ -91,11 +91,14 @@ describe('Authentication Flow E2E Tests', () => {
 
     it('should handle special characters in passwords', async () => {
       const specialCharPassword = 'test@#$%123!';
-      
+
       // Test that bcrypt can handle special characters
       const hashedPassword = await bcrypt.hash(specialCharPassword, 12);
-      const passwordMatches = await bcrypt.compare(specialCharPassword, hashedPassword);
-      
+      const passwordMatches = await bcrypt.compare(
+        specialCharPassword,
+        hashedPassword
+      );
+
       expect(passwordMatches).toBe(true);
       expect(hashedPassword).not.toBe(specialCharPassword);
     });

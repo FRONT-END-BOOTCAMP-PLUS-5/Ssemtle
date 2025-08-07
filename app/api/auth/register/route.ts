@@ -8,18 +8,15 @@ import { CreateUserRequestDto } from '@/backend/auth/dtos/UserDto';
 export async function POST(request: NextRequest) {
   try {
     const body: CreateUserRequestDto = await request.json();
-    
+
     const userRepository = new PrUserRepository();
     const createUserUseCase = new CreateUserUseCase(userRepository);
-    
+
     const result = await createUserUseCase.execute(body);
 
     if (!result.success) {
       const status = result.error?.includes('이미 존재하는') ? 409 : 400;
-      return NextResponse.json(
-        { error: result.error },
-        { status }
-      );
+      return NextResponse.json({ error: result.error }, { status });
     }
 
     return NextResponse.json(

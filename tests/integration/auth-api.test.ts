@@ -4,15 +4,18 @@ import { CreateUserUseCase } from '@/backend/auth/usecases/UserUsecase';
 import { CreateUserRequestDto } from '@/backend/auth/dtos/UserDto';
 
 // Mock the entire PrUserRepository module
-jest.mock('@/backend/common/infrastructures/repositories/PrUserRepository', () => {
-  return {
-    PrUserRepository: jest.fn().mockImplementation(() => ({
-      findByUserId: jest.fn(),
-      findById: jest.fn(),
-      create: jest.fn(),
-    })),
-  };
-});
+jest.mock(
+  '@/backend/common/infrastructures/repositories/PrUserRepository',
+  () => {
+    return {
+      PrUserRepository: jest.fn().mockImplementation(() => ({
+        findByUserId: jest.fn(),
+        findById: jest.fn(),
+        create: jest.fn(),
+      })),
+    };
+  }
+);
 
 describe('Auth API Integration Tests', () => {
   let createUserUseCase: CreateUserUseCase;
@@ -24,7 +27,9 @@ describe('Auth API Integration Tests', () => {
 
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrUserRepository } = require('@/backend/common/infrastructures/repositories/PrUserRepository');
+    const {
+      PrUserRepository,
+    } = require('@/backend/common/infrastructures/repositories/PrUserRepository');
     mockUserRepository = new PrUserRepository();
     createUserUseCase = new CreateUserUseCase(mockUserRepository);
   });
@@ -47,7 +52,7 @@ describe('Auth API Integration Tests', () => {
         role: validRequest.role!,
         point: 0,
         streak: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const result = await createUserUseCase.execute(validRequest);
@@ -88,7 +93,7 @@ describe('Auth API Integration Tests', () => {
         role: request.role!,
         point: 0,
         streak: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const result = await createUserUseCase.execute(request);
@@ -130,7 +135,7 @@ describe('Auth API Integration Tests', () => {
         serverError: '서버 오류가 발생했습니다.',
       };
 
-      Object.values(errorMessages).forEach(message => {
+      Object.values(errorMessages).forEach((message) => {
         expect(typeof message).toBe('string');
         expect(message.length).toBeGreaterThan(0);
       });

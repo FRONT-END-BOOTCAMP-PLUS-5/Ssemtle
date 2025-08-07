@@ -24,15 +24,11 @@ const eslintConfig = [
       'public/',
       'temp/',
     ],
-    extends: [
-      'next/core-web-vitals',
-      'next/typescript',
-    ],
+    extends: ['next/core-web-vitals', 'next/typescript'],
     overrides: [
       {
         files: ['*.ts', '*.tsx', '*.js', '*.jsx'],
-        rules: {
-        },
+        rules: {},
       },
     ],
   }),

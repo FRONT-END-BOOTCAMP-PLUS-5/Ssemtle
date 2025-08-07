@@ -1,7 +1,7 @@
 {
   "_comment": "Example Claude Code hooks configuration for your ~/.claude/settings.json",
   "_instructions": "Copy the hooks array below into your ~/.claude/settings.json file",
-  
+
   "hooks": [
     {
       "_description": "Git branch protection - prevents commits/pushes to main",
@@ -15,7 +15,7 @@
     },
     {
       "_description": "Test requirement enforcement - ensures TDD compliance",
-      "event": "PreToolUse", 
+      "event": "PreToolUse",
       "matcher": {
         "tool": ["Edit", "Write", "MultiEdit"]
       },
@@ -32,7 +32,7 @@
       "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/auto-lint.sh"
     },
     {
-      "_description": "Suggest journaling for architectural changes", 
+      "_description": "Suggest journaling for architectural changes",
       "event": "PostToolUse",
       "matcher": {
         "tool": "Edit",
@@ -47,7 +47,7 @@
     },
     {
       "_description": "Remind about TodoWrite for complex tasks",
-      "event": "UserPromptSubmit", 
+      "event": "UserPromptSubmit",
       "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-todos.sh"
     },
     {

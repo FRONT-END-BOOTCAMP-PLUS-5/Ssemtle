@@ -37,4 +37,35 @@ export class prUnitRepository implements IUnitRepository {
       createdAt: unit.createdAt,
     }));
   }
+
+  async update(id: number, unitData: { name?: string; vidUrl?: string }): Promise<Unit> {
+    const unit = await this.prisma.unit.update({
+      where: { id },
+      data: unitData,
+    });
+
+    return {
+      id: unit.id,
+      name: unit.name,
+      vidUrl: unit.vidUrl,
+      createdAt: unit.createdAt,
+    };
+  }
+
+  async findById(id: number): Promise<Unit | null> {
+    const unit = await this.prisma.unit.findUnique({
+      where: { id },
+    });
+
+    if (!unit) {
+      return null;
+    }
+
+    return {
+      id: unit.id,
+      name: unit.name,
+      vidUrl: unit.vidUrl,
+      createdAt: unit.createdAt,
+    };
+  }
 }

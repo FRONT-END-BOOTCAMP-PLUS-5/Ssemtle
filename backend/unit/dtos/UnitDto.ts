@@ -19,3 +19,16 @@ export interface UnitListResponseDto {
   units: UnitSelectResponseDto[];
   total: number;
 }
+
+export interface UpdateUnitRequestDto {
+  id: number;
+  name?: string;
+  vidUrl?: string;
+}
+
+export interface UpdateUnitResponseDto {
+  id: number;
+  name: string;
+  vidUrl: string;
+  createdAt: Date;
+}

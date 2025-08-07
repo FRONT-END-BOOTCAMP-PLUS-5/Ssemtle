@@ -1,6 +1,3 @@
-// ABOUTME: Prisma implementation of user repository using Prisma User type
-// ABOUTME: Handles all user-related data access and database queries using Prisma
-
 import prisma from '@/libs/prisma';
 import { User } from '@prisma/client';
 import { IUserRepository } from '../../domains/repositories/IUserRepository';

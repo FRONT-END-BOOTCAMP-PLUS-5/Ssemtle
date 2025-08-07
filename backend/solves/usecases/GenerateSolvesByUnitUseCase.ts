@@ -1,4 +1,4 @@
-import { SolveResponseDto } from "../dtos/SolveDto";
+import { SolveResponseDto } from '../dtos/SolveDto';
 
 type GeminiGenerator = {
   generate: (prompt: string) => Promise<string>;
@@ -8,7 +8,7 @@ export class GenerateSolvesByUnitUseCase {
   constructor(private readonly gemini: GeminiGenerator) {}
 
   async execute(unit: string): Promise<SolveResponseDto[]> {
-  const prompt = `
+    const prompt = `
 "${unit}" 유형의 수학 문제 10개를 아래와 같은 JSON 배열 형식으로 출력해줘.
 
 형식 예시:
@@ -26,29 +26,29 @@ export class GenerateSolvesByUnitUseCase {
 - 전과 항상 다른 문제를 생성해줘.
 `;
 
-const rawText = await this.gemini.generate(prompt);
-console.log("📨 Gemini 응답 원문:\n", rawText);
+    const rawText = await this.gemini.generate(prompt);
+    console.log('📨 Gemini 응답 원문:\n', rawText);
 
-// 대괄호로 감싼 JSON 배열만 추출
-const match = rawText.match(/\[\s*{[\s\S]*?}\s*\]/);
+    // 대괄호로 감싼 JSON 배열만 추출
+    const match = rawText.match(/\[\s*{[\s\S]*?}\s*\]/);
 
-if (!match) {
-  console.error("❌ JSON 배열 형태를 찾을 수 없습니다.");
-  return [];
-}
+    if (!match) {
+      console.error('❌ JSON 배열 형태를 찾을 수 없습니다.');
+      return [];
+    }
 
-const cleanedText = match[0];
+    const cleanedText = match[0];
 
-  try {
-    const parsed: SolveResponseDto[] = JSON.parse(cleanedText);
-    return parsed.map(item => ({
-      question: item.question,
-      answer: item.answer,
-      helpText: item.helpText
-    }));
-  } catch (err) {
-    console.error("❌ JSON 파싱 실패:", err);
-    return [];
+    try {
+      const parsed: SolveResponseDto[] = JSON.parse(cleanedText);
+      return parsed.map((item) => ({
+        question: item.question,
+        answer: item.answer,
+        helpText: item.helpText,
+      }));
+    } catch (err) {
+      console.error('❌ JSON 파싱 실패:', err);
+      return [];
     }
   }
 }

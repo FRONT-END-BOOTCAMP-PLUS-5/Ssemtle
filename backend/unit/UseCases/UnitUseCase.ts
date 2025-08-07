@@ -8,9 +8,7 @@ export class CreateUnitUseCase {
     this.unitRepository = unitRepository;
   }
 
-  async execute(
-    request: CreateUnitRequestDto
-  ): Promise<CreateUnitResponseDto> {
+  async execute(request: CreateUnitRequestDto): Promise<CreateUnitResponseDto> {
     if (!request.name || !request.vidUrl) {
       throw new Error('과목명과 영상 URL을 모두 입력해주세요.');
     }

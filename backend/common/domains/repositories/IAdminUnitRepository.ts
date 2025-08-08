@@ -1,6 +1,6 @@
 import { Unit } from '../entities/Unit';
 
-export interface IUnitRepository {
+export interface IAdminUnitRepository {
   create(unitData: { name: string; vidUrl: string }): Promise<Unit>;
   findAll(): Promise<Unit[]>;
   update(

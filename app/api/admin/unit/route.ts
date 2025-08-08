@@ -3,7 +3,7 @@ import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/CreateUnitUseCa
 import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/SelectUnitUseCase';
 import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UpdateUnitUseCase';
 import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/DeleteUnitUseCase';
-import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository';
+import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 
 // Unit 생성
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const { name, vidUrl } = await request.json();
 
-    const unitRepository = new prUnitRepository(prisma);
+    const unitRepository = new prAdminUnitRepository(prisma);
     const createUnitUseCase = new CreateUnitUseCase(unitRepository);
 
     const unit = await createUnitUseCase.execute({ name, vidUrl });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 // Unit 목록 조회
 export async function GET() {
   try {
-    const unitRepository = new prUnitRepository(prisma);
+    const unitRepository = new prAdminUnitRepository(prisma);
     const unitSelectUseCase = new UnitSelectUseCase(unitRepository);
 
     const result = await unitSelectUseCase.getAllUnits();
@@ -70,7 +70,7 @@ export async function PUT(request: NextRequest) {
   try {
     const { id, name, vidUrl } = await request.json();
 
-    const unitRepository = new prUnitRepository(prisma);
+    const unitRepository = new prAdminUnitRepository(prisma);
     const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
 
     const unit = await updateUnitUseCase.execute(id, { name, vidUrl });
@@ -97,7 +97,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json();
 
-    const unitRepository = new prUnitRepository(prisma);
+    const unitRepository = new prAdminUnitRepository(prisma);
     const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
 
     const unit = await deleteUnitUseCase.execute(id);

@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
-import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthCreateRepository';
+import { IAdmTchrAuthRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
-export class PrAdmTchrAuthCreateRepository
-  implements IAdmTchrAuthCreateRepository
-{
+export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
   private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {
@@ -76,11 +74,10 @@ export class PrAdmTchrAuthCreateRepository
         },
       });
 
-      return teacherAuths.map(auth => this.mapToEntity(auth));
+      return teacherAuths.map((auth) => this.mapToEntity(auth));
     } catch (error) {
       console.error('교사 인증 요청 목록 조회 실패', error);
       throw new Error('교사 인증 요청 목록을 조회하는 중 오류가 발생했습니다.');
     }
   }
-
 }

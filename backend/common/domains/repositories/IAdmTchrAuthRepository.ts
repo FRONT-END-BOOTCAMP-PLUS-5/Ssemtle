@@ -1,6 +1,6 @@
 import { TeacherAuthorization } from '../entities/TeacherAuthorization';
 
-export interface IAdmTchrAuthCreateRepository {
+export interface IAdmTchrAuthRepository {
   create(teacherId: string, imgUrl: string): Promise<TeacherAuthorization>;
   findAll(): Promise<TeacherAuthorization[]>;
 }

@@ -1,5 +1,5 @@
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
-import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthCreateRepository';
+import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
 // 교사 인증 요청 생성 유스케이스
 export class CreateTeacherAuthUseCase {

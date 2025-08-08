@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/CreateTeacherAuthUseCase';
 import { SelectTeacherAuthListUseCase } from '@/backend/admin/teacher/usecases/SelectTeacherAuthListUseCase';
-import { PrAdmTchrAuthCreateRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthCreateRepository';
+import { PrAdmTchrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthRepository';
 import prisma from '@/libs/prisma';
 
 // 교사 인증 요청 생성
@@ -10,8 +10,10 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json();
     const { teacherId, imgUrl } = requestBody;
 
-    const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(teacherAuthRepository);
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
+    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
+      teacherAuthRepository
+    );
 
     const teacherAuth = await createTeacherAuthUseCase.execute({
       teacherId,
@@ -41,8 +43,10 @@ export async function POST(request: NextRequest) {
 // 교사 인증 요청 목록 조회
 export async function GET() {
   try {
-    const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(teacherAuthRepository);
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
+    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(
+      teacherAuthRepository
+    );
 
     const result = await selectTeacherAuthUseCase.getAllTeacherAuths();
 

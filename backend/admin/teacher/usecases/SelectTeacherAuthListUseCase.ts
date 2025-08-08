@@ -1,5 +1,5 @@
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
-import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthCreateRepository';
+import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
 export class SelectTeacherAuthListUseCase {
   private teacherAuthRepository: IAdmTchrAuthCreateRepository;
@@ -8,7 +8,10 @@ export class SelectTeacherAuthListUseCase {
     this.teacherAuthRepository = teacherAuthRepository;
   }
 
-  async getAllTeacherAuths(): Promise<{ teacherAuths: TeacherAuthorization[]; total: number }> {
+  async getAllTeacherAuths(): Promise<{
+    teacherAuths: TeacherAuthorization[];
+    total: number;
+  }> {
     try {
       const teacherAuths = await this.teacherAuthRepository.findAll();
 

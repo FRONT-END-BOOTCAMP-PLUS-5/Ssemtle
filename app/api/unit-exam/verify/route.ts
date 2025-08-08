@@ -3,10 +3,10 @@
 // ABOUTME: 유효한 코드인 경우 unit_exam_attempts 테이블에 시도 기록 저장
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../../../libs/prisma';
-import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
-import { PrUnitExamAttemptRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
-import { VerifyUnitExamUseCase } from '../../../../backend/unit/usecases/UnitExamUsecase';
+import prisma from '@/libs/prisma';
+import { PrUnitExamRepository } from '@/backend/common/infrastructures/repositories/PrUnitExamRepository';
+import { PrUnitExamAttemptRepository } from '@/backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
+import { VerifyUnitExamUseCase } from '@/backend/unit/usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
   try {

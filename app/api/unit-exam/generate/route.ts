@@ -3,10 +3,10 @@
 // ABOUTME: AI를 사용하여 문제도 자동 생성하여 UnitQuestion 테이블에 저장
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../../../libs/prisma';
-import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
-import { PrUnitQuestionRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitQuestionRepository';
-import { GenerateUnitExamUseCase } from '../../../../backend/unit/usecases/UnitExamUsecase';
+import prisma from '@/libs/prisma';
+import { PrUnitExamRepository } from '@/backend/common/infrastructures/repositories/PrUnitExamRepository';
+import { PrUnitQuestionRepository } from '@/backend/common/infrastructures/repositories/PrUnitQuestionRepository';
+import { GenerateUnitExamUseCase } from '@/backend/unit/usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
   try {

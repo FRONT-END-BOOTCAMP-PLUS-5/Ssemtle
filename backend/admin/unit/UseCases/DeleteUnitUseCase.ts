@@ -1,5 +1,5 @@
 import { Unit } from '@/backend/common/domains/entities/Unit';
-import { IUnitRepository } from '@/backend/common/domains/repositories/IUnitRepository';
+import { IUnitRepository } from '@/backend/common/domains/repositories/IAdminUnitRepository';
 
 export class UnitDeleteUseCase {
   private unitRepository: IUnitRepository;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/CreateTeacherAuthUseCase';
+import { SelectTeacherAuthListUseCase } from '@/backend/admin/teacher/usecases/SelectTeacherAuthListUseCase';
 import { PrAdmTchrAuthCreateRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthCreateRepository';
 import prisma from '@/libs/prisma';
 
@@ -10,9 +11,7 @@ export async function POST(request: NextRequest) {
     const { teacherId, imgUrl } = requestBody;
 
     const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
-      teacherAuthRepository
-    );
+    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(teacherAuthRepository);
 
     const teacherAuth = await createTeacherAuthUseCase.execute({
       teacherId,
@@ -36,5 +35,33 @@ export async function POST(request: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 400 });
+  }
+}
+
+// 교사 인증 요청 목록 조회
+export async function GET() {
+  try {
+    const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
+    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(teacherAuthRepository);
+
+    const result = await selectTeacherAuthUseCase.getAllTeacherAuths();
+
+    return NextResponse.json({
+      message: '교사 인증 요청 목록 조회가 완료되었습니다.',
+      data: {
+        teacherAuths: result.teacherAuths.map((auth) => ({
+          id: auth.id,
+          teacherId: auth.teacherId,
+          imgUrl: auth.imgUrl,
+          createdAt: auth.createdAt,
+        })),
+        total: result.total,
+      },
+    });
+  } catch (error) {
+    console.error('Teacher auth list error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

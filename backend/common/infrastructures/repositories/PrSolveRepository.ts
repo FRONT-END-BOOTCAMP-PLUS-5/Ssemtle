@@ -13,4 +13,12 @@ export class PrSolveRepository implements SolveRepository {
 
     return saved;
   }
+
+  async findHelpTextById(solveId: number): Promise<{ helpText: string } | null> {
+    const res = await prisma.solve.findUnique({
+      where: { id: solveId },
+      select: { helpText: true },
+    });
+    return res; // { helpText } | null
+  }
 }

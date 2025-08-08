@@ -11,7 +11,9 @@ export async function POST(request: NextRequest) {
     const { teacherId, imgUrl } = requestBody;
 
     const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(teacherAuthRepository);
+    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
+      teacherAuthRepository
+    );
 
     const teacherAuth = await createTeacherAuthUseCase.execute({
       teacherId,
@@ -42,7 +44,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(teacherAuthRepository);
+    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(
+      teacherAuthRepository
+    );
 
     const result = await selectTeacherAuthUseCase.getAllTeacherAuths();
 

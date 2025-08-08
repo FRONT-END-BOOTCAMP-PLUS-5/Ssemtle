@@ -25,4 +25,3 @@ export interface IUnitExamAttemptRepository {
     unitExamId: number
   ): Promise<boolean>;
 }
-

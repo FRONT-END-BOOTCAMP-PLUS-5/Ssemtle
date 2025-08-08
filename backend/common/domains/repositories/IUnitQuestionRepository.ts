@@ -28,4 +28,3 @@ export interface IUnitQuestionRepository {
   // 사용자별 문제 목록 조회
   findByUserId(userId: string): Promise<UnitQuestion[]>;
 }
-

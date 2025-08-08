@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/UnitCreateUseCase';
-import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/UnitSelectUseCase';
-import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UnitUpdateUseCase';
-import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/UnitDeleteUseCase';
+import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/CreateUnitUseCase';
+import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/SelectUnitUseCase';
+import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UpdateUnitUseCase';
+import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/DeleteUnitUseCase';
 import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository';
 import prisma from '@/libs/prisma';
 

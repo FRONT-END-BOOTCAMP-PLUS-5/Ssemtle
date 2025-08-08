@@ -1,0 +1,7 @@
+{
+  "*.{ts,tsx}": [
+      "prettier --list-different",
+      "eslint --max-warnings 0 ."
+    ],
+  "*.md": "prettier --list-different"
+}

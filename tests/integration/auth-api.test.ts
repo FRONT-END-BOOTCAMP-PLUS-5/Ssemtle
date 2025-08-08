@@ -33,9 +33,9 @@ describe('Auth API Integration Tests', () => {
   }>;
 
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {
       PrUserRepository,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require('@/backend/common/infrastructures/repositories/PrUserRepository');
     mockUserRepository = new PrUserRepository();
     createUserUseCase = new CreateUserUseCase(mockUserRepository);

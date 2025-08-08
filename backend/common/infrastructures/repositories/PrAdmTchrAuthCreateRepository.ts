@@ -76,11 +76,10 @@ export class PrAdmTchrAuthCreateRepository
         },
       });
 
-      return teacherAuths.map(auth => this.mapToEntity(auth));
+      return teacherAuths.map((auth) => this.mapToEntity(auth));
     } catch (error) {
       console.error('교사 인증 요청 목록 조회 실패', error);
       throw new Error('교사 인증 요청 목록을 조회하는 중 오류가 발생했습니다.');
     }
   }
-
 }

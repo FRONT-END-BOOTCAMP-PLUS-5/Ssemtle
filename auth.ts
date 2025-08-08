@@ -1,5 +1,3 @@
-// ABOUTME: NextAuth configuration with credentials provider for user authentication
-// ABOUTME: Handles login using userId and password with bcrypt verification
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
@@ -17,6 +15,48 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           label: '비밀번호',
           placeholder: '비밀번호',
         },
+      },
+      async authorize(credentials) {
+        if (!credentials?.id || !credentials?.password) {
+          return null;
+        }
+
+        // Dynamic imports to avoid bundling in Edge Runtime
+        const bcrypt = await import('bcryptjs');
+        const prismaModule = await import('@/libs/prisma');
+        const prisma = prismaModule.default;
+
+        try {
+          // Find user by userId
+          const user = await prisma.user.findUnique({
+            where: { userId: credentials.id as string },
+          });
+
+          if (!user) {
+            return null;
+          }
+
+          // Verify password
+          const isValidPassword = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          );
+
+          if (!isValidPassword) {
+            return null;
+          }
+
+          // Return user data for session
+          return {
+            id: user.id,
+            userId: user.userId,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error('Authentication error:', error);
+          return null;
+        }
       },
     }),
   ],

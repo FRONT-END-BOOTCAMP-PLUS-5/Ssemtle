@@ -32,15 +32,8 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     // 필수 필드 유효성 검사
-    const {
-      question,
-      answer,
-      helpText,
-      userInput,
-      isCorrect,
-      unitId,
-      userId,
-    } = body;
+    const { question, answer, helpText, userInput, isCorrect, unitId, userId } =
+      body;
 
     if (
       !question ||
@@ -51,7 +44,10 @@ export async function POST(req: Request) {
       !unitId ||
       !userId
     ) {
-      return NextResponse.json({ error: '필수 필드가 누락되었습니다.' }, { status: 400 });
+      return NextResponse.json(
+        { error: '필수 필드가 누락되었습니다.' },
+        { status: 400 }
+      );
     }
 
     // SolveRepository 주입 및 저장

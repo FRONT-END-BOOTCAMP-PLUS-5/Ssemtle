@@ -1,34 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CreateUnitUseCase } from '@/backend/unit/UseCases/UnitCreateUseCase';
-import { UnitSelectUseCase } from '@/backend/unit/UseCases/UnitSelectUseCase';
-import { UnitUpdateUseCase } from '@/backend/unit/UseCases/UnitUpdateUseCase';
-import { UnitDeleteUseCase } from '@/backend/unit/UseCases/UnitDeleteUseCase';
+import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/UnitCreateUseCase';
+import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/UnitSelectUseCase';
+import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UnitUpdateUseCase';
+import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/UnitDeleteUseCase';
 import { prUnitRepository } from '@/backend/common/infrastructures/repositories/prUnitRepository';
-import { UnitDto } from '@/backend/unit/dtos/UnitDto';
-import { Unit } from '@/backend/common/domains/entities/Unit';
 import prisma from '@/libs/prisma';
-
-const mapToDto = (unit: Unit): UnitDto => ({
-  id: unit.id,
-  name: unit.name,
-  vidUrl: unit.vidUrl,
-  createdAt: unit.createdAt,
-});
 
 // Unit 생성
 export async function POST(request: NextRequest) {
   try {
-    const body: UnitDto = await request.json();
+    const { name, vidUrl } = await request.json();
+    
     const unitRepository = new prUnitRepository(prisma);
     const createUnitUseCase = new CreateUnitUseCase(unitRepository);
 
-    const unit = await createUnitUseCase.execute(body);
-    const unitDto = mapToDto(unit);
+    const unit = await createUnitUseCase.execute({ name, vidUrl });
 
     return NextResponse.json(
       {
         message: '수학 단원이 성공적으로 생성되었습니다.',
-        data: unitDto,
+        data: {
+          id: unit.id,
+          name: unit.name,
+          vidUrl: unit.vidUrl,
+          createdAt: unit.createdAt,
+        },
       },
       { status: 201 }
     );
@@ -48,11 +44,18 @@ export async function GET() {
     const unitSelectUseCase = new UnitSelectUseCase(unitRepository);
 
     const result = await unitSelectUseCase.getAllUnits();
-    const units = result.units.map(mapToDto);
 
     return NextResponse.json({
       message: '단원 목록 조회가 완료되었습니다.',
-      data: { units, total: result.total },
+      data: { 
+        units: result.units.map(unit => ({
+          id: unit.id,
+          name: unit.name,
+          vidUrl: unit.vidUrl,
+          createdAt: unit.createdAt,
+        })), 
+        total: result.total 
+      },
     });
   } catch (error) {
     console.error('Unit list error:', error);
@@ -65,17 +68,21 @@ export async function GET() {
 // Unit 업데이트
 export async function PUT(request: NextRequest) {
   try {
-    const body: UnitDto = await request.json();
+    const { id, name, vidUrl } = await request.json();
+    
     const unitRepository = new prUnitRepository(prisma);
     const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
 
-    const { id, ...updateData } = body;
-    const unit = await updateUnitUseCase.execute(id!, updateData);
-    const unitDto = mapToDto(unit);
+    const unit = await updateUnitUseCase.execute(id, { name, vidUrl });
 
     return NextResponse.json({
       message: '수학 단원이 성공적으로 업데이트되었습니다.',
-      data: unitDto,
+      data: {
+        id: unit.id,
+        name: unit.name,
+        vidUrl: unit.vidUrl,
+        createdAt: unit.createdAt,
+      },
     });
   } catch (error) {
     console.error('Unit update error:', error);
@@ -88,11 +95,12 @@ export async function PUT(request: NextRequest) {
 // Unit 삭제
 export async function DELETE(request: NextRequest) {
   try {
-    const body: UnitDto = await request.json();
+    const { id } = await request.json();
+    
     const unitRepository = new prUnitRepository(prisma);
     const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
 
-    const unit = await deleteUnitUseCase.execute(body.id!);
+    const unit = await deleteUnitUseCase.execute(id);
 
     return NextResponse.json({
       message: `"${unit.name}" 단원이 성공적으로 삭제되었습니다.`,

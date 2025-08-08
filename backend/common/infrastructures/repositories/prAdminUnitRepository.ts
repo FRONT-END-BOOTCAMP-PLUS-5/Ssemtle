@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { Unit } from '../../domains/entities/Unit';
-import { IUnitRepository } from '../../domains/repositories/IUnitRepository';
+import { IAdminUnitRepository } from '../../domains/repositories/IAdminUnitRepository';
 
-export class prUnitRepository implements IUnitRepository {
+export class prAdminUnitRepository implements IAdminUnitRepository {
   private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {

@@ -8,12 +8,16 @@ export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
     const { teacherId, imgUrl } = requestBody;
-    
 
     const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
-    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(teacherAuthRepository);
+    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
+      teacherAuthRepository
+    );
 
-    const teacherAuth = await createTeacherAuthUseCase.execute({ teacherId, imgUrl });
+    const teacherAuth = await createTeacherAuthUseCase.execute({
+      teacherId,
+      imgUrl,
+    });
 
     return NextResponse.json(
       {
@@ -29,10 +33,8 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Teacher auth creation error:', error);
-    const errorMessage = error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 400 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-// 카테고리 타입 정의
-type Category = '일차방정식' | '무리수' | '소인수분해' | '유리수' | '함수';
+// 단원 엔티티(프론트 최소 형태)
+type UnitLite = { id: number; name: string };
 
 export default function UnitTestPage() {
-  // 선택된 카테고리들을 관리하는 상태
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  // 선택된 카테고리들을 관리하는 상태(유닛 id 배열)
+  const [selectedUnitIds, setSelectedUnitIds] = useState<number[]>([]);
   // 문제 개수를 관리하는 상태
   const [questionCount, setQuestionCount] = useState<number>(5);
   // 생성된 코드를 저장하는 상태
@@ -16,33 +16,48 @@ export default function UnitTestPage() {
   const [studentCode, setStudentCode] = useState<string>('');
   // 로딩 상태 관리
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // 서버에서 불러온 단원 목록
+  const [units, setUnits] = useState<UnitLite[]>([]);
+  const [isUnitsLoading, setIsUnitsLoading] = useState<boolean>(true);
+  const [unitsError, setUnitsError] = useState<string>('');
 
-  // 사용 가능한 카테고리 목록
-  const categories: Category[] = [
-    '일차방정식',
-    '무리수',
-    '소인수분해',
-    '유리수',
-    '함수',
-  ];
-
-  // 카테고리 선택/해제 함수
-  const handleCategoryToggle = (category: Category) => {
-    setSelectedCategories((prev) => {
-      if (prev.includes(category)) {
-        // 이미 선택된 카테고리면 제거
-        return prev.filter((cat) => cat !== category);
-      } else {
-        // 선택되지 않은 카테고리면 추가
-        return [...prev, category];
+  // 초기 로드 시 단원 목록 불러오기
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const res = await fetch('/api/unit', { method: 'GET' });
+        if (!res.ok) throw new Error('단원 목록을 불러오지 못했습니다.');
+        const data = await res.json();
+        setUnits(Array.isArray(data.units) ? data.units : []);
+      } catch (e) {
+        console.error(e);
+        setUnitsError('단원 목록을 불러오지 못했습니다.');
+      } finally {
+        setIsUnitsLoading(false);
       }
-    });
+    };
+    loadUnits();
+  }, []);
+
+  // 카테고리 선택/해제 함수 (unit id 기준)
+  const handleUnitToggle = (unitId: number) => {
+    setSelectedUnitIds((prev) =>
+      prev.includes(unitId)
+        ? prev.filter((id) => id !== unitId)
+        : [...prev, unitId]
+    );
   };
+
+  // 선택된 유닛들의 이름 배열 메모
+  const selectedUnitNames = useMemo(() => {
+    const map = new Map<number, string>(units.map((u) => [u.id, u.name]));
+    return selectedUnitIds.map((id) => map.get(id)!).filter(Boolean);
+  }, [selectedUnitIds, units]);
 
   // 단원평가 코드 생성 함수
   const handleGenerateCode = async () => {
     // 유효성 검증
-    if (selectedCategories.length === 0) {
+    if (selectedUnitIds.length === 0) {
       alert('최소 1개 이상의 카테고리를 선택해주세요.');
       return;
     }
@@ -55,6 +70,11 @@ export default function UnitTestPage() {
     setIsLoading(true);
 
     try {
+      const selectedUnitsPayload = selectedUnitIds.map((id) => ({
+        unitId: id,
+        unitName: units.find((u) => u.id === id)?.name || '',
+      }));
+
       // API 호출로 단원평가 코드 생성
       const response = await fetch('/api/unit-exam/generate', {
         method: 'POST',
@@ -62,13 +82,13 @@ export default function UnitTestPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          categories: selectedCategories,
+          selectedUnits: selectedUnitsPayload,
           questionCount: questionCount,
         }),
       });
 
+      const data = await response.json();
       if (response.ok) {
-        const data = await response.json();
         setGeneratedCode(data.code);
         alert(`단원평가 코드가 생성되었습니다: ${data.code}`);
       } else {
@@ -125,27 +145,35 @@ export default function UnitTestPage() {
       {/* 카테고리 선택 섹션 */}
       <div className="mb-8 p-6 bg-gray-50 rounded-lg">
         <h2 className="text-xl font-semibold mb-4">카테고리 선택</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => handleCategoryToggle(category)}
-              className={`p-3 rounded-lg border-2 transition-all duration-200 ${
-                selectedCategories.includes(category)
-                  ? 'bg-blue-500 text-white border-blue-500'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-        <div className="mt-4 text-sm text-gray-600">
-          선택된 카테고리:{' '}
-          {selectedCategories.length > 0
-            ? selectedCategories.join(', ')
-            : '없음'}
-        </div>
+        {isUnitsLoading ? (
+          <div className="text-gray-600">단원 목록을 불러오는 중...</div>
+        ) : unitsError ? (
+          <div className="text-red-600">{unitsError}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {units.map((unit) => (
+                <button
+                  key={unit.id}
+                  onClick={() => handleUnitToggle(unit.id)}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                    selectedUnitIds.includes(unit.id)
+                      ? 'bg-blue-500 text-white border-blue-500'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                  }`}
+                >
+                  {unit.name}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              선택된 카테고리:{' '}
+              {selectedUnitNames.length > 0
+                ? selectedUnitNames.join(', ')
+                : '없음'}
+            </div>
+          </>
+        )}
       </div>
 
       {/* 문제 개수 설정 섹션 */}

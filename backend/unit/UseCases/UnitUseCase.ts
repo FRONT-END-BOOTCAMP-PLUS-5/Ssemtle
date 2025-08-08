@@ -41,3 +41,17 @@ export class CreateUnitUseCase {
     }
   }
 }
+
+// 단원 목록 조회 유스케이스
+export class ListUnitsUseCase {
+  private unitRepository: IUnitRepository;
+
+  constructor(unitRepository: IUnitRepository) {
+    this.unitRepository = unitRepository;
+  }
+
+  async execute(): Promise<Array<{ id: number; name: string }>> {
+    const units = await this.unitRepository.findAll();
+    return units.map((u) => ({ id: u.id, name: u.name }));
+  }
+}

@@ -1,9 +1,11 @@
 // ABOUTME: 단원평가 코드 검증 API 엔드포인트
 // ABOUTME: POST 요청으로 학생이 입력한 코드를 검증하여 유효성을 확인
+// ABOUTME: 유효한 코드인 경우 unit_exam_attempts 테이블에 시도 기록 저장
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prisma';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
+import { PrUnitExamAttemptRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
 import { VerifyUnitExamUseCase } from '../../../../backend/unit/usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
@@ -14,7 +16,11 @@ export async function POST(request: NextRequest) {
 
     // Repository와 UseCase 인스턴스 생성
     const unitExamRepository = new PrUnitExamRepository(prisma);
-    const verifyUnitExamUseCase = new VerifyUnitExamUseCase(unitExamRepository);
+    const unitExamAttemptRepository = new PrUnitExamAttemptRepository(prisma);
+    const verifyUnitExamUseCase = new VerifyUnitExamUseCase(
+      unitExamRepository,
+      unitExamAttemptRepository
+    );
 
     // 코드 검증 실행
     const result = await verifyUnitExamUseCase.execute({

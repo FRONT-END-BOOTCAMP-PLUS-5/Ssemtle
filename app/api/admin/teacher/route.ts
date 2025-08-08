@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/CreateTeacherAuthUseCase';
 import { SelectTeacherAuthListUseCase } from '@/backend/admin/teacher/usecases/SelectTeacherAuthListUseCase';
-import { PrAdmTchrAuthCreateRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthCreateRepository';
+import { DeleteTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/DeleteTeacherAuthUseCase';
+import { PrAdmTchrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthRepository';
 import prisma from '@/libs/prisma';
 
 // 교사 인증 요청 생성
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json();
     const { teacherId, imgUrl } = requestBody;
 
-    const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
     const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
       teacherAuthRepository
     );
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
 // 교사 인증 요청 목록 조회
 export async function GET() {
   try {
-    const teacherAuthRepository = new PrAdmTchrAuthCreateRepository(prisma);
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
     const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(
       teacherAuthRepository
     );
@@ -67,5 +68,32 @@ export async function GET() {
     const errorMessage =
       error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
+// 교사 인증 요청 삭제
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
+    const deleteTeacherAuthUseCase = new DeleteTeacherAuthUseCase(
+      teacherAuthRepository
+    );
+
+    const deletedAuth = await deleteTeacherAuthUseCase.execute(id);
+
+    return NextResponse.json({
+      message: '교사 인증 요청이 성공적으로 삭제되었습니다.',
+      data: {
+        id: deletedAuth.id,
+        teacherId: deletedAuth.teacherId,
+      },
+    });
+  } catch (error) {
+    console.error('Teacher auth delete error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

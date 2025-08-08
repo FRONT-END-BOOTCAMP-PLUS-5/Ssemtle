@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prisma';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitExamAttemptRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
-import { VerifyUnitExamUseCase } from '../../../../backend/unit/usecases/UnitExamUsecase';
+import { VerifyUnitExamUseCase } from '@/backend/unit/usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
   try {

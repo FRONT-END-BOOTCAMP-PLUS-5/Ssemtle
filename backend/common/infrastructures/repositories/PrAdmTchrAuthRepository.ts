@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
-import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthCreateRepository';
+import { IAdmTchrAuthRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
-export class PrAdmTchrAuthCreateRepository
-  implements IAdmTchrAuthCreateRepository
-{
+export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
   private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {
@@ -76,11 +74,32 @@ export class PrAdmTchrAuthCreateRepository
         },
       });
 
-      return teacherAuths.map(auth => this.mapToEntity(auth));
+      return teacherAuths.map((auth) => this.mapToEntity(auth));
     } catch (error) {
       console.error('교사 인증 요청 목록 조회 실패', error);
       throw new Error('교사 인증 요청 목록을 조회하는 중 오류가 발생했습니다.');
     }
   }
 
+  async delete(id: number): Promise<TeacherAuthorization> {
+    try {
+      const deletedAuth = await this.prisma.teacherAuthorization.delete({
+        where: { id },
+      });
+
+      return this.mapToEntity(deletedAuth);
+    } catch (error) {
+      console.error('교사 인증 요청 삭제 실패', { id, error });
+
+      // Prisma 에러를 사용자 친화적 메시지로 변환
+      if (
+        error instanceof Error &&
+        error.message.includes('Record to delete does not exist')
+      ) {
+        throw new Error('존재하지 않는 교사 인증 요청입니다.');
+      }
+
+      throw new Error('교사 인증 요청을 삭제하는 중 오류가 발생했습니다.');
+    }
+  }
 }

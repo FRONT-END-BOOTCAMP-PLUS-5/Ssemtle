@@ -10,7 +10,7 @@ import prisma from '@/libs/prisma';
 export async function POST(request: NextRequest) {
   try {
     const { name, vidUrl } = await request.json();
-    
+
     const unitRepository = new prUnitRepository(prisma);
     const createUnitUseCase = new CreateUnitUseCase(unitRepository);
 
@@ -47,14 +47,14 @@ export async function GET() {
 
     return NextResponse.json({
       message: '단원 목록 조회가 완료되었습니다.',
-      data: { 
-        units: result.units.map(unit => ({
+      data: {
+        units: result.units.map((unit) => ({
           id: unit.id,
           name: unit.name,
           vidUrl: unit.vidUrl,
           createdAt: unit.createdAt,
-        })), 
-        total: result.total 
+        })),
+        total: result.total,
       },
     });
   } catch (error) {
@@ -69,7 +69,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const { id, name, vidUrl } = await request.json();
-    
+
     const unitRepository = new prUnitRepository(prisma);
     const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
 
@@ -96,7 +96,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json();
-    
+
     const unitRepository = new prUnitRepository(prisma);
     const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
 

@@ -18,11 +18,11 @@ export class DeleteTeacherAuthUseCase {
       return await this.teacherAuthRepository.delete(id);
     } catch (error) {
       console.error('교사 인증 요청 삭제 실패:', error);
-      
+
       if (error instanceof Error) {
-        throw error; 
+        throw error;
       }
-      
+
       throw new Error('교사 인증 요청 삭제 중 오류가 발생했습니다.');
     }
   }

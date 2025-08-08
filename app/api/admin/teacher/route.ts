@@ -12,7 +12,9 @@ export async function POST(request: NextRequest) {
     const { teacherId, imgUrl } = requestBody;
 
     const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
-    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(teacherAuthRepository);
+    const createTeacherAuthUseCase = new CreateTeacherAuthUseCase(
+      teacherAuthRepository
+    );
 
     const teacherAuth = await createTeacherAuthUseCase.execute({
       teacherId,
@@ -43,7 +45,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
-    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(teacherAuthRepository);
+    const selectTeacherAuthUseCase = new SelectTeacherAuthListUseCase(
+      teacherAuthRepository
+    );
 
     const result = await selectTeacherAuthUseCase.getAllTeacherAuths();
 
@@ -73,15 +77,17 @@ export async function DELETE(request: NextRequest) {
     const { id } = await request.json();
 
     const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
-    const deleteTeacherAuthUseCase = new DeleteTeacherAuthUseCase(teacherAuthRepository);
+    const deleteTeacherAuthUseCase = new DeleteTeacherAuthUseCase(
+      teacherAuthRepository
+    );
 
     const deletedAuth = await deleteTeacherAuthUseCase.execute(id);
 
     return NextResponse.json({
       message: '교사 인증 요청이 성공적으로 삭제되었습니다.',
-      data: { 
-        id: deletedAuth.id, 
-        teacherId: deletedAuth.teacherId 
+      data: {
+        id: deletedAuth.id,
+        teacherId: deletedAuth.teacherId,
       },
     });
   } catch (error) {

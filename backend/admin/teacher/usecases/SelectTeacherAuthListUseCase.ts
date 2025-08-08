@@ -1,10 +1,10 @@
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
-import { IAdmTchrAuthCreateRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
+import { IAdmTchrAuthRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
 export class SelectTeacherAuthListUseCase {
-  private teacherAuthRepository: IAdmTchrAuthCreateRepository;
+  private teacherAuthRepository: IAdmTchrAuthRepository;
 
-  constructor(teacherAuthRepository: IAdmTchrAuthCreateRepository) {
+  constructor(teacherAuthRepository: IAdmTchrAuthRepository) {
     this.teacherAuthRepository = teacherAuthRepository;
   }
 

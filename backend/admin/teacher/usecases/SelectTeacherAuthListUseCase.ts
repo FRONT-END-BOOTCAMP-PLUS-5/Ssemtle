@@ -8,10 +8,7 @@ export class SelectTeacherAuthListUseCase {
     this.teacherAuthRepository = teacherAuthRepository;
   }
 
-  async getAllTeacherAuths(): Promise<{
-    teacherAuths: TeacherAuthorization[];
-    total: number;
-  }> {
+  async getAllTeacherAuths(): Promise<{ teacherAuths: TeacherAuthorization[]; total: number }> {
     try {
       const teacherAuths = await this.teacherAuthRepository.findAll();
 

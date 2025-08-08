@@ -3,7 +3,6 @@ import { callGemini } from '@/libs/gemini/callGemini';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
 
-
 // GET /api/solves?unit=unitName
 // unitName은 문제 유형 (예: "소인수분해", "미분적분" 등)으로, 이 유형에 맞는 문제를 생성합니다.
 export async function GET(req: NextRequest) {
@@ -35,8 +34,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     // 필수 필드 유효성 검사
-    const { question, answer, helpText, userInput, unitId, userId } =
-      body;
+    const { question, answer, helpText, userInput, unitId, userId } = body;
 
     if (
       !question ||
@@ -53,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     const isCorrect = String(userInput).trim() === String(answer).trim();
-    
+
     // SolveRepository 주입 및 저장
     const repo = new PrSolveRepository();
 

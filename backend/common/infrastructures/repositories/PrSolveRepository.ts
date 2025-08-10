@@ -35,6 +35,12 @@ export class PrSolveRepository implements ISolveRepository {
     });
   }
 
+  async findByIdAndUserId(id: number, userId: string): Promise<Solve | null> {
+    return await prisma.solve.findFirst({
+      where: { id, userId },
+    });
+  }
+
   async update(id: number, solve: Partial<Solve>): Promise<Solve> {
     const { unit, user, ...data } = solve; // ❗ unit, user 제외
     void unit;

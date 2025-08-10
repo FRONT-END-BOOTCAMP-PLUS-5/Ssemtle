@@ -84,3 +84,15 @@ export interface CategoryStatDto {
 }
 
 export type CategoryStatsResponseDto = CategoryStatDto[];
+
+// DTOs for update solve API
+export interface UpdateSolveRequestDto {
+  id: number;
+  userId: string;
+  userInput: string;
+}
+
+export interface UpdateSolveResponseDto {
+  id: number;
+  isCorrect: boolean;
+}

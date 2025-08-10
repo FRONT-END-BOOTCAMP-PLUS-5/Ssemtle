@@ -38,14 +38,18 @@ async function main() {
 
   // Create units (idempotent - only create if not exists)
   for (const unitName of koreanMathUnits) {
-    await prisma.unit.upsert({
+    const existingUnit = await prisma.unit.findFirst({
       where: { name: unitName },
-      update: {},
-      create: {
-        name: unitName,
-        vidUrl: `https://example.com/videos/${encodeURIComponent(unitName)}`,
-      },
     });
+
+    if (!existingUnit) {
+      await prisma.unit.create({
+        data: {
+          name: unitName,
+          vidUrl: `https://example.com/videos/${encodeURIComponent(unitName)}`,
+        },
+      });
+    }
   }
 
   console.log(`✓ Created/verified ${koreanMathUnits.length} units`);

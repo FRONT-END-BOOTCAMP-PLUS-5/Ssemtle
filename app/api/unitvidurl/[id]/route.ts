@@ -6,10 +6,12 @@ import prisma from '@/libs/prisma';
 // 특정 단원의 영상 URL 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await context.params;
+    const id = parseInt(idParam);
+
     if (isNaN(id)) {
       return NextResponse.json(
         { error: '유효한 단원 ID를 입력해주세요.' },

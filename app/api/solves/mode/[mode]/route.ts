@@ -3,11 +3,9 @@ import { redirect } from 'next/navigation';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ mode: string }> | { mode: string } }
+  { params }: { params: Promise<{ mode: string }> }
 ) {
-  // Handle both Next.js 14 and 15 params format
-  const resolvedParams = await Promise.resolve(params);
-  const { mode } = resolvedParams;
+  const { mode } = await params;
 
   // Validate mode
   if (mode !== 'wrong' && mode !== 'all') {

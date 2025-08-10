@@ -44,9 +44,6 @@ export async function GET(req: NextRequest) {
       _count: {
         _all: true,
       },
-      _sum: {
-        isCorrect: true,
-      },
     });
 
     // Get all units for name mapping
@@ -79,7 +76,13 @@ export async function GET(req: NextRequest) {
         });
 
         const total = stat._count._all;
-        const correct = stat._sum.isCorrect || 0;
+        const correct = await prisma.solve.count({
+          where: {
+            ...dateWhere,
+            unitId: stat.unitId,
+            isCorrect: true,
+          },
+        });
         const accuracy = total > 0 ? correct / total : 0;
 
         return {

@@ -43,9 +43,6 @@ export async function GET(req: NextRequest) {
       _count: {
         _all: true,
       },
-      _sum: {
-        isCorrect: true,
-      },
     });
 
     // Get all units for category name mapping
@@ -59,18 +56,26 @@ export async function GET(req: NextRequest) {
     const unitMap = new Map(units.map((u) => [u.id, u.name]));
 
     // Transform and calculate accuracy
-    const transformedStats = unitStats.map((stat) => {
-      const total = stat._count._all;
-      const correct = stat._sum.isCorrect || 0;
-      const accuracy = total > 0 ? correct / total : 0;
+    const transformedStats = await Promise.all(
+      unitStats.map(async (stat) => {
+        const total = stat._count._all;
+        const correct = await prisma.solve.count({
+          where: {
+            ...where,
+            unitId: stat.unitId,
+            isCorrect: true,
+          },
+        });
+        const accuracy = total > 0 ? correct / total : 0;
 
-      return {
-        category: unitMap.get(stat.unitId) || `Unit ${stat.unitId}`,
-        total,
-        correct,
-        accuracy,
-      };
-    });
+        return {
+          category: unitMap.get(stat.unitId) || `Unit ${stat.unitId}`,
+          total,
+          correct,
+          accuracy,
+        };
+      })
+    );
 
     // Sort by category name for consistent ordering
     transformedStats.sort((a, b) => a.category.localeCompare(b.category, 'ko'));

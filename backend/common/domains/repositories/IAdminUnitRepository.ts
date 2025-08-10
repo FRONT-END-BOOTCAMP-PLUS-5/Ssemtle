@@ -9,4 +9,5 @@ export interface IAdminUnitRepository {
   ): Promise<Unit>;
   findById(id: number): Promise<Unit | null>;
   delete(id: number): Promise<Unit>;
+  findVidUrlById(id: number): Promise<{ id: number; vidUrl: string } | null>;
 }

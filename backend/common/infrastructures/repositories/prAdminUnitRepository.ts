@@ -60,6 +60,15 @@ export class prAdminUnitRepository implements IAdminUnitRepository {
     return unit ? this.mapToUnit(unit) : null;
   }
 
+  // 단원명으로 조회 (중복 검사용)
+  async findByName(name: string): Promise<Unit | null> {
+    const unit = await this.prisma.unit.findFirst({
+      where: { name },
+    });
+
+    return unit ? this.mapToUnit(unit) : null;
+  }
+
   // 단원 삭제
   async delete(id: number): Promise<Unit> {
     const unitToDelete = await this.prisma.unit.findUnique({

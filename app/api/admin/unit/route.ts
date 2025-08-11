@@ -28,10 +28,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Unit creation error:', error);
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 400 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }
 

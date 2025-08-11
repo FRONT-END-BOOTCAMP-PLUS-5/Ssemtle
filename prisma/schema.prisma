@@ -96,7 +96,7 @@ model TeacherStudent {
 
 model Unit {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String   @unique
   vidUrl    String   @map("vid_url")
   createdAt DateTime @default(now()) @map("created_at")
   

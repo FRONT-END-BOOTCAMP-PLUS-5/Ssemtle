@@ -3,6 +3,7 @@ import { CreateTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/Creat
 import { SelectTeacherAuthListUseCase } from '@/backend/admin/teacher/usecases/SelectTeacherAuthListUseCase';
 import { DeleteTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/DeleteTeacherAuthUseCase';
 import { PrAdmTchrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthRepository';
+import { ApproveTeacherAuthUseCase } from '@/backend/admin/teacher/usecases/ApproveTeacherAuthUseCase';
 import prisma from '@/libs/prisma';
 
 // 교사 인증 요청 생성
@@ -92,6 +93,42 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Teacher auth delete error:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
+  }
+}
+
+// 교사 인증 요청 승인
+export async function PATCH(request: NextRequest) {
+  try {
+    const { id } = await request.json();
+
+    // 문자열을 숫자로 변환
+    const numericId = parseInt(id);
+    if (isNaN(numericId)) {
+      return NextResponse.json(
+        { error: '유효한 ID를 입력해주세요.' },
+        { status: 400 }
+      );
+    }
+
+    const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
+    const approveTeacherAuthUseCase = new ApproveTeacherAuthUseCase(
+      teacherAuthRepository
+    );
+
+    const approvedAuth = await approveTeacherAuthUseCase.execute(numericId);
+
+    return NextResponse.json({
+      message: '교사 인증이 성공적으로 승인되었습니다.',
+      data: {
+        id: approvedAuth.id,
+        teacherId: approvedAuth.teacherId,
+      },
+    });
+  } catch (error) {
+    console.error('Teacher auth approval error:', error);
     const errorMessage =
       error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 400 });

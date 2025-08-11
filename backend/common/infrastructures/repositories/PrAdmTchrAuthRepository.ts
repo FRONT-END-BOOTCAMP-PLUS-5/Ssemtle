@@ -91,7 +91,6 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
     } catch (error) {
       console.error('교사 인증 요청 삭제 실패', { id, error });
 
-      // Prisma 에러를 사용자 친화적 메시지로 변환
       if (
         error instanceof Error &&
         error.message.includes('Record to delete does not exist')
@@ -100,6 +99,32 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
       }
 
       throw new Error('교사 인증 요청을 삭제하는 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 선생님 권한 인증
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { role },
+      });
+    } catch (error) {
+      console.error('사용자 role 업데이트 실패', { userId, role, error });
+      throw new Error('사용자 권한 변경 중 오류가 발생했습니다.');
+    }
+  }
+
+  async findById(id: number): Promise<TeacherAuthorization | null> {
+    try {
+      const teacherAuth = await this.prisma.teacherAuthorization.findUnique({
+        where: { id },
+      });
+
+      return teacherAuth ? this.mapToEntity(teacherAuth) : null;
+    } catch (error) {
+      console.error('교사 인증 요청 조회 실패', { id, error });
+      throw new Error('교사 인증 요청을 조회하는 중 오류가 발생했습니다.');
     }
   }
 }

@@ -6,7 +6,7 @@ type GeminiGenerator = {
 
 export class GenerateSolvesByUnitUseCase {
   constructor(private readonly gemini: GeminiGenerator) {}
-
+  //unitId로 할지? unit스트링 배열로 할지?
   async execute(unit: string): Promise<SolveResponseDto[]> {
     const prompt = `
 "${unit}" 유형의 수학 문제 10개를 아래와 같은 JSON 배열 형식으로 출력해줘.

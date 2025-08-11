@@ -24,3 +24,12 @@ export const CategoryStatsQuery = z.object({
 });
 
 export type CategoryStatsQuery = z.infer<typeof CategoryStatsQuery>;
+
+export const UpdateSolveBody = z.object({
+  userInput: z
+    .string()
+    .min(1, 'userInput is required')
+    .max(2000, 'userInput too long'),
+});
+
+export type UpdateSolveBody = z.infer<typeof UpdateSolveBody>;

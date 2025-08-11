@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/CreateUnitUseCase';
 import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/SelectUnitUseCase';
-import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UpdateUnitUseCase';
-import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/DeleteUnitUseCase';
 import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 
@@ -30,10 +28,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Unit creation error:', error);
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 400 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }
 
@@ -62,54 +59,5 @@ export async function GET() {
     const errorMessage =
       error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}
-
-// Unit 업데이트
-export async function PUT(request: NextRequest) {
-  try {
-    const { id, name, vidUrl } = await request.json();
-
-    const unitRepository = new prAdminUnitRepository(prisma);
-    const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
-
-    const unit = await updateUnitUseCase.execute(id, { name, vidUrl });
-
-    return NextResponse.json({
-      message: '수학 단원이 성공적으로 업데이트되었습니다.',
-      data: {
-        id: unit.id,
-        name: unit.name,
-        vidUrl: unit.vidUrl,
-        createdAt: unit.createdAt,
-      },
-    });
-  } catch (error) {
-    console.error('Unit update error:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
-    return NextResponse.json({ error: errorMessage }, { status: 400 });
-  }
-}
-
-// Unit 삭제
-export async function DELETE(request: NextRequest) {
-  try {
-    const { id } = await request.json();
-
-    const unitRepository = new prAdminUnitRepository(prisma);
-    const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
-
-    const unit = await deleteUnitUseCase.execute(id);
-
-    return NextResponse.json({
-      message: `"${unit.name}" 단원이 성공적으로 삭제되었습니다.`,
-      data: { id: unit.id, name: unit.name },
-    });
-  } catch (error) {
-    console.error('Unit delete error:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : '서버 오류가 발생했습니다.';
-    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

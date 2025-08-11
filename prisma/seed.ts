@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -45,13 +46,21 @@ async function main() {
   });
 
   if (!testUser) {
+    const hashed = await bcrypt.hash('test-password', 12);
     testUser = await prisma.user.create({
       data: {
         userId: 'test-user',
-        password: 'test-password',
+        password: hashed,
         name: '테스트 사용자',
         role: 'student',
       },
+    });
+  } else if (!testUser.password.startsWith('$2')) {
+    // Ensure existing seed user has hashed password
+    const hashed = await bcrypt.hash('test-password', 12);
+    testUser = await prisma.user.update({
+      where: { id: testUser.id },
+      data: { password: hashed },
     });
   }
 

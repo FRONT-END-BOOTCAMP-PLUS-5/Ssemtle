@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { PrUnitExamAnalysisRepository } from '@/backend/common/infrastructures/repositories/PrUnitExamAnalysisRepository';
 import prisma from '@/libs/prisma';
-import { GetStudentUnitExamAnalysisUseCase } from '@/backend/analysis/usecases/GetStudentUnitExamAnalysisUseCase';
+import { GetStudentUnitExamAnalysisUseCase } from '@/backend/analysis/usecases/GetStudentUnitExamAnalysisUsecase';
 
 const useCase = new GetStudentUnitExamAnalysisUseCase(
   new PrUnitExamAnalysisRepository()

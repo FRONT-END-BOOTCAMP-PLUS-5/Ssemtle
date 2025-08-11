@@ -1,7 +1,7 @@
 // app/api/students/[id]/unit/route.ts
 import { NextResponse } from 'next/server';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
-import { GetStudentUnitPerformanceUseCase } from '@/backend/analysis/usecases/GetStudentUnitPerformanceUseCase';
+import { GetStudentUnitPerformanceUseCase } from '@/backend/analysis/usecases/GetStudentUnitPerformanceUsecase';
 import prisma from '@/libs/prisma';
 
 const useCase = new GetStudentUnitPerformanceUseCase(new PrSolveRepository());

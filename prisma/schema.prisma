@@ -163,6 +163,9 @@ model Solve {
   unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
   
+  @@index([createdAt(sort: Desc), id(sort: Desc)], name: "solves_created_id_desc_idx")
+  @@index([isCorrect, createdAt(sort: Desc), id(sort: Desc)], name: "solves_isCorrect_created_id_desc_idx")
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], name: "solves_user_created_id_desc_idx")
   @@map("solves")
 }
 

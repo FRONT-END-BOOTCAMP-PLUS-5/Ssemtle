@@ -4,9 +4,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prisma';
+import { auth } from '@/auth';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitExamAttemptRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
 import { VerifyUnitExamUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { PrUnitQuestionRepository } from '@/backend/common/infrastructures/repositories/PrUnitQuestionRepository';
+import { PrUnitSolveRepository } from '@/backend/common/infrastructures/repositories/PrUnitSolveRepository';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,17 +17,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { code } = body;
 
+    // 세션에서 학생 ID 추출 (로그인 필요)
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
     // Repository와 UseCase 인스턴스 생성
     const unitExamRepository = new PrUnitExamRepository(prisma);
     const unitExamAttemptRepository = new PrUnitExamAttemptRepository(prisma);
+    const unitQuestionRepository = new PrUnitQuestionRepository(prisma);
+    const unitSolveRepository = new PrUnitSolveRepository(prisma);
     const verifyUnitExamUseCase = new VerifyUnitExamUseCase(
       unitExamRepository,
-      unitExamAttemptRepository
+      unitExamAttemptRepository,
+      unitQuestionRepository,
+      unitSolveRepository
     );
 
     // 코드 검증 실행
     const result = await verifyUnitExamUseCase.execute({
       code: code?.toString().trim().toUpperCase(),
+      studentId: session.user.id,
     });
 
     if (result.success) {

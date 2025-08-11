@@ -57,6 +57,7 @@ export interface SolveRepository {
 export interface ISolveRepository extends SolveRepository {
   findAll(): Promise<Solve[]>;
   findById(id: number): Promise<Solve | null>;
+  findByIdAndUserId(id: number, userId: string): Promise<Solve | null>;
   update(id: number, solve: Partial<Solve>): Promise<Solve>;
   delete(id: number): Promise<void>;
   findPaginated(

@@ -9,7 +9,6 @@ export type UnitExamAggRow = {
   unitCode: string;
   total: number;
   correct: number;
-  attempts?: number;
 };
 
 export interface UnitExamAnalysisRepository {

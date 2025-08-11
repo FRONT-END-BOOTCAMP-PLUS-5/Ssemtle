@@ -7,7 +7,7 @@ import prisma from '../../../../libs/prisma';
 import { auth } from '@/auth';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitQuestionRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitQuestionRepository';
-import { GenerateUnitExamUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { GenerateUnitExamUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
   try {

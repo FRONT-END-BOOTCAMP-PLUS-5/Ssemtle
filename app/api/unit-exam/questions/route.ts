@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/libs/prisma';
 import { PrUnitQuestionRepository } from '@/backend/common/infrastructures/repositories/PrUnitQuestionRepository';
-import { GetQuestionsUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { GetQuestionsUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 
 export async function POST(request: NextRequest) {
   try {

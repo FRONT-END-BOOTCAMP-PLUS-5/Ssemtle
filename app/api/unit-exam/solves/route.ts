@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/libs/prisma';
 import { PrUnitSolveRepository } from '@/backend/common/infrastructures/repositories/PrUnitSolveRepository';
-import { GetUserUnitSolvesUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { GetUserUnitSolvesUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 
 export async function GET(): Promise<NextResponse> {
   try {

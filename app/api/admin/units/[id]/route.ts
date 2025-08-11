@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/DeleteUnitUseCase';
-import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UpdateUnitUseCase';
+import { UnitDeleteUseCase } from '@/backend/admin/units/usecase/DeleteUnitUseCase';
+import { UnitUpdateUseCase } from '@/backend/admin/units/usecase/UpdateUnitUseCase';
 import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 

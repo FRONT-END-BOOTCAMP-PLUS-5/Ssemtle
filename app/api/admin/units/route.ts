@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CreateUnitUseCase } from '@/backend/admin/unit/UseCases/CreateUnitUseCase';
-import { UnitSelectUseCase } from '@/backend/admin/unit/UseCases/SelectUnitUseCase';
+import { CreateUnitUseCase } from '@/backend/admin/units/usecase/CreateUnitUseCase';
+import { UnitSelectUseCase } from '@/backend/admin/units/usecase/SelectUnitUseCase';
 import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 

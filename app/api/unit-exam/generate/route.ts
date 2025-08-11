@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../libs/prisma';
+import { auth } from '@/auth';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitQuestionRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitQuestionRepository';
 import { GenerateUnitExamUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { selectedUnits, questionCount } = body;
 
+    // 세션에서 교사 ID 추출
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
     // Repository와 UseCase 인스턴스 생성
     const unitExamRepository = new PrUnitExamRepository(prisma);
     const unitQuestionRepository = new PrUnitQuestionRepository(prisma);
@@ -22,23 +32,11 @@ export async function POST(request: NextRequest) {
       unitQuestionRepository
     );
 
-    // 임시 교사 계정 보장 (FK 제약 회피)
-    const tempTeacher = await prisma.user.upsert({
-      where: { userId: 'temp-teacher' },
-      update: {},
-      create: {
-        userId: 'temp-teacher',
-        password: 'temp-password',
-        name: 'Temp Teacher',
-        role: 'teacher',
-      },
-    });
-
     // 단원평가 코드 생성 실행
     const result = await generateUnitExamUseCase.execute({
       selectedUnits,
       questionCount,
-      teacherId: tempTeacher.id, // 실제로는 세션에서 가져와야 함
+      teacherId: session.user.id,
     });
 
     if (result.success) {

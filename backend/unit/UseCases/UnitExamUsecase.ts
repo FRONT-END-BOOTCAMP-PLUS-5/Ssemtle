@@ -4,6 +4,7 @@
 import { IUnitExamRepository } from '../../common/domains/repositories/IUnitExamRepository';
 import { IUnitQuestionRepository } from '../../common/domains/repositories/IUnitQuestionRepository';
 import { IUnitExamAttemptRepository } from '../../common/domains/repositories/IUnitExamAttemptRepository';
+import { IUnitSolveRepository } from '../../common/domains/repositories/IUnitSolveRepository';
 import { callGemini } from '../../../libs/gemini/callGemini';
 import {
   GenerateUnitExamRequestDto,
@@ -14,6 +15,10 @@ import {
   AIQuestionGenerationResult,
   CreateExamAttemptRequestDto,
   ExamAttemptResult,
+  GetQuestionsRequestDto,
+  GetQuestionsResult,
+  SubmitAnswersRequestDto,
+  SubmitAnswersResult,
 } from '../dtos/UnitExamDto';
 
 export class GenerateUnitExamUseCase {
@@ -32,6 +37,7 @@ export class GenerateUnitExamUseCase {
     request: GenerateUnitExamRequestDto
   ): Promise<UnitExamGenerationResult> {
     try {
+      // 입력 파라미터 유효성 검증
       // 환경 변수 확인: GEMINI_API_KEY 없으면 동작 금지
       if (!process.env.GEMINI_API_KEY) {
         return {
@@ -83,8 +89,8 @@ export class GenerateUnitExamUseCase {
         };
       }
 
-      // 임시 교사 ID (실제로는 인증된 사용자 정보에서 가져와야 함)
-      const teacherId = request.teacherId || 'temp-teacher-id';
+      // 세션에서 전달된 교사 ID 사용
+      const teacherId = request.teacherId as string;
 
       // 단원평가 생성 및 저장 (AI 성공 이후에 수행)
       const unitExam = await this.unitExamRepository.create({
@@ -100,8 +106,8 @@ export class GenerateUnitExamUseCase {
         code: unitExam.code,
         examId: unitExam.id,
       };
-    } catch (error) {
-      console.error('단원평가 생성 오류:', error);
+    } catch (_error) {
+      console.error('단원평가 생성 오류:', _error);
       return {
         success: false,
         error: '단원평가 생성 중 오류가 발생했습니다.',
@@ -141,8 +147,8 @@ export class GenerateUnitExamUseCase {
         success: true,
         questions,
       };
-    } catch (error) {
-      console.error('AI 문제 생성 오류:', error);
+    } catch (_error) {
+      console.error('AI 문제 생성 오류:', _error);
       return {
         success: false,
         error: 'AI 문제 생성에 실패했습니다.',
@@ -190,29 +196,11 @@ export class GenerateUnitExamUseCase {
       }
 
       return questions;
-    } catch (error) {
-      console.error('AI 응답 파싱 오류:', error);
-      // 파싱 실패 시 테스트 데이터 반환
-      return this.getTestQuestions();
+    } catch (_error) {
+      console.error('AI 응답 파싱 오류:', _error);
+      // 파싱 실패 시 빈 배열 반환 → 상위 로직에서 실패 처리
+      return [];
     }
-  }
-
-  // 테스트용 더미 문제 데이터
-  private getTestQuestions(): AIGeneratedQuestion[] {
-    return [
-      {
-        unitId: 1,
-        question: '2x + 3 = 7을 풀어보세요.',
-        answer: 'x = 2',
-        help_text: '양변에서 3을 빼고, 2로 나누면 됩니다.',
-      },
-      {
-        unitId: 1,
-        question: '√16의 값은?',
-        answer: '4',
-        help_text: '16의 제곱근은 4입니다.',
-      },
-    ];
   }
 
   // 생성된 문제들을 데이터베이스에 저장
@@ -232,9 +220,8 @@ export class GenerateUnitExamUseCase {
       }));
 
       await this.unitQuestionRepository.createMany(unitQuestionData);
-      console.log(`✅ ${questions.length}개의 문제가 저장되었습니다.`);
-    } catch (error) {
-      console.error('문제 저장 오류:', error);
+    } catch (_error) {
+      console.error('문제 저장 오류:', _error);
       throw new Error('생성된 문제 저장에 실패했습니다.');
     }
   }
@@ -243,13 +230,19 @@ export class GenerateUnitExamUseCase {
 export class VerifyUnitExamUseCase {
   private unitExamRepository: IUnitExamRepository;
   private unitExamAttemptRepository: IUnitExamAttemptRepository;
+  private unitQuestionRepository: IUnitQuestionRepository;
+  private unitSolveRepository: IUnitSolveRepository;
 
   constructor(
     unitExamRepository: IUnitExamRepository,
-    unitExamAttemptRepository: IUnitExamAttemptRepository
+    unitExamAttemptRepository: IUnitExamAttemptRepository,
+    unitQuestionRepository: IUnitQuestionRepository,
+    unitSolveRepository: IUnitSolveRepository
   ) {
     this.unitExamRepository = unitExamRepository;
     this.unitExamAttemptRepository = unitExamAttemptRepository;
+    this.unitQuestionRepository = unitQuestionRepository;
+    this.unitSolveRepository = unitSolveRepository;
   }
 
   async execute(
@@ -277,8 +270,12 @@ export class VerifyUnitExamUseCase {
       const unitExam = await this.unitExamRepository.findByCode(request.code);
 
       if (unitExam) {
-        // 유효한 코드인 경우, 시도 기록 생성
-        await this.createExamAttempt(request.code, unitExam.id);
+        // 유효한 코드인 경우, 시도 기록 생성 (세션 유저 ID를 우선 사용)
+        await this.createExamAttempt(
+          request.code,
+          unitExam.id,
+          request.studentId
+        );
 
         return {
           success: true,
@@ -307,10 +304,11 @@ export class VerifyUnitExamUseCase {
   // 시도 기록 생성
   private async createExamAttempt(
     unitCode: string,
-    unitExamId: number
+    unitExamId: number,
+    sessionStudentId?: string
   ): Promise<void> {
     try {
-      const studentId = 'temp-student-id'; // 임시 학생 ID
+      const studentId = sessionStudentId || 'temp-student-id';
 
       await this.unitExamAttemptRepository.create({
         unitCode,
@@ -318,11 +316,9 @@ export class VerifyUnitExamUseCase {
         unitExamId,
       });
 
-      console.log(
-        `✅ 학생 ${studentId}의 단원평가 시도가 기록되었습니다. (코드: ${unitCode})`
-      );
-    } catch (error) {
-      console.error('시도 기록 생성 오류:', error);
+      // 시도 기록 성공 로그 제거
+    } catch (_error) {
+      console.error('시도 기록 생성 오류:', _error);
       // 시도 기록 실패는 전체 검증을 실패시키지 않음
     }
   }
@@ -374,12 +370,88 @@ export class CreateExamAttemptUseCase {
         success: true,
         attemptId: attempt.id,
       };
-    } catch (error) {
-      console.error('시도 기록 생성 오류:', error);
+    } catch (_error) {
+      console.error('시도 기록 생성 오류:', _error);
       return {
         success: false,
         error: '시도 기록 생성 중 오류가 발생했습니다.',
       };
+    }
+  }
+}
+
+// 단원평가 문제 조회 UseCase
+export class GetQuestionsUseCase {
+  private unitQuestionRepository: IUnitQuestionRepository;
+
+  constructor(unitQuestionRepository: IUnitQuestionRepository) {
+    this.unitQuestionRepository = unitQuestionRepository;
+  }
+
+  async execute(request: GetQuestionsRequestDto): Promise<GetQuestionsResult> {
+    try {
+      if (!request.code || request.code.trim().length !== 6) {
+        return { success: false, error: '유효한 코드가 아닙니다.' };
+      }
+      const list = await this.unitQuestionRepository.findByUnitCode(
+        request.code
+      );
+      return {
+        success: true,
+        questions: list.map((q) => ({
+          id: q.id,
+          question: q.question,
+          helpText: q.helpText,
+        })),
+      };
+    } catch {
+      return { success: false, error: '문제 조회에 실패했습니다.' };
+    }
+  }
+}
+
+// 단원평가 일괄 제출 UseCase
+export class SubmitAnswersUseCase {
+  private unitQuestionRepository: IUnitQuestionRepository;
+  private unitSolveRepository: IUnitSolveRepository;
+
+  constructor(
+    unitQuestionRepository: IUnitQuestionRepository,
+    unitSolveRepository: IUnitSolveRepository
+  ) {
+    this.unitQuestionRepository = unitQuestionRepository;
+    this.unitSolveRepository = unitSolveRepository;
+  }
+
+  async execute(
+    request: SubmitAnswersRequestDto
+  ): Promise<SubmitAnswersResult> {
+    try {
+      if (!request.code || request.code.trim().length !== 6) {
+        return { success: false, error: '유효한 코드가 아닙니다.' };
+      }
+      if (!request.answers || request.answers.length === 0) {
+        return { success: false, error: '제출할 답안이 없습니다.' };
+      }
+
+      const questions = await this.unitQuestionRepository.findByUnitCode(
+        request.code
+      );
+      const idToAnswer = new Map(questions.map((q) => [q.id, q.answer]));
+
+      const createData = request.answers.map((a) => ({
+        questionId: a.questionId,
+        userId: request.studentId,
+        userInput: a.userInput ?? '',
+        isCorrect:
+          (a.userInput ?? '').trim() ===
+          (idToAnswer.get(a.questionId) ?? '').trim(),
+      }));
+
+      const saved = await this.unitSolveRepository.createMany(createData);
+      return { success: true, saved };
+    } catch {
+      return { success: false, error: '답안 제출에 실패했습니다.' };
     }
   }
 }

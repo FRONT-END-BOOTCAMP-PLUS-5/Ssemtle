@@ -5,7 +5,7 @@ import { IUnitExamRepository } from '../../common/domains/repositories/IUnitExam
 import { IUnitQuestionRepository } from '../../common/domains/repositories/IUnitQuestionRepository';
 import { IUnitExamAttemptRepository } from '../../common/domains/repositories/IUnitExamAttemptRepository';
 import { IUnitSolveRepository } from '../../common/domains/repositories/IUnitSolveRepository';
-import { callGemini } from '../../../libs/gemini/callGemini';
+import { callGemini } from '../../common/infrastructures/LLM/callGemini';
 import {
   GenerateUnitExamRequestDto,
   UnitExamGenerationResult,

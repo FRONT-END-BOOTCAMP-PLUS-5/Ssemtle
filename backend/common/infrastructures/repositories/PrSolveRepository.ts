@@ -2,6 +2,8 @@
 import { Solve } from '@/backend/common/domains/entities/Solve';
 import prisma from '@/libs/prisma';
 import {
+  SolveAggregationFilter,
+  SolveByUnitRow,
   ISolveRepository,
   PaginatedResult,
   PaginationParams,
@@ -11,6 +13,46 @@ import {
 import { Prisma } from '@prisma/client';
 
 export class PrSolveRepository implements ISolveRepository {
+  async aggregateByUnit(
+    filter: SolveAggregationFilter
+  ): Promise<SolveByUnitRow[]> {
+    const { userId, from, to } = filter;
+
+    const whereBase: Prisma.SolveWhereInput = { userId };
+    if (from || to) {
+      whereBase.createdAt = {};
+      if (from) whereBase.createdAt.gte = from;
+      if (to) whereBase.createdAt.lte = to;
+    }
+
+    // 1) 전체 풀이수 by unitId
+    const totals = await prisma.solve.groupBy({
+      by: ['unitId'],
+      where: whereBase,
+      _count: { _all: true },
+    });
+
+    // 2) 정답수 by unitId
+    const corrects = await prisma.solve.groupBy({
+      by: ['unitId'],
+      where: { ...whereBase, isCorrect: true },
+      _count: { _all: true },
+    });
+
+    const correctMap = new Map<number, number>();
+    for (const c of corrects) correctMap.set(c.unitId as number, c._count._all);
+
+    const rows: SolveByUnitRow[] = totals.map((t) => ({
+      unitId: t.unitId as number,
+      total: t._count._all,
+      correct: correctMap.get(t.unitId as number) ?? 0,
+    }));
+
+    // unitId 오름차순 정렬
+    rows.sort((a, b) => a.unitId - b.unitId);
+    return rows;
+  }
+
   async create(solve: Omit<Solve, 'id' | 'createdAt'>): Promise<Solve> {
     const { unit, user, ...data } = solve; // ❗ unit, user 제외
 

@@ -68,4 +68,24 @@ export class prAdminUnitRepository implements IAdminUnitRepository {
 
     return this.mapToUnit(unit);
   }
+
+  // 특정 단원의 vidUrl만 조회
+  async findVidUrlById(
+    id: number
+  ): Promise<{ id: number; vidUrl: string } | null> {
+    try {
+      const unit = await this.prisma.unit.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          vidUrl: true,
+        },
+      });
+
+      return unit;
+    } catch (error) {
+      console.error('Unit vidUrl 조회 실패', { id, error });
+      throw new Error('단원 영상 URL을 조회하는 중 오류가 발생했습니다.');
+    }
+  }
 }

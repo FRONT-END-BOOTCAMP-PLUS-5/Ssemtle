@@ -21,6 +21,14 @@ export class CreateUnitUseCase {
       throw new Error('과목명은 20자 이하로 입력해주세요.');
     }
 
+    // 중복 검사
+    const existingUnit = await this.unitRepository.findByName(
+      unitData.name.trim()
+    );
+    if (existingUnit) {
+      throw new Error('이미 존재하는 단원명입니다.');
+    }
+
     try {
       return await this.unitRepository.create({
         name: unitData.name.trim(),

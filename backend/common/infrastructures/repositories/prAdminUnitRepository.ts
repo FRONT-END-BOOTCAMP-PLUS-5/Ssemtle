@@ -60,13 +60,31 @@ export class prAdminUnitRepository implements IAdminUnitRepository {
     return unit ? this.mapToUnit(unit) : null;
   }
 
+  // 단원명으로 조회 (중복 검사용)
+  async findByName(name: string): Promise<Unit | null> {
+    const unit = await this.prisma.unit.findFirst({
+      where: { name },
+    });
+
+    return unit ? this.mapToUnit(unit) : null;
+  }
+
   // 단원 삭제
   async delete(id: number): Promise<Unit> {
-    const unit = await this.prisma.unit.delete({
+    const unitToDelete = await this.prisma.unit.findUnique({
       where: { id },
     });
 
-    return this.mapToUnit(unit);
+    if (!unitToDelete) {
+      throw new Error('삭제할 단원을 찾을 수 없습니다.');
+    }
+
+    // Unit 삭제 (Cascade Delete가 관련 데이터 자동 삭제)
+    await this.prisma.unit.delete({
+      where: { id },
+    });
+
+    return this.mapToUnit(unitToDelete);
   }
 
   // 특정 단원의 vidUrl만 조회

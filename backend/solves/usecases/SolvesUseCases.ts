@@ -13,6 +13,8 @@ import {
   CategoryStatsRequestDto,
   CategoryStatsResponseDto,
   CategoryStatDto,
+  UpdateSolveRequestDto,
+  UpdateSolveResponseDto,
 } from '../dtos/SolveDto';
 
 export class ListSolvesUseCase {
@@ -186,5 +188,95 @@ export class GetCategoryStatsUseCase {
     categoryStats.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
 
     return categoryStats;
+  }
+}
+
+export class UpdateSolveUseCase {
+  constructor(private repository: ISolveRepository) {}
+
+  async execute(
+    request: UpdateSolveRequestDto
+  ): Promise<UpdateSolveResponseDto> {
+    // Find the solve by ID and ensure it belongs to the user
+    const existingSolve = await this.repository.findByIdAndUserId(
+      request.id,
+      request.userId
+    );
+
+    if (!existingSolve) {
+      throw new Error('Solve not found');
+    }
+
+    // Compare user input with correct answer using numeric tolerance
+    const isCorrect = this.compareAnswers(
+      request.userInput,
+      existingSolve.answer
+    );
+
+    // Prepare update data
+    const updateData: { userInput: string; isCorrect?: boolean } = {
+      userInput: request.userInput,
+    };
+
+    // Only update isCorrect if the answer becomes correct
+    if (isCorrect) {
+      updateData.isCorrect = true;
+    }
+
+    // Update the solve
+    await this.repository.update(request.id, updateData);
+
+    return {
+      id: request.id,
+      isCorrect: isCorrect || existingSolve.isCorrect,
+    };
+  }
+
+  private compareAnswers(userInput: string, correctAnswer: string): boolean {
+    // Tolerance values as specified in requirements
+    const ABS_TOL = 0.0005;
+    const REL_TOL = 0.001;
+
+    // Trim inputs
+    const trimmedUserInput = userInput.trim();
+    const trimmedCorrectAnswer = correctAnswer.trim();
+
+    // First try exact string match (case-insensitive)
+    if (trimmedUserInput.toLowerCase() === trimmedCorrectAnswer.toLowerCase()) {
+      return true;
+    }
+
+    // Try numeric comparison with tolerance
+    const userNum = this.parseNumber(trimmedUserInput);
+    const correctNum = this.parseNumber(trimmedCorrectAnswer);
+
+    if (userNum !== null && correctNum !== null) {
+      const absoluteDiff = Math.abs(userNum - correctNum);
+      const relativeDiff = Math.abs(absoluteDiff / correctNum);
+
+      return absoluteDiff <= ABS_TOL || relativeDiff <= REL_TOL;
+    }
+
+    // If not numeric, fall back to exact string comparison
+    return false;
+  }
+
+  private parseNumber(input: string): number | null {
+    // Handle fractions like "1/2", "3/4"
+    if (input.includes('/')) {
+      const parts = input.split('/');
+      if (parts.length === 2) {
+        const numerator = parseFloat(parts[0].trim());
+        const denominator = parseFloat(parts[1].trim());
+        if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+          return numerator / denominator;
+        }
+      }
+      return null;
+    }
+
+    // Handle regular decimal numbers
+    const parsed = parseFloat(input);
+    return isNaN(parsed) ? null : parsed;
   }
 }

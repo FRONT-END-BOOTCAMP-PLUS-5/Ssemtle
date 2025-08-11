@@ -23,6 +23,13 @@ export class CreateTeacherAuthUseCase {
       throw new Error('올바른 형식의 이미지 URL을 입력해주세요.');
     }
 
+    const existingRequest = await this.teacherAuthRepository.findByTeacherId(
+      teacherAuthData.teacherId
+    );
+    if (existingRequest) {
+      throw new Error('이미 교사 인증 요청이 존재합니다.');
+    }
+
     try {
       return await this.teacherAuthRepository.create(
         teacherAuthData.teacherId.trim(),

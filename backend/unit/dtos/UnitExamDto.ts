@@ -25,6 +25,8 @@ export interface UnitExamGenerationResult {
 
 export interface VerifyUnitExamRequestDto {
   code: string;
+  // 서버에서 세션으로부터 주입될 학생 ID (선택)
+  studentId?: string;
 }
 
 export interface VerifyUnitExamResponseDto {
@@ -68,5 +70,29 @@ export interface CreateExamAttemptRequestDto {
 export interface ExamAttemptResult {
   success: boolean;
   attemptId?: number;
+  error?: string;
+}
+
+// 단원평가 문제 조회 DTO
+export interface GetQuestionsRequestDto {
+  code: string;
+}
+
+export interface GetQuestionsResult {
+  success: boolean;
+  questions?: Array<{ id: number; question: string; helpText: string }>;
+  error?: string;
+}
+
+// 단원평가 일괄 제출 DTO
+export interface SubmitAnswersRequestDto {
+  code: string;
+  studentId: string;
+  answers: Array<{ questionId: number; userInput: string }>;
+}
+
+export interface SubmitAnswersResult {
+  success: boolean;
+  saved?: number;
   error?: string;
 }

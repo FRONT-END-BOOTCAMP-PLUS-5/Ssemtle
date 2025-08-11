@@ -14,6 +14,12 @@ export default function UnitTestPage() {
   const [generatedCode, setGeneratedCode] = useState<string>('');
   // 학생이 입력한 코드를 관리하는 상태
   const [studentCode, setStudentCode] = useState<string>('');
+  // 검증으로 받은 문제 목록
+  const [examQuestions, setExamQuestions] = useState<
+    { id: number; question: string; helpText: string }[]
+  >([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
   // 로딩 상태 관리
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // 서버에서 불러온 단원 목록
@@ -110,29 +116,79 @@ export default function UnitTestPage() {
     }
 
     try {
-      // API 호출로 코드 검증
-      const response = await fetch('/api/unit-exam/verify', {
+      const code = studentCode.trim().toUpperCase();
+      // 1) 코드 검증
+      const verifyRes = await fetch('/api/unit-exam/verify', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: studentCode.trim().toUpperCase(),
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
       });
-
-      const data = await response.json();
-
-      if (response.ok && data.valid) {
-        console.log('코드가 올바릅니다!');
-        alert('올바른 코드입니다!');
-      } else {
-        console.log('잘못된 코드입니다.');
+      const verifyData = await verifyRes.json();
+      if (!(verifyRes.ok && verifyData.valid)) {
         alert('잘못된 코드입니다.');
+        return;
+      }
+
+      // 2) 문제 조회
+      const qRes = await fetch('/api/unit-exam/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const qData = await qRes.json();
+      if (!qRes.ok || !qData?.questions || qData.questions.length === 0) {
+        alert('문제를 불러오지 못했습니다.');
+        return;
+      }
+      setExamQuestions(qData.questions);
+      setCurrentIndex(0);
+      setAnswers({});
+    } catch (error) {
+      console.error('코드 검증/문제 조회 오류:', error);
+      alert('코드 검증/문제 조회 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 현재 문제에 대한 답 입력 핸들러
+  const handleAnswerChange = (questionId: number, value: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const handleNext = () => {
+    if (currentIndex < examQuestions.length - 1) {
+      setCurrentIndex((idx) => idx + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((idx) => idx - 1);
+    }
+  };
+
+  // 일괄 제출
+  const handleSubmitAll = async () => {
+    try {
+      const code = studentCode.trim().toUpperCase();
+      const payload = examQuestions.map((q) => ({
+        questionId: q.id,
+        userInput: answers[q.id] ?? '',
+      }));
+
+      const res = await fetch('/api/unit-exam/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, answers: payload }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`제출 완료 (${data.saved}개 저장)`);
+      } else {
+        alert(data?.error || '제출 실패');
       }
     } catch (error) {
-      console.error('코드 검증 오류:', error);
-      alert('코드 검증 중 오류가 발생했습니다.');
+      console.error('제출 오류:', error);
+      alert('제출 중 오류가 발생했습니다.');
     }
   };
 
@@ -251,6 +307,49 @@ export default function UnitTestPage() {
           * 영어 대문자 6글자로 된 코드를 입력하세요
         </div>
       </div>
+
+      {/* 문제 표시 섹션 (검증 성공 후 렌더링) */}
+      {examQuestions.length > 0 && (
+        <div className="mt-8 p-6 border rounded">
+          <div className="mb-4">
+            문제 {currentIndex + 1} / {examQuestions.length}
+          </div>
+          <div className="mb-4 whitespace-pre-wrap">
+            {examQuestions[currentIndex].question}
+          </div>
+          <input
+            type="text"
+            className="w-full p-2 border rounded mb-2"
+            placeholder="정답을 입력하세요"
+            value={answers[examQuestions[currentIndex].id] ?? ''}
+            onChange={(e) =>
+              handleAnswerChange(examQuestions[currentIndex].id, e.target.value)
+            }
+          />
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              className="px-4 py-2 bg-gray-300 rounded"
+            >
+              이전
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === examQuestions.length - 1}
+              className="px-4 py-2 bg-gray-300 rounded"
+            >
+              다음
+            </button>
+            <button
+              onClick={handleSubmitAll}
+              className="ml-auto px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              전체 제출
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

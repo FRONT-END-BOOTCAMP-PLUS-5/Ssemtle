@@ -5,12 +5,14 @@ import {
   ListSolvesUseCase,
   GetUnitsSummaryUseCase,
   GetCategoryStatsUseCase,
+  UpdateSolveUseCase,
 } from '../../backend/solves/usecases/SolvesUseCases';
 import { ISolveRepository } from '../../backend/common/domains/repositories/SolveRepository';
 import {
   ListSolvesRequestDto,
   UnitsSummaryRequestDto,
   CategoryStatsRequestDto,
+  UpdateSolveRequestDto,
 } from '../../backend/solves/dtos/SolveDto';
 import { Solve } from '../../backend/common/domains/entities/Solve';
 
@@ -25,6 +27,7 @@ describe('ListSolvesUseCase', () => {
       findRecentSamplesByUnit: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
+      findByIdAndUserId: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -156,6 +159,7 @@ describe('GetUnitsSummaryUseCase', () => {
       findRecentSamplesByUnit: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
+      findByIdAndUserId: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -213,6 +217,7 @@ describe('GetCategoryStatsUseCase', () => {
       findRecentSamplesByUnit: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
+      findByIdAndUserId: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -248,6 +253,174 @@ describe('GetCategoryStatsUseCase', () => {
           accuracy: 0.8,
         }),
       ]);
+    });
+  });
+});
+
+describe('UpdateSolveUseCase', () => {
+  let useCase: UpdateSolveUseCase;
+  let mockRepository: jest.Mocked<ISolveRepository>;
+
+  beforeEach(() => {
+    mockRepository = {
+      findPaginated: jest.fn(),
+      countByUnitAndCorrectness: jest.fn(),
+      findRecentSamplesByUnit: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      findByIdAndUserId: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
+    useCase = new UpdateSolveUseCase(mockRepository);
+  });
+
+  describe('execute', () => {
+    it('should update userInput and set isCorrect to true when answer matches', async () => {
+      // Arrange
+      const request: UpdateSolveRequestDto = {
+        id: 1,
+        userId: 'test-user',
+        userInput: '5',
+      };
+
+      const existingSolve = {
+        id: 1,
+        question: 'What is 2 + 3?',
+        answer: '5',
+        helpText: 'Add the numbers',
+        userInput: '4',
+        isCorrect: false,
+        createdAt: new Date(),
+        unitId: 1,
+        userId: 'test-user',
+      };
+
+      const updatedSolve = {
+        ...existingSolve,
+        userInput: '5',
+        isCorrect: true,
+      };
+
+      mockRepository.findByIdAndUserId.mockResolvedValue(existingSolve);
+      mockRepository.update.mockResolvedValue(updatedSolve);
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(mockRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        1,
+        'test-user'
+      );
+      expect(mockRepository.update).toHaveBeenCalledWith(1, {
+        userInput: '5',
+        isCorrect: true,
+      });
+      expect(result).toEqual({
+        id: 1,
+        isCorrect: true,
+      });
+    });
+
+    it('should update userInput but keep isCorrect false when answer does not match', async () => {
+      // Arrange
+      const request: UpdateSolveRequestDto = {
+        id: 1,
+        userId: 'test-user',
+        userInput: '6',
+      };
+
+      const existingSolve = {
+        id: 1,
+        question: 'What is 2 + 3?',
+        answer: '5',
+        helpText: 'Add the numbers',
+        userInput: '4',
+        isCorrect: false,
+        createdAt: new Date(),
+        unitId: 1,
+        userId: 'test-user',
+      };
+
+      const updatedSolve = {
+        ...existingSolve,
+        userInput: '6',
+        isCorrect: false,
+      };
+
+      mockRepository.findByIdAndUserId.mockResolvedValue(existingSolve);
+      mockRepository.update.mockResolvedValue(updatedSolve);
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(mockRepository.update).toHaveBeenCalledWith(1, {
+        userInput: '6',
+      });
+      expect(result).toEqual({
+        id: 1,
+        isCorrect: false,
+      });
+    });
+
+    it('should handle numeric tolerance for decimal answers', async () => {
+      // Arrange
+      const request: UpdateSolveRequestDto = {
+        id: 1,
+        userId: 'test-user',
+        userInput: '3.1416',
+      };
+
+      const existingSolve = {
+        id: 1,
+        question: 'Value of π?',
+        answer: '3.14159',
+        helpText: 'Pi value',
+        userInput: '3.0',
+        isCorrect: false,
+        createdAt: new Date(),
+        unitId: 1,
+        userId: 'test-user',
+      };
+
+      const updatedSolve = {
+        ...existingSolve,
+        userInput: '3.1416',
+        isCorrect: true,
+      };
+
+      mockRepository.findByIdAndUserId.mockResolvedValue(existingSolve);
+      mockRepository.update.mockResolvedValue(updatedSolve);
+
+      // Act
+      const result = await useCase.execute(request);
+
+      // Assert
+      expect(mockRepository.update).toHaveBeenCalledWith(1, {
+        userInput: '3.1416',
+        isCorrect: true,
+      });
+      expect(result).toEqual({
+        id: 1,
+        isCorrect: true,
+      });
+    });
+
+    it('should throw error when solve is not found', async () => {
+      // Arrange
+      const request: UpdateSolveRequestDto = {
+        id: 999,
+        userId: 'test-user',
+        userInput: '5',
+      };
+
+      mockRepository.findByIdAndUserId.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(useCase.execute(request)).rejects.toThrow('Solve not found');
     });
   });
 });

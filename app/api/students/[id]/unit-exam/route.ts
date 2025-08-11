@@ -41,6 +41,8 @@ export async function GET(
       from,
       to,
     });
+    console.log('✅ params.id:', user.id, '✅ username:', username);
+    console.log('✅ query.from:', from, '✅ query.to:', to);
 
     // 4) 응답에 보여줄 studentId는 username으로 교체
     return NextResponse.json(

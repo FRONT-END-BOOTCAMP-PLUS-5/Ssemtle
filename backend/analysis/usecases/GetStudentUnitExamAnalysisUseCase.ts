@@ -19,12 +19,17 @@ export class GetStudentUnitExamAnalysisUseCase {
     }
     const fromDate = parseDate(req.from);
     const toDate = parseDate(req.to);
-
+    console.log('✅ GetStudentUnitExamAnalysisUseCase.execute', {
+      userId: req.userId,
+      from: fromDate,
+      to: toDate,
+    });
     const filter: UnitExamAggregationFilter = {
       userId: req.userId,
       from: fromDate,
       to: toDate,
     };
+
     const rows = await this.repo.aggregateByUnitCode(filter);
 
     return {

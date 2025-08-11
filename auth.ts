@@ -21,37 +21,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        // Dynamic imports to avoid bundling in Edge Runtime
-        const bcrypt = await import('bcryptjs');
-        const prismaModule = await import('@/libs/prisma');
-        const prisma = prismaModule.default;
-
         try {
-          // Find user by userId
-          const user = await prisma.user.findUnique({
-            where: { userId: credentials.id as string },
-          });
+          // Dynamic imports to avoid bundling in Edge Runtime
+          const { AuthenticateUserUsecase } = await import(
+            '@/backend/auth/usecases/AuthenticateUserUsecase'
+          );
+          const { PrAuthRepository } = await import(
+            '@/backend/common/infrastructures/repositories/PrAuthRepository'
+          );
+          const prismaModule = await import('@/libs/prisma');
+          const prisma = prismaModule.default;
 
-          if (!user) {
-            return null;
-          }
-
-          // Verify password
-          const isValidPassword = await bcrypt.compare(
-            credentials.password as string,
-            user.password
+          // Use clean architecture components with explicit dependency injection
+          const authRepository = new PrAuthRepository(prisma);
+          const authenticateUserUsecase = new AuthenticateUserUsecase(
+            authRepository
           );
 
-          if (!isValidPassword) {
+          const result = await authenticateUserUsecase.execute({
+            userId: credentials.id as string,
+            password: credentials.password as string,
+          });
+
+          if (!result.success || !result.user) {
             return null;
           }
 
           // Return user data for session
           return {
-            id: user.id,
-            userId: user.userId,
-            name: user.name,
-            role: user.role,
+            id: result.user.id,
+            userId: result.user.userId,
+            name: result.user.name,
+            role: result.user.role,
           };
         } catch (error) {
           console.error('Authentication error:', error);

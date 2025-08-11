@@ -35,3 +35,21 @@ export interface DuplicateCheckResult {
   exists?: boolean;
   error?: string;
 }
+
+export interface AuthenticateUserRequestDto {
+  userId: string;
+  password: string;
+}
+
+export interface AuthenticatedUserDto {
+  id: string;
+  userId: string;
+  name: string;
+  role: string;
+}
+
+export interface AuthenticationResult {
+  success: boolean;
+  user?: AuthenticatedUserDto;
+  error?: string;
+}

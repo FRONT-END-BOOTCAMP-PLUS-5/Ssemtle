@@ -1,6 +1,6 @@
 import { IAdminUnitRepository } from '@/backend/common/domains/repositories/IAdminUnitRepository';
 
-export class VidUrlSelectUseCase {
+export class VidUrlSelectUsecase {
   private unitRepository: IAdminUnitRepository;
 
   constructor(unitRepository: IAdminUnitRepository) {

@@ -127,4 +127,15 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
       throw new Error('교사 인증 요청을 조회하는 중 오류가 발생했습니다.');
     }
   }
+
+  // teacherId로 교사 인증 요청 조회 (중복 검사용)
+  async findByTeacherId(
+    teacherId: string
+  ): Promise<TeacherAuthorization | null> {
+    const teacherAuth = await this.prisma.teacherAuthorization.findFirst({
+      where: { teacherId },
+    });
+
+    return teacherAuth ? this.mapToEntity(teacherAuth) : null;
+  }
 }

@@ -21,17 +21,21 @@ import {
   SubmitAnswersResult,
   // 조회 결과 DTO는 새로 정의하지 않고 이 UseCase 내부에서 단순 객체로 반환
 } from '../dtos/UnitExamDto';
+import { AIQuestionValidator } from '@/backend/common/domains/entities/AIQuestionValidator';
 
 export class GenerateUnitExamUseCase {
   private unitExamRepository: IUnitExamRepository;
   private unitQuestionRepository: IUnitQuestionRepository;
+  private linearEquationValidator?: AIQuestionValidator;
 
   constructor(
     unitExamRepository: IUnitExamRepository,
-    unitQuestionRepository: IUnitQuestionRepository
+    unitQuestionRepository: IUnitQuestionRepository,
+    linearEquationValidator?: AIQuestionValidator
   ) {
     this.unitExamRepository = unitExamRepository;
     this.unitQuestionRepository = unitQuestionRepository;
+    this.linearEquationValidator = linearEquationValidator;
   }
 
   async execute(
@@ -72,10 +76,16 @@ export class GenerateUnitExamUseCase {
         return this.execute(request);
       }
 
-      // AI를 사용하여 문제 생성
+      // AI를 사용하여 문제 생성: 요청 수를 여유분(+5) 포함하여 요청
+      const overRequest = request.questionCount + 5;
+      console.log('[UnitExam] 검증 준비 시작', {
+        requested: request.questionCount,
+        overRequest,
+        selectedUnits: request.selectedUnits.map((u) => u.unitName),
+      });
       const aiResult = await this.generateQuestionsWithAI(
         request.selectedUnits,
-        request.questionCount
+        overRequest
       );
 
       // AI 생성 실패 시 중단
@@ -90,6 +100,60 @@ export class GenerateUnitExamUseCase {
         };
       }
 
+      // 생성 문제 검증 및 선별 (일차방정식 단원에 한하여 검증 실시)
+      const validated: AIGeneratedQuestion[] = this.filterValidatedQuestions(
+        aiResult.questions,
+        request.selectedUnits
+      );
+      console.log('[UnitExam] 1차 검증 샘플', {
+        sample: validated.slice(0, 1).map((q) => ({
+          unitId: q.unitId,
+          question: q.question,
+          answer: q.answer,
+        })),
+      });
+      console.log('[UnitExam] 1차 검증 통과 수', {
+        validated: validated.length,
+        totalFetched: aiResult.questions.length,
+      });
+
+      // 부족하면 재시도 한 번 더 수행 (부족한 수 + 5개 재요청)
+      if (validated.length < request.questionCount) {
+        const missing = request.questionCount - validated.length;
+        const retryCount = Math.max(missing + 5, 5);
+        const retry = await this.generateQuestionsWithAI(
+          request.selectedUnits,
+          retryCount
+        );
+        if (retry.success && retry.questions) {
+          const moreValidated = this.filterValidatedQuestions(
+            retry.questions,
+            request.selectedUnits
+          );
+          console.log('[UnitExam] 재요청 및 검증 결과', {
+            retryRequested: retryCount,
+            retryFetched: retry.questions.length,
+            retryValidated: moreValidated.length,
+          });
+          validated.push(
+            ...moreValidated.filter(
+              (q) => !validated.some((v) => v.question === q.question)
+            )
+          );
+        }
+      }
+
+      if (validated.length < request.questionCount) {
+        console.warn('[UnitExam] 유효 문제 부족', {
+          need: request.questionCount,
+          have: validated.length,
+        });
+        return {
+          success: false,
+          error: '유효한 문제 수가 부족합니다. 다시 시도해주세요.',
+        };
+      }
+
       // 세션에서 전달된 교사 ID 사용
       const teacherId = request.teacherId as string;
 
@@ -99,8 +163,15 @@ export class GenerateUnitExamUseCase {
         teacherId,
       });
 
-      // 생성된 문제들을 UnitQuestion 테이블에 저장
-      await this.saveGeneratedQuestions(aiResult.questions, code, teacherId);
+      // 검증 통과한 문제 중 요청 개수만큼 저장
+      console.log('[UnitExam] 저장 진행', {
+        saveCount: request.questionCount,
+      });
+      await this.saveGeneratedQuestions(
+        validated.slice(0, request.questionCount),
+        code,
+        teacherId
+      );
 
       return {
         success: true,
@@ -127,6 +198,38 @@ export class GenerateUnitExamUseCase {
     }
 
     return result;
+  }
+
+  // 일차방정식 검증 적용: 단원명이 일치하는 경우에만 validator 실행, 그 외 단원은 통과
+  private filterValidatedQuestions(
+    questions: AIGeneratedQuestion[],
+    selectedUnits: Array<{ unitId: number; unitName: string }>
+  ): AIGeneratedQuestion[] {
+    const unitIdToName = new Map<number, string>(
+      selectedUnits.map((u) => [u.unitId, u.unitName])
+    );
+
+    return questions.filter((q) => {
+      const name = unitIdToName.get(q.unitId) || '';
+      const isLinear = /일차방정식|1차방정식/.test(name);
+      if (isLinear && this.linearEquationValidator) {
+        // 디버깅: AI 원본과 기대 정답 출력
+        console.log('[UnitExam][Validate] AI 원본', {
+          unitName: name,
+          question: q.question,
+          expected: q.answer,
+        });
+        const res = this.linearEquationValidator.validate(q, name);
+        // 디버깅: 검증 결과와 사유 출력
+        console.log('[UnitExam][Validate] 결과', {
+          isValid: res.isValid,
+          reason: res.reason,
+        });
+        return res.isValid;
+      }
+      // 다른 단원은 현재 검증 미적용 → 통과
+      return true;
+    });
   }
 
   // AI를 사용하여 문제 생성
@@ -170,7 +273,8 @@ export class GenerateUnitExamUseCase {
 오직 JSON 배열로만 응답하라. 각 항목은 아래 형식을 따른다.
 {
   "unitId": number,
-  "question": string,
+  "question1": string, // 문제 설명 텍스트 (예: "x의 값을 구하시오")
+  "question2": string, // 실제 문제 식 (예: "2x + 6 = 14")
   "answer": string,
   "help_text": string
 }
@@ -190,7 +294,35 @@ export class GenerateUnitExamUseCase {
       }
 
       const jsonString = jsonMatch[1] || jsonMatch[0];
-      const questions = JSON.parse(jsonString);
+      const raw = JSON.parse(jsonString);
+      const questions = (Array.isArray(raw) ? raw : []).map(
+        (q: {
+          unitId: number;
+          question?: string;
+          question1?: string;
+          question2?: string;
+          answer: string | number;
+          help_text: string;
+        }) => {
+          const question1 = typeof q.question1 === 'string' ? q.question1 : '';
+          const question2 = typeof q.question2 === 'string' ? q.question2 : '';
+          const merged = [question1, question2].filter(Boolean).join(' ');
+          const rawAnswer =
+            typeof q.answer === 'string' ? q.answer : String(q.answer ?? '');
+          const normalizedAnswer = rawAnswer
+            .toString()
+            .trim()
+            .replace(/^x\s*=\s*/i, '');
+          return {
+            unitId: q.unitId,
+            question: merged || q.question, // 하위호환: 기존 question 필드 허용
+            question1,
+            question2,
+            answer: normalizedAnswer,
+            help_text: q.help_text,
+          } as AIGeneratedQuestion;
+        }
+      );
 
       if (!Array.isArray(questions)) {
         throw new Error('응답이 배열 형식이 아닙니다.');

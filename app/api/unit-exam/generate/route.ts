@@ -8,6 +8,7 @@ import { auth } from '@/auth';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitQuestionRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitQuestionRepository';
 import { GenerateUnitExamUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
+import { LinearEquationValidator } from '@/backend/common/infrastructures/repositories/LinearEquationValidator';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,8 @@ export async function POST(request: NextRequest) {
     const unitQuestionRepository = new PrUnitQuestionRepository(prisma);
     const generateUnitExamUseCase = new GenerateUnitExamUseCase(
       unitExamRepository,
-      unitQuestionRepository
+      unitQuestionRepository,
+      new LinearEquationValidator()
     );
 
     // 단원평가 코드 생성 실행

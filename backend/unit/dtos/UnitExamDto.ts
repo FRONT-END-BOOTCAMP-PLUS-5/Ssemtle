@@ -45,6 +45,7 @@ export interface UnitExamVerificationResult {
     createdAt: Date;
   };
   error?: string;
+  alreadyAttempted?: boolean;
 }
 
 // AI 생성 문제 관련 DTO

@@ -22,4 +22,25 @@ export class PrUnitSolveRepository implements IUnitSolveRepository {
       throw new Error('단원평가 답안 저장에 실패했습니다.');
     }
   }
+
+  async findByUserIdWithQuestion(userId: string) {
+    try {
+      const rows = await this.prisma.unitSolve.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          questionId: true,
+          userInput: true,
+          isCorrect: true,
+          createdAt: true,
+          question: { select: { question: true, answer: true } },
+        },
+      });
+      return rows;
+    } catch (error) {
+      console.error('UnitSolve 조회 오류:', error);
+      throw new Error('문제 풀이 조회에 실패했습니다.');
+    }
+  }
 }

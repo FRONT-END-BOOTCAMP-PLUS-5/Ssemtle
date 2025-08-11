@@ -19,6 +19,7 @@ import {
   GetQuestionsResult,
   SubmitAnswersRequestDto,
   SubmitAnswersResult,
+  // 조회 결과 DTO는 새로 정의하지 않고 이 UseCase 내부에서 단순 객체로 반환
 } from '../dtos/UnitExamDto';
 
 export class GenerateUnitExamUseCase {
@@ -270,7 +271,24 @@ export class VerifyUnitExamUseCase {
       const unitExam = await this.unitExamRepository.findByCode(request.code);
 
       if (unitExam) {
-        // 유효한 코드인 경우, 시도 기록 생성 (세션 유저 ID를 우선 사용)
+        // 이미 응시했는지 확인
+        if (request.studentId) {
+          const alreadyAttempted =
+            await this.unitExamAttemptRepository.existsByStudentAndExam(
+              request.studentId,
+              unitExam.id
+            );
+          if (alreadyAttempted) {
+            return {
+              success: true,
+              valid: false,
+              error: '이미 응시한 내역입니다.',
+              alreadyAttempted: true,
+            };
+          }
+        }
+
+        // 유효한 코드이면서 응시 이력이 없으면, 시도 기록 생성
         await this.createExamAttempt(
           request.code,
           unitExam.id,
@@ -452,6 +470,52 @@ export class SubmitAnswersUseCase {
       return { success: true, saved };
     } catch {
       return { success: false, error: '답안 제출에 실패했습니다.' };
+    }
+  }
+}
+
+// 학생이 푼 단원평가 문제 조회 UseCase
+export class GetUserUnitSolvesUseCase {
+  private unitSolveRepository: IUnitSolveRepository;
+
+  constructor(unitSolveRepository: IUnitSolveRepository) {
+    this.unitSolveRepository = unitSolveRepository;
+  }
+
+  async execute(userId: string): Promise<
+    | {
+        success: true;
+        solves: Array<{
+          id: number;
+          question: string;
+          answer: string;
+          userInput: string;
+          isCorrect: boolean;
+          createdAt: Date;
+        }>;
+      }
+    | { success: false; error: string }
+  > {
+    try {
+      if (!userId) {
+        return { success: false, error: '유효하지 않은 사용자입니다.' };
+      }
+      const rows =
+        await this.unitSolveRepository.findByUserIdWithQuestion(userId);
+      const solves = rows.map((r) => ({
+        id: r.id,
+        question: r.question.question,
+        answer: r.question.answer,
+        userInput: r.userInput,
+        isCorrect: r.isCorrect,
+        createdAt: r.createdAt,
+      }));
+      return { success: true, solves };
+    } catch {
+      return {
+        success: false,
+        error: '문제 풀이 조회 중 오류가 발생했습니다.',
+      };
     }
   }
 }

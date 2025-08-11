@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         success: true,
         valid: result.valid,
         examData: result.examData,
+        error: result.error,
+        alreadyAttempted: result.alreadyAttempted,
       });
     } else {
       return NextResponse.json(

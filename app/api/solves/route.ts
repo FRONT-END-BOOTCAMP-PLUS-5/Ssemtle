@@ -1,7 +1,7 @@
-import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateSolvesByUnitUsecase';
 import { callGemini } from '@/backend/common/infrastructures/LLM/callGemini';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
+import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateSolvesByUnitUsecase';
 
 // GET /api/solves?unit=unitName
 // unitName은 문제 유형 (예: "소인수분해", "미분적분" 등)으로, 이 유형에 맞는 문제를 생성합니다.

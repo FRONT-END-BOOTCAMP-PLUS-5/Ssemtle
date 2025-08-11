@@ -115,7 +115,7 @@ model UnitQuestion {
   createdAt  DateTime @default(now()) @map("created_at")
   
   unitId Int  @map("unit_id")
-  unit   Unit @relation(fields: [unitId], references: [id])
+  unit   Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   
   userId String  @map("user_id")
   user   User @relation(fields: [userId], references: [id])
@@ -160,7 +160,7 @@ model Solve {
   unitId Int      @map("unit_id")
   userId     String      @map("user_id")
   
-  unit Unit @relation(fields: [unitId], references: [id])
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
   
   @@map("solves")
@@ -174,7 +174,7 @@ model UnitSolve {
   questionId Int      @map("question_id")
   userId     String      @map("user_id")
   
-  question UnitQuestion @relation(fields: [questionId], references: [id])
+  question UnitQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
   
   @@map("unit_solves")

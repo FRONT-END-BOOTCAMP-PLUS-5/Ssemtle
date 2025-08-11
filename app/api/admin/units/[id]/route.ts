@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UnitDeleteUseCase } from '@/backend/admin/unit/UseCases/DeleteUnitUseCase';
-import { UnitUpdateUseCase } from '@/backend/admin/unit/UseCases/UpdateUnitUseCase';
+import { DeleteUnitUsecase } from '@/backend/admin/units/usecase/DeleteUnitUsecase';
+import { UpdateUnitUsecase } from '@/backend/admin/units/usecase/UpdateUnitUsecase';
 import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 
@@ -21,7 +21,7 @@ export async function PUT(
     }
 
     const unitRepository = new prAdminUnitRepository(prisma);
-    const updateUnitUseCase = new UnitUpdateUseCase(unitRepository);
+    const updateUnitUseCase = new UpdateUnitUsecase(unitRepository);
 
     const unit = await updateUnitUseCase.execute(Number(id), { name, vidUrl });
 
@@ -58,7 +58,7 @@ export async function DELETE(
     }
 
     const unitRepository = new prAdminUnitRepository(prisma);
-    const deleteUnitUseCase = new UnitDeleteUseCase(unitRepository);
+    const deleteUnitUseCase = new DeleteUnitUsecase(unitRepository);
 
     const unit = await deleteUnitUseCase.execute(Number(id));
 

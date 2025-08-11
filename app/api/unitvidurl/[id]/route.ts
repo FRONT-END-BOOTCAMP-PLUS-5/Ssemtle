@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { VidUrlSelectUseCase } from '@/backend/admin/unit/UseCases/VidUrlSelectUseCase';
+import { VidUrlSelectUsecase } from '@/backend/admin/units/usecase/VidUrlSelectUsecase';
 import { prAdminUnitRepository } from '@/backend/common/infrastructures/repositories/prAdminUnitRepository';
 import prisma from '@/libs/prisma';
 
@@ -20,7 +20,7 @@ export async function GET(
     }
 
     const unitRepository = new prAdminUnitRepository(prisma);
-    const vidUrlSelectUseCase = new VidUrlSelectUseCase(unitRepository);
+    const vidUrlSelectUseCase = new VidUrlSelectUsecase(unitRepository);
 
     const result = await vidUrlSelectUseCase.getVidUrlById(id);
 

@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Header logoSrc="/logos/Ssemtle_logo.png" logoHref="/"></Header>
+        <Header logoSrc="/logos/Ssemtle_logo.png" logoHref="/" />
         <Providers>{children}</Providers>
       </body>
     </html>

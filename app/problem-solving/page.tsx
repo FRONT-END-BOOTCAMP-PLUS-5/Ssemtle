@@ -118,7 +118,8 @@ export default function ProblemSolvingPage() {
         >,
         solve: SolveListItemDto
       ) => {
-        const key = `${solve.unitId}-${solve.category}`;
+        const date = new Date(solve.createdAt).toDateString(); // Get date part only
+        const key = `${solve.unitId}-${solve.category}-${date}`;
         if (!acc[key]) {
           acc[key] = {
             category: solve.category,

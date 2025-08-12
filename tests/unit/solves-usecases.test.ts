@@ -5,8 +5,7 @@ import {
   ListSolvesUseCase,
   GetUnitsSummaryUseCase,
   GetCategoryStatsUseCase,
-  UpdateSolveUseCase,
-} from '../../backend/solves/usecases/SolvesUseCases';
+} from '../../backend/solves/usecases/SolvesUsecases';
 import { ISolveRepository } from '../../backend/common/domains/repositories/SolveRepository';
 import {
   ListSolvesRequestDto,

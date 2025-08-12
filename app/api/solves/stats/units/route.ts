@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CategoryStatsQuery } from '@/libs/zod/solves';
 import { auth } from '@/auth';
 import { ZodError } from 'zod';
-import { GetCategoryStatsUseCase } from '@/backend/solves/usecases/SolvesUseCases';
+import { GetCategoryStatsUseCase } from '@/backend/solves/usecases/SolvesUsecases';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
 import { CategoryStatsRequestDto } from '@/backend/solves/dtos/SolveDto';
 

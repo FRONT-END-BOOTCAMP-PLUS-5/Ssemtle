@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { UpdateSolveBody } from '@/libs/zod/solves';
 import { auth } from '@/auth';
 import { ZodError } from 'zod';
-import { UpdateSolveUseCase } from '@/backend/solves/usecases/SolvesUseCases';
+import { UpdateSolveUseCase } from '@/backend/solves/usecases/SolvesUsecases';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
 import { UpdateSolveRequestDto } from '@/backend/solves/dtos/SolveDto';
 

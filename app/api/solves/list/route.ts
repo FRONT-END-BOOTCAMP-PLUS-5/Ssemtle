@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ListSolvesQuery } from '@/libs/zod/solves';
 import { auth } from '@/auth';
 import { ZodError } from 'zod';
-import { ListSolvesUseCase } from '@/backend/solves/usecases/SolvesUseCases';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
 import { ListSolvesRequestDto } from '@/backend/solves/dtos/SolveDto';
+import { ListSolvesUseCase } from '@/backend/solves/usecases/SolvesUsecases';
 
 export async function GET(req: NextRequest) {
   try {

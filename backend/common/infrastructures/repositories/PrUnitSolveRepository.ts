@@ -4,6 +4,7 @@ import {
   CreateUnitSolveData,
   IUnitSolveRepository,
 } from '../../domains/repositories/IUnitSolveRepository';
+import { Prisma } from '@prisma/client';
 
 export class PrUnitSolveRepository implements IUnitSolveRepository {
   private prisma: PrismaClient;
@@ -41,6 +42,65 @@ export class PrUnitSolveRepository implements IUnitSolveRepository {
     } catch (error) {
       console.error('UnitSolve 조회 오류:', error);
       throw new Error('문제 풀이 조회에 실패했습니다.');
+    }
+  }
+
+  async findByUserAndDate(
+    userId: string,
+    start?: Date,
+    end?: Date,
+    onlyWrong?: boolean
+  ) {
+    try {
+      const createdAt = start && end ? { gte: start, lt: end } : undefined;
+      const where: Prisma.UnitSolveWhereInput = {
+        userId,
+        ...(createdAt ? { createdAt } : {}),
+      };
+      if (onlyWrong) where.isCorrect = false;
+
+      const rows = await this.prisma.unitSolve.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          userInput: true,
+          isCorrect: true,
+          createdAt: true,
+          question: {
+            select: {
+              question: true,
+              answer: true,
+              unit: { select: { id: true, name: true, vidUrl: true } },
+            },
+          },
+        },
+      });
+      return rows;
+    } catch (error) {
+      console.error('UnitSolve 날짜/오답 조회 오류:', error);
+      throw new Error('단원평가 오답 조회에 실패했습니다.');
+    }
+  }
+
+  async countByUserAndDate(userId: string, start?: Date, end?: Date) {
+    try {
+      const createdAt = start && end ? { gte: start, lt: end } : undefined;
+      const [total, correct] = await Promise.all([
+        this.prisma.unitSolve.count({
+          where: { userId, ...(createdAt ? { createdAt } : {}) },
+        }),
+        this.prisma.unitSolve.count({
+          where: {
+            userId,
+            isCorrect: true,
+            ...(createdAt ? { createdAt } : {}),
+          },
+        }),
+      ]);
+      return { total, correct };
+    } catch (error) {
+      console.error('UnitSolve 카운트 조회 오류:', error);
+      throw new Error('단원평가 정답률 조회에 실패했습니다.');
     }
   }
 }

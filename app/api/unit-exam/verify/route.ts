@@ -7,7 +7,7 @@ import prisma from '../../../../libs/prisma';
 import { auth } from '@/auth';
 import { PrUnitExamRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamRepository';
 import { PrUnitExamAttemptRepository } from '../../../../backend/common/infrastructures/repositories/PrUnitExamAttemptRepository';
-import { VerifyUnitExamUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { VerifyUnitExamUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 import { PrUnitQuestionRepository } from '@/backend/common/infrastructures/repositories/PrUnitQuestionRepository';
 import { PrUnitSolveRepository } from '@/backend/common/infrastructures/repositories/PrUnitSolveRepository';
 
@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         success: true,
         valid: result.valid,
         examData: result.examData,
+        error: result.error,
+        alreadyAttempted: result.alreadyAttempted,
       });
     } else {
       return NextResponse.json(

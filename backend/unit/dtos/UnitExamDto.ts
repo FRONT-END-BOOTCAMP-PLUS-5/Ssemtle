@@ -45,12 +45,17 @@ export interface UnitExamVerificationResult {
     createdAt: Date;
   };
   error?: string;
+  alreadyAttempted?: boolean;
 }
 
 // AI 생성 문제 관련 DTO
 export interface AIGeneratedQuestion {
   unitId: number;
+  // 렌더링용 최종 질문 (question1 + question2 병합)
   question: string;
+  // 검증 및 표현을 위한 분리 필드
+  question1?: string; // 문제 설명 텍스트
+  question2?: string; // 실제 식(예: 2x + 6 = 14)
   answer: string;
   help_text: string;
 }

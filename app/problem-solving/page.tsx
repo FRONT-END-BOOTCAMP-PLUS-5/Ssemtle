@@ -175,6 +175,7 @@ export default function ProblemSolvingPage() {
             title="날짜순 정렬"
             options={dateOptions}
             onSelectionChange={handleDateSortChange}
+            mode="radio"
           />
         </div>
 

@@ -14,12 +14,14 @@ interface FilterDropdownProps {
   title: string;
   options: FilterOption[];
   onSelectionChange: (selectedIds: (number | string)[]) => void;
+  mode?: 'checkbox' | 'radio';
 }
 
 export default function FilterDropdown({
   title,
   options,
   onSelectionChange,
+  mode = 'checkbox',
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,15 +30,23 @@ export default function FilterDropdown({
   };
 
   const handleOptionChange = (optionId: number | string) => {
-    const updatedOptions = options.map((option) =>
-      option.id === optionId ? { ...option, checked: !option.checked } : option
-    );
+    if (mode === 'radio') {
+      // For radio buttons, only one option can be selected
+      onSelectionChange([optionId]);
+    } else {
+      // For checkboxes, multiple options can be selected
+      const updatedOptions = options.map((option) =>
+        option.id === optionId
+          ? { ...option, checked: !option.checked }
+          : option
+      );
 
-    const selectedIds = updatedOptions
-      .filter((option) => option.checked)
-      .map((option) => option.id);
+      const selectedIds = updatedOptions
+        .filter((option) => option.checked)
+        .map((option) => option.id);
 
-    onSelectionChange(selectedIds);
+      onSelectionChange(selectedIds);
+    }
   };
 
   return (
@@ -63,7 +73,8 @@ export default function FilterDropdown({
                 className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-gray-50"
               >
                 <input
-                  type="checkbox"
+                  type={mode}
+                  name={mode === 'radio' ? title : undefined}
                   checked={option.checked}
                   onChange={() => handleOptionChange(option.id)}
                   className="h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500"

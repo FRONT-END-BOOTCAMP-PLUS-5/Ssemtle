@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IoChevronBack } from 'react-icons/io5';
@@ -8,7 +8,6 @@ import FilterDropdown from '@/app/_components/FilterDropdown';
 import TestCard from '@/app/_components/cards/TestCard';
 import { useGets } from '@/hooks/useGets';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
 interface Unit {
@@ -96,44 +95,58 @@ export default function ProblemSolvingPage() {
   const filteredAndGroupedSolves = useMemo(() => {
     if (!solvesData || solvesData.length === 0) return [];
 
-    let filtered: SolveListItemDto[] = solvesData;
-
+    // Apply filtering first (this is the only client-side operation we should do)
+    let filtered = solvesData;
     if (selectedUnits.length > 0) {
-      filtered = filtered.filter((solve: SolveListItemDto) =>
+      filtered = solvesData.filter((solve: SolveListItemDto) =>
         selectedUnits.includes(solve.unitId)
       );
     }
 
-    filtered.sort((a: SolveListItemDto, b: SolveListItemDto) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-
+    // Group by unit + category + date
     const grouped = filtered.reduce(
       (
-        acc: Record<
+        acc: Map<
           string,
           { category: string; unitId: number; solves: SolveListItemDto[] }
         >,
-        solve: SolveListItemDto
+        solve
       ) => {
-        const date = new Date(solve.createdAt).toDateString(); // Get date part only
+        const date = new Date(solve.createdAt).toDateString();
         const key = `${solve.unitId}-${solve.category}-${date}`;
-        if (!acc[key]) {
-          acc[key] = {
+
+        if (!acc.has(key)) {
+          acc.set(key, {
             category: solve.category,
             unitId: solve.unitId,
             solves: [],
-          };
+          });
         }
-        acc[key].solves.push(solve);
+        acc.get(key)!.solves.push(solve);
         return acc;
       },
-      {}
+      new Map()
     );
 
-    return Object.values(grouped);
+    // Convert to array and sort groups by date
+    const groupedArray = Array.from(grouped.values());
+    groupedArray.forEach((group) => {
+      // Sort solves within each group by the selected date order
+      group.solves.sort((a: SolveListItemDto, b: SolveListItemDto) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
+      });
+    });
+
+    // Sort the groups themselves by the first solve's date in each group
+    groupedArray.sort((a, b) => {
+      const dateA = new Date(a.solves[0].createdAt).getTime();
+      const dateB = new Date(b.solves[0].createdAt).getTime();
+      return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    return groupedArray;
   }, [solvesData, selectedUnits, dateSort]);
 
   const handleUnitSelectionChange = (selectedIds: (number | string)[]) => {
@@ -146,17 +159,67 @@ export default function ProblemSolvingPage() {
     }
   };
 
-  // Intersection observer for infinite scrolling
-  const { targetRef, isIntersecting } = useIntersectionObserver({
-    enabled: hasNextPage && !isFetchingNextPage,
-  });
+  // Intersection observer for infinite scrolling - clean implementation
+  const loaderRef = useRef<HTMLDivElement>(null);
 
-  // Trigger next page load when scroll trigger is visible
-  useEffect(() => {
-    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+  // Stable handler that doesn't change on every render
+  const handleIntersection = useRef(
+    (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          observer.unobserve(entry.target);
+          fetchNextPage();
+        }
+      });
     }
-  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  );
+
+  // Update the handler closure with current values
+  handleIntersection.current = (
+    entries: IntersectionObserverEntry[],
+    observer: IntersectionObserver
+  ) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        observer.unobserve(entry.target);
+        fetchNextPage();
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => handleIntersection.current(entries, observer),
+      {
+        root: null,
+        rootMargin: '20px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(loaderRef.current);
+
+    return () => observer.disconnect();
+  }, [filteredAndGroupedSolves.length]); // Only recreate when content changes
+
+  // Re-observe when fetch completes
+  useEffect(() => {
+    if (!isFetchingNextPage && hasNextPage && loaderRef.current) {
+      const observer = new IntersectionObserver(
+        (entries) => handleIntersection.current(entries, observer),
+        {
+          root: null,
+          rootMargin: '20px',
+          threshold: 0,
+        }
+      );
+      observer.observe(loaderRef.current);
+
+      return () => observer.disconnect();
+    }
+  }, [isFetchingNextPage, hasNextPage]);
 
   if (!session?.user?.id) {
     return (
@@ -225,14 +288,18 @@ export default function ProblemSolvingPage() {
               </div>
             )}
 
-          {filteredAndGroupedSolves.map((group, index) => (
-            <div
-              key={`${group.unitId}-${group.category}-${index}`}
-              className="flex justify-center"
-            >
-              <TestCard solves={group.solves} category={group.category} />
-            </div>
-          ))}
+          {filteredAndGroupedSolves.map((group) => {
+            // Create stable key using the same logic as grouping
+            const firstSolve = group.solves[0];
+            const date = new Date(firstSolve.createdAt).toDateString();
+            const stableKey = `${group.unitId}-${group.category}-${date}`;
+
+            return (
+              <div key={stableKey} className="flex justify-center">
+                <TestCard solves={group.solves} category={group.category} />
+              </div>
+            );
+          })}
 
           {/* Loading more indicator */}
           {isFetchingNextPage && (
@@ -242,8 +309,8 @@ export default function ProblemSolvingPage() {
           )}
 
           {/* Intersection observer target for infinite scrolling */}
-          {hasNextPage && !isFetchingNextPage && (
-            <div ref={targetRef} className="h-4 w-full" />
+          {hasNextPage && filteredAndGroupedSolves.length > 0 && (
+            <div ref={loaderRef} className="h-4 w-full" />
           )}
 
           {/* End of results indicator */}

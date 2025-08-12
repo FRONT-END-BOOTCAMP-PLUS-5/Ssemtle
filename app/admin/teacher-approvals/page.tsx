@@ -2,8 +2,8 @@
 import Image from 'next/image';
 import { useGets } from '@/hooks/useGets';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
-import { useTeacherApproval } from './approval/TechApproval';
-import { useTeacherReject } from './approval/TechReject';
+import TechApproval from './TechApproval';
+import TechReject from './TechReject';
 
 export default function ApprovalListPage() {
   const {
@@ -23,14 +23,6 @@ export default function ApprovalListPage() {
       refetchOnWindowFocus: false,
     }
   );
-
-  const { handleApprove, isApproving } = useTeacherApproval(() => {
-    refetch();
-  });
-
-  const { handleReject, isRejecting } = useTeacherReject(() => {
-    refetch();
-  });
 
   if (isLoading) {
     return (
@@ -109,26 +101,8 @@ export default function ApprovalListPage() {
                   ID: {teacherAuth.teacherId}
                 </div>
               </div>
-
-              <button
-                onClick={() => handleReject(teacherAuth)}
-                disabled={isRejecting}
-                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-white p-3 outline outline-2 outline-offset-[-2px] outline-red-200 transition-colors hover:bg-red-50 hover:outline-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-red-500 transition-colors hover:text-red-600">
-                  {isRejecting ? '처리중' : '거절'}
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleApprove(teacherAuth)}
-                disabled={isApproving}
-                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-white">
-                  {isApproving ? '처리중' : '승인'}
-                </div>
-              </button>
+              <TechReject teacherAuth={teacherAuth} onSuccess={refetch} />
+              <TechApproval teacherAuth={teacherAuth} onSuccess={refetch} />
             </div>
           </div>
         ))}

@@ -1,4 +1,6 @@
 {
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./app/globals.css",
   "semi": true,
   "singleQuote": true,
   "tabWidth": 2,

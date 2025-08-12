@@ -10,7 +10,7 @@ interface TestCardProps {
 export default function TestCard({ solves, category }: TestCardProps) {
   if (!solves?.length) {
     return (
-      <div className="inline-flex w-[400px] flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+      <div className="inline-flex w-96 flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
         <div className="text-sm text-gray-600">데이터가 없습니다</div>
       </div>
     );
@@ -36,124 +36,52 @@ export default function TestCard({ solves, category }: TestCardProps) {
     : '';
 
   return (
-    <div
-      data-layer="Overlay+Shadow+OverlayBlur"
-      className="OverlayShadowOverlayblur inline-flex w-[400px] flex-col items-start justify-start gap-3 overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]"
-    >
-      <div
-        data-layer="Container"
-        className="Container relative h-12 self-stretch"
-      >
-        <div
-          data-layer={`${totalProblems} 문제`}
-          className="absolute top-[30px] left-[339px] justify-center font-['Inter'] text-[13px] leading-7 font-normal text-black"
-        >
-          {totalProblems} 문제
+    <div className="inline-flex w-96 flex-col items-start justify-start overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+      <div className="flex flex-col items-start justify-start self-stretch">
+        <div className="inline-flex items-center justify-start self-stretch">
+          <div className="justify-end font-['Inter'] text-lg leading-7 font-bold text-gray-800">
+            {category}
+          </div>
         </div>
-        <div
-          data-layer="Container"
-          className="Container absolute top-0 left-[0.50px] h-12 w-[397px]"
-        >
-          <div
-            data-layer="Container"
-            className="Container absolute top-[-2px] left-[-0.50px] inline-flex h-[53px] w-[397px] flex-col items-start justify-start"
-          >
-            <div
-              data-layer="Heading 3"
-              className="Heading3 relative h-7 self-stretch"
-            >
-              <div
-                data-layer={category}
-                className="absolute top-0 left-0 h-14 w-[397px] justify-center font-['Inter'] text-lg leading-7 font-bold text-gray-800"
-              >
-                {category}
-              </div>
-            </div>
+        <div className="inline-flex items-end justify-end self-stretch">
+          <div className="justify-center font-['Inter'] text-xs leading-7 font-normal text-black">
+            {totalProblems} 문제
           </div>
         </div>
       </div>
-
-      <div
-        data-layer="Container"
-        className="Container flex flex-col items-start justify-start gap-2 self-stretch pt-1"
-      >
+      <div className="flex flex-col items-start justify-start gap-2 self-stretch py-3">
         {sampleQuestions.map((solve) => (
           <div
             key={solve.id}
-            data-layer="Background"
-            className="Background inline-flex items-center justify-between self-stretch rounded-sm bg-gray-50 p-2"
+            className="inline-flex items-center justify-start self-stretch rounded bg-gray-50 p-2"
           >
-            <div
-              data-layer="Container"
-              className="Container size- inline-flex flex-col items-start justify-start"
-            >
-              <div
-                data-layer={solve.question}
-                className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-700"
-              >
-                {solve.question}
-              </div>
+            <div className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-700">
+              {solve.question}
             </div>
-            <div data-layer="Container" className="Container h-4 w-5" />
           </div>
         ))}
       </div>
-
-      <div
-        data-layer="Container"
-        className="Container flex flex-col items-start justify-start gap-1 self-stretch pt-1"
-      >
-        <div
-          data-layer="Container"
-          className="Container inline-flex items-start justify-between self-stretch"
-        >
-          <div
-            data-layer="Container"
-            className="Container inline-flex flex-col items-start justify-start self-stretch"
-          >
-            <div
-              data-layer="정답률"
-              className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600"
-            >
-              정답률
-            </div>
+      <div className="flex flex-col items-start justify-start gap-1 self-stretch pt-1">
+        <div className="inline-flex items-start justify-between self-stretch">
+          <div className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600">
+            정답률
           </div>
-          <div
-            data-layer="Container"
-            className="Container inline-flex flex-col items-start justify-start self-stretch"
-          >
-            <div
-              data-layer={`${accuracy}%`}
-              className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600"
-            >
+          <div className="inline-flex flex-col items-start justify-start self-stretch">
+            <div className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600">
               {accuracy}%
             </div>
           </div>
         </div>
-        <div
-          data-layer="Background"
-          className="Background flex h-2 flex-col items-start justify-center self-stretch rounded-[58px] bg-gray-200"
-        >
+        <div className="flex h-2 flex-col items-start justify-center self-stretch rounded-[58px] bg-gray-200">
           <div
-            data-layer="Background"
-            className="Background flex-1 bg-green-400"
+            className="flex-1 self-stretch bg-green-400"
             style={{ width: `${accuracy}%` }}
           />
         </div>
       </div>
-
-      <div data-layer="Container" className="Container relative h-5 w-[71px]">
-        <div
-          data-layer="Container"
-          className="Container size- absolute top-0 left-0 inline-flex items-center justify-start gap-1"
-        >
-          <div
-            data-layer={latestDate}
-            className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600"
-          >
-            {latestDate}
-          </div>
-          <div data-layer="SVG" className="Svg relative size-4" />
+      <div className="flex flex-col items-start justify-end gap-2.5 self-stretch pt-3">
+        <div className="justify-center font-['Inter'] text-sm leading-tight font-normal text-gray-600">
+          {latestDate}
         </div>
       </div>
     </div>

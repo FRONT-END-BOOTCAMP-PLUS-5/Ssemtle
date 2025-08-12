@@ -1,10 +1,9 @@
 'use client';
 import Image from 'next/image';
 import { useGets } from '@/hooks/useGets';
-import {
-  TeacherAuthDto,
-  TeacherAuthListResponseDto,
-} from '@/backend/admin/teachers/dtos/TeacherAuthDto';
+import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
+import { useTeacherApproval } from './approval/TechApproval';
+import { useTeacherReject } from './approval/TechReject';
 
 export default function ApprovalListPage() {
   const {
@@ -25,15 +24,13 @@ export default function ApprovalListPage() {
     }
   );
 
-  const handleApprove = async (teacherAuth: TeacherAuthDto) => {
-    console.log('승인:', teacherAuth);
-    alert(`${teacherAuth.name} 선생님을 승인했습니다.`);
-  };
+  const { handleApprove, isApproving } = useTeacherApproval(() => {
+    refetch();
+  });
 
-  const handleReject = async (teacherAuth: TeacherAuthDto) => {
-    console.log('거절:', teacherAuth);
-    alert(`${teacherAuth.name} 선생님을 거절했습니다.`);
-  };
+  const { handleReject, isRejecting } = useTeacherReject(() => {
+    refetch();
+  });
 
   if (isLoading) {
     return (
@@ -82,9 +79,6 @@ export default function ApprovalListPage() {
         <div className="text-[32px] tracking-tight text-neutral-500">
           선생님 승인
         </div>
-        <div className="mt-2 text-center text-sm text-gray-500">
-          총 {response?.data?.total || 0}건의 승인 요청
-        </div>
       </div>
 
       <div className="flex flex-1 flex-col items-center gap-6 overflow-y-auto px-4">
@@ -97,7 +91,7 @@ export default function ApprovalListPage() {
               <Image
                 className="h-[184px] w-full object-cover bg-blend-luminosity"
                 src={teacherAuth.imgUrl || '/images/teacher-profile.png'}
-                alt={`${teacherAuth.name} 선생님 프로필`}
+                alt={`${teacherAuth.name} 선생님 인증 이미지`}
                 width={320}
                 height={184}
                 onError={(e) => {
@@ -112,40 +106,32 @@ export default function ApprovalListPage() {
                   {teacherAuth.name}
                 </div>
                 <div className="text-xs text-gray-500">
-                  ID: {teacherAuth.teacherId} | 신청일:{' '}
-                  {new Date(teacherAuth.createdAt).toLocaleDateString('ko-KR')}
+                  ID: {teacherAuth.teacherId}
                 </div>
               </div>
 
               <button
                 onClick={() => handleReject(teacherAuth)}
-                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-white p-3 outline outline-2 outline-offset-[-2px] outline-red-200 transition-colors hover:bg-red-50 hover:outline-red-300"
+                disabled={isRejecting}
+                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-white p-3 outline outline-2 outline-offset-[-2px] outline-red-200 transition-colors hover:bg-red-50 hover:outline-red-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-red-500 transition-colors hover:text-red-600">
-                  거절
+                  {isRejecting ? '처리중' : '거절'}
                 </div>
               </button>
 
               <button
                 onClick={() => handleApprove(teacherAuth)}
-                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700"
+                disabled={isApproving}
+                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-white">
-                  승인
+                  {isApproving ? '처리중' : '승인'}
                 </div>
               </button>
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="flex w-full items-center justify-center pb-4">
-        <button
-          onClick={() => refetch()}
-          className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-200"
-        >
-          새로고침
-        </button>
       </div>
     </div>
   );

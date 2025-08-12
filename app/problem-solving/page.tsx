@@ -7,7 +7,9 @@ import { IoChevronBack } from 'react-icons/io5';
 import FilterDropdown from '@/app/_components/FilterDropdown';
 import TestCard from '@/app/_components/cards/TestCard';
 import { useGets } from '@/hooks/useGets';
-import { ListSolvesResponseDto } from '@/backend/solves/dtos/SolveDto';
+import { useInfiniteGets } from '@/hooks/useInfiniteGets';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
 interface Unit {
   id: number;
@@ -61,14 +63,17 @@ export default function ProblemSolvingPage() {
   const {
     data: solvesData,
     isLoading: solvesLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     isError: solvesError,
-  } = useGets<ListSolvesResponseDto>(
-    ['solves', 'list', session?.user?.id],
+  } = useInfiniteGets<SolveListItemDto>(
+    ['solves', 'list', session?.user?.id, selectedUnits.join(','), dateSort],
     '/solves/list',
     !!session?.user?.id,
     {
       userId: session?.user?.id || '',
-      limit: '100',
+      limit: '20',
     }
   );
 
@@ -89,24 +94,30 @@ export default function ProblemSolvingPage() {
   ];
 
   const filteredAndGroupedSolves = useMemo(() => {
-    if (!solvesData?.items) return [];
+    if (!solvesData || solvesData.length === 0) return [];
 
-    let filtered = solvesData.items;
+    let filtered: SolveListItemDto[] = solvesData;
 
     if (selectedUnits.length > 0) {
-      filtered = filtered.filter((solve) =>
+      filtered = filtered.filter((solve: SolveListItemDto) =>
         selectedUnits.includes(solve.unitId)
       );
     }
 
-    filtered.sort((a, b) => {
+    filtered.sort((a: SolveListItemDto, b: SolveListItemDto) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
       return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
     const grouped = filtered.reduce(
-      (acc, solve) => {
+      (
+        acc: Record<
+          string,
+          { category: string; unitId: number; solves: SolveListItemDto[] }
+        >,
+        solve: SolveListItemDto
+      ) => {
         const key = `${solve.unitId}-${solve.category}`;
         if (!acc[key]) {
           acc[key] = {
@@ -118,14 +129,11 @@ export default function ProblemSolvingPage() {
         acc[key].solves.push(solve);
         return acc;
       },
-      {} as Record<
-        string,
-        { category: string; unitId: number; solves: typeof filtered }
-      >
+      {}
     );
 
     return Object.values(grouped);
-  }, [solvesData?.items, selectedUnits, dateSort]);
+  }, [solvesData, selectedUnits, dateSort]);
 
   const handleUnitSelectionChange = (selectedIds: (number | string)[]) => {
     setSelectedUnits(selectedIds);
@@ -136,6 +144,18 @@ export default function ProblemSolvingPage() {
       setDateSort(selectedIds[0] as 'newest' | 'oldest');
     }
   };
+
+  // Intersection observer for infinite scrolling
+  const { targetRef, isIntersecting } = useIntersectionObserver({
+    enabled: hasNextPage && !isFetchingNextPage,
+  });
+
+  // Trigger next page load when scroll trigger is visible
+  useEffect(() => {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (!session?.user?.id) {
     return (
@@ -212,6 +232,27 @@ export default function ProblemSolvingPage() {
               <TestCard solves={group.solves} category={group.category} />
             </div>
           ))}
+
+          {/* Loading more indicator */}
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>
+            </div>
+          )}
+
+          {/* Intersection observer target for infinite scrolling */}
+          {hasNextPage && !isFetchingNextPage && (
+            <div ref={targetRef} className="h-4 w-full" />
+          )}
+
+          {/* End of results indicator */}
+          {!hasNextPage && filteredAndGroupedSolves.length > 0 && (
+            <div className="flex justify-center py-6">
+              <div className="text-sm text-gray-500">
+                모든 문제 풀이 기록을 불러왔습니다
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

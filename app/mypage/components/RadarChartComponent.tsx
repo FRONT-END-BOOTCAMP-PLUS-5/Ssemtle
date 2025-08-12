@@ -37,7 +37,7 @@ export default function RadarChartComponent({
 }) {
   return (
     <div className={`w-full max-w-xl ${className}`}>
-      <div className="rounded-2x h-[320px] border border-white/40 p-4 shadow-sm backdrop-blur sm:h-[380px] sm:p-6">
+      <div className="rounded-2x h-[280px] backdrop-blur sm:h-[340px]">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data} outerRadius="70%">
             <PolarGrid />

@@ -1,7 +1,10 @@
 'use client';
 import Image from 'next/image';
 import { useGets } from '@/hooks/useGets';
-import { TeacherAuthDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
+import {
+  TeacherAuthDto,
+  TeacherAuthListResponseDto,
+} from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 
 export default function ApprovalListPage() {
   const {
@@ -10,7 +13,7 @@ export default function ApprovalListPage() {
     isError,
     error,
     refetch,
-  } = useGets(
+  } = useGets<TeacherAuthListResponseDto>(
     ['teacher-auths'],
     '/admin/teachers',
     true,
@@ -24,12 +27,12 @@ export default function ApprovalListPage() {
 
   const handleApprove = async (teacherAuth: TeacherAuthDto) => {
     console.log('승인:', teacherAuth);
-    alert(`${teacherAuth.teacherId} 선생님을 승인했습니다.`);
+    alert(`${teacherAuth.name} 선생님을 승인했습니다.`);
   };
 
   const handleReject = async (teacherAuth: TeacherAuthDto) => {
     console.log('거절:', teacherAuth);
-    alert(`${teacherAuth.teacherId} 선생님을 거절했습니다.`);
+    alert(`${teacherAuth.name} 선생님을 거절했습니다.`);
   };
 
   if (isLoading) {
@@ -61,12 +64,7 @@ export default function ApprovalListPage() {
     );
   }
 
-  const teacherAuths: TeacherAuthDto[] =
-    (
-      response as {
-        data: { teacherAuths: TeacherAuthDto[] };
-      }
-    )?.data?.teacherAuths || [];
+  const teacherAuths = response?.data?.teacherAuths || [];
 
   if (teacherAuths.length === 0) {
     return (
@@ -84,6 +82,9 @@ export default function ApprovalListPage() {
         <div className="text-[32px] tracking-tight text-neutral-500">
           선생님 승인
         </div>
+        <div className="mt-2 text-center text-sm text-gray-500">
+          총 {response?.data?.total || 0}건의 승인 요청
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col items-center gap-6 overflow-y-auto px-4">
@@ -96,7 +97,7 @@ export default function ApprovalListPage() {
               <Image
                 className="h-[184px] w-full object-cover bg-blend-luminosity"
                 src={teacherAuth.imgUrl || '/images/teacher-profile.png'}
-                alt={`${teacherAuth.teacherId} 선생님 프로필`}
+                alt={`${teacherAuth.name} 선생님 프로필`}
                 width={320}
                 height={184}
                 onError={(e) => {
@@ -107,8 +108,11 @@ export default function ApprovalListPage() {
 
             <div className="flex h-[41px] w-full items-center justify-start gap-2 self-stretch">
               <div className="flex flex-1 flex-col items-start justify-start gap-1">
+                <div className="font-['Inter'] text-base font-semibold text-zinc-800">
+                  {teacherAuth.name}
+                </div>
                 <div className="text-xs text-gray-500">
-                  신청일:{' '}
+                  ID: {teacherAuth.teacherId} | 신청일:{' '}
                   {new Date(teacherAuth.createdAt).toLocaleDateString('ko-KR')}
                 </div>
               </div>

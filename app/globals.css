@@ -11,3 +11,94 @@
 html {
   font-family: 'Pretendard Variable', sans-serif;
 }
+
+/* Design System Tokens as CSS Variables */
+:root {
+  /* Color Tokens */
+  --color-primary: #8B5CF6;
+  --color-primary-dark: #4a5d3a;
+  --color-secondary: #9bb89a;
+  --color-background: #F8F5FF;
+  --color-text-primary: black;
+  --color-text-secondary: white;
+  --color-error: #e87a74;
+  --color-disabled: #a0aec0;
+
+  /* Spacing Tokens */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
+
+  /* Button Variant Tokens */
+  /* Primary */
+  --button-variant-primary-bg: var(--color-primary);
+  --button-variant-primary-color: var(--color-text-primary);
+  --button-variant-primary-border: none;
+  --button-variant-primary-disabled-bg: var(--color-background);
+  --button-variant-primary-disabled-color: var(--color-text-secondary);
+  --button-variant-primary-disabled-border: 1px solid var(--color-primary-light);
+
+  /* Secondary */
+  --button-variant-secondary-bg: var(--color-secondary);
+  --button-variant-secondary-color: var(--color-text-primary);
+  --button-variant-secondary-border: none;
+  --button-variant-secondary-disabled-bg: var(--color-background);
+  --button-variant-secondary-disabled-color: var(--color-text-secondary);
+  --button-variant-secondary-disabled-border: 1px solid var(--color-secondary);
+
+  /* Outline */
+  --button-variant-outline-bg: transparent;
+  --button-variant-outline-color: var(--color-primary-dark);
+  --button-variant-outline-border: 2px solid var(--color-primary);
+  --button-variant-outline-disabled-bg: transparent;
+  --button-variant-outline-disabled-color: var(--color-text-secondary);
+  --button-variant-outline-disabled-border: 1px solid var(--color-primary-light);
+
+  /* Input Variant Tokens */
+  /* Primary */
+  --input-variant-primary-background: var(--color-background);
+  --input-variant-primary-color: var(--color-text-primary);
+  --input-variant-primary-border: 1px solid var(--color-primary);
+  --input-variant-primary-placeholder: var(--color-text-secondary);
+  --input-variant-primary-focus-border: 1.5px solid var(--color-primary-dark);
+  --input-variant-primary-focus-box-shadow: 0 0 0 2px var(--color-primary-light);
+
+  /* Secondary */
+  --input-variant-secondary-background: var(--color-background);
+  --input-variant-secondary-color: var(--color-text-secondary);
+  --input-variant-secondary-border: 1px solid var(--color-secondary);
+  --input-variant-secondary-placeholder: var(--color-text-secondary);
+  --input-variant-secondary-focus-border: 1.5px solid var(--color-secondary);
+  --input-variant-secondary-focus-box-shadow: 0 0 0 2px var(--color-secondary);
+
+  /* Danger */
+  --input-variant-danger-background: var(--color-background);
+  --input-variant-danger-color: var(--color-error);
+  --input-variant-danger-border: 1px solid var(--color-error);
+  --input-variant-danger-placeholder: var(--color-error);
+  --input-variant-danger-focus-border: 1.5px solid var(--color-error-dark);
+  --input-variant-danger-focus-box-shadow: 0 0 0 2px var(--color-error);
+
+  /* Outline */
+  --input-variant-outline-background: var(--color-background);
+  --input-variant-outline-color: var(--color-text-primary);
+  --input-variant-outline-border: 2px solid var(--color-primary);
+  --input-variant-outline-border-radius: 5px;
+  --input-variant-outline-placeholder: var(--color-text-secondary);
+  --input-variant-outline-focus-border: 1.5px solid var(--color-primary);
+  --input-variant-outline-focus-box-shadow: 0 0 0 2px var(--color-primary-light);
+
+  /* Disabled */
+  --input-variant-disabled-background: var(--color-background);
+  --input-variant-disabled-color: var(--color-text-secondary);
+  --input-variant-disabled-border: 1px solid var(--color-text-secondary);
+  --input-variant-disabled-placeholder: var(--color-text-secondary);
+}

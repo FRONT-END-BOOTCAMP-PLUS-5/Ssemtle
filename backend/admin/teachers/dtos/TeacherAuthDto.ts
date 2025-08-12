@@ -1,4 +1,4 @@
-export interface CreateTeacherAuthDto {
+export interface TeacherAuthDto {
   readonly id: number;
   readonly teacherId: string;
   readonly imgUrl: string;

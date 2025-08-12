@@ -4,7 +4,7 @@ import prisma from '@/libs/prisma';
 import { auth } from '@/auth';
 import { PrUnitQuestionRepository } from '@/backend/common/infrastructures/repositories/PrUnitQuestionRepository';
 import { PrUnitSolveRepository } from '@/backend/common/infrastructures/repositories/PrUnitSolveRepository';
-import { SubmitAnswersUseCase } from '@/backend/unit/UseCases/UnitExamUsecase';
+import { SubmitAnswersUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 
 type SubmitAnswer = {
   questionId: number;

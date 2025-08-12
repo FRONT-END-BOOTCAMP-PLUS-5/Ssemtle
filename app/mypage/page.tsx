@@ -1,6 +1,6 @@
 'use client';
 
-import CalendarComponent from './components/CalanderComponent';
+import CalendarComponent from './components/CalenderComponent';
 import React from 'react';
 import RadarChartComponent from './components/RadarChartComponent';
 

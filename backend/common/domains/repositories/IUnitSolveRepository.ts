@@ -10,4 +10,14 @@ export interface CreateUnitSolveData {
 
 export interface IUnitSolveRepository {
   createMany(data: CreateUnitSolveData[]): Promise<number>;
+  findByUserIdWithQuestion(userId: string): Promise<
+    Array<{
+      id: number;
+      questionId: number;
+      userInput: string;
+      isCorrect: boolean;
+      createdAt: Date;
+      question: { question: string; answer: string };
+    }>
+  >;
 }

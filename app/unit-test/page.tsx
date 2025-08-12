@@ -20,6 +20,16 @@ export default function UnitTestPage() {
   >([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [userSolves, setUserSolves] = useState<
+    {
+      id: number;
+      question: string;
+      answer: string;
+      userInput: string;
+      isCorrect: boolean;
+      createdAt: string;
+    }[]
+  >([]);
   // 로딩 상태 관리
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // 서버에서 불러온 단원 목록
@@ -125,6 +135,11 @@ export default function UnitTestPage() {
       });
       const verifyData = await verifyRes.json();
       if (!(verifyRes.ok && verifyData.valid)) {
+        // 이미 응시한 내역: 검증 실패지만, 명확히 구분해 안내만 하고 종료
+        if (verifyData?.alreadyAttempted) {
+          alert('이미 응시한 내역입니다.');
+          return;
+        }
         alert('잘못된 코드입니다.');
         return;
       }
@@ -189,6 +204,35 @@ export default function UnitTestPage() {
     } catch (error) {
       console.error('제출 오류:', error);
       alert('제출 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 내가 푼 문제 조회
+  const handleLoadMySolves = async () => {
+    try {
+      const res = await fetch('/api/unit-exam/solves', { method: 'GET' });
+      const data = await res.json();
+      if (res.ok) {
+        const items = (
+          data.solves as {
+            id: number;
+            question: string;
+            answer: string;
+            userInput: string;
+            isCorrect: boolean;
+            createdAt: string;
+          }[]
+        ).map((s) => ({
+          ...s,
+          createdAt: new Date(s.createdAt).toLocaleString(),
+        }));
+        setUserSolves(items);
+      } else {
+        alert(data?.error || '조회 실패');
+      }
+    } catch (error) {
+      console.error('조회 오류:', error);
+      alert('조회 중 오류가 발생했습니다.');
     }
   };
 
@@ -306,6 +350,14 @@ export default function UnitTestPage() {
         <div className="mt-2 text-sm text-yellow-700">
           * 영어 대문자 6글자로 된 코드를 입력하세요
         </div>
+        <div className="mt-4">
+          <button
+            onClick={handleLoadMySolves}
+            className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors duration-200"
+          >
+            내가 푼 문제 조회
+          </button>
+        </div>
       </div>
 
       {/* 문제 표시 섹션 (검증 성공 후 렌더링) */}
@@ -347,6 +399,32 @@ export default function UnitTestPage() {
             >
               전체 제출
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 내가 푼 문제 목록 렌더링 */}
+      {userSolves.length > 0 && (
+        <div className="mt-8 p-6 border rounded">
+          <h3 className="text-lg font-semibold mb-4">내가 푼 문제</h3>
+          <div className="space-y-4">
+            {userSolves.map((s) => (
+              <div key={s.id} className="p-3 border rounded">
+                <div className="text-sm text-gray-600">
+                  풀이일시: {s.createdAt}
+                </div>
+                <div className="font-medium whitespace-pre-wrap">
+                  Q. {s.question}
+                </div>
+                <div className="mt-1">내 답: {s.userInput}</div>
+                <div className="mt-1">정답: {s.answer}</div>
+                <div
+                  className={`mt-1 font-semibold ${s.isCorrect ? 'text-green-600' : 'text-red-600'}`}
+                >
+                  {s.isCorrect ? '정답' : '오답'}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

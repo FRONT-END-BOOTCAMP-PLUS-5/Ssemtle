@@ -163,24 +163,8 @@ export default function ProblemSolvingPage() {
 
     // Convert to array and sort groups by date
     const groupedArray = Array.from(grouped.values());
-    groupedArray.forEach((group) => {
-      // Sort solves within each group by the selected date order
-      group.solves.sort((a: SolveListItemDto, b: SolveListItemDto) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
-      });
-    });
-
-    // Sort the groups themselves by the first solve's date in each group
-    groupedArray.sort((a, b) => {
-      const dateA = new Date(a.solves[0].createdAt).getTime();
-      const dateB = new Date(b.solves[0].createdAt).getTime();
-      return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-
     return groupedArray;
-  }, [deduplicatedSolves, selectedUnits, dateSort]);
+  }, [deduplicatedSolves, selectedUnits]);
 
   const handleUnitSelectionChange = (selectedIds: (number | string)[]) => {
     setSelectedUnits(selectedIds);

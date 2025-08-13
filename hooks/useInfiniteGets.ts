@@ -4,7 +4,7 @@ import {
   UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface ApiErrorResponse {
   message: string;
@@ -34,6 +34,11 @@ export const useInfiniteGets = <TData>(
   >
 ) => {
   const paramsRef = useRef(params);
+
+  // Sync paramsRef with the latest params whenever params changes
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
 
   const queryFn = async ({ pageParam }: { pageParam?: string }) => {
     const queryParams = {

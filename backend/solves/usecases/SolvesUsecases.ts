@@ -130,6 +130,8 @@ export class ListSolvesUseCase {
       items,
       nextCursor,
       prevCursor,
+      completedDay: result.completedDay,
+      batchInfo: result.batchInfo,
     };
   }
 }

@@ -103,6 +103,8 @@ export class PrSolveRepository implements ISolveRepository {
   async findPaginated(
     params: PaginationParams
   ): Promise<PaginatedResult<Solve & { unit: { name: string } }>> {
+    const maxDayCompletionItems = 30; // Safety limit for day completion
+    const originalLimit = params.limit;
     const where: Prisma.SolveWhereInput = {
       userId: params.userId,
     };
@@ -191,9 +193,90 @@ export class PrSolveRepository implements ISolveRepository {
       items = items.reverse();
     }
 
+    // Adaptive day completion logic
+    let completedDay = false;
+    let dayCompletionAdded = 0;
+    const initialCount = items.length;
+
+    // Only attempt day completion if we have items and haven't hit the safety limit
+    if (items.length > 0 && items.length < maxDayCompletionItems) {
+      const lastItem = items[items.length - 1];
+      const lastItemDate = new Date(lastItem.createdAt);
+      const lastItemDateString = lastItemDate.toDateString();
+
+      // Check if we can complete the day by loading more items from the same day
+      const dayCompletionWhere = { ...where };
+
+      // Modify cursor condition to get remaining items from the same day
+      if (params.filters.cursor) {
+        // Update the cursor condition to continue from where we left off
+        const cursor = params.filters.cursor;
+        const cursorDate = new Date(cursor.t);
+
+        dayCompletionWhere.OR = [
+          {
+            createdAt: { [cursorOperator]: cursorDate },
+          },
+          {
+            createdAt: cursorDate,
+            id: { [cursorOperator]: cursor.id },
+          },
+        ];
+      }
+
+      // Add date filter to only get items from the last day
+      // Use specific date range for the last day instead of extending existing filters
+      dayCompletionWhere.createdAt = {
+        gte: new Date(lastItemDateString),
+        lt: new Date(
+          new Date(lastItemDateString).getTime() + 24 * 60 * 60 * 1000
+        ), // Next day
+      };
+
+      // Load additional items for day completion
+      const additionalItems = await prisma.solve.findMany({
+        where: dayCompletionWhere,
+        orderBy,
+        take: maxDayCompletionItems - items.length, // Only load up to safety limit
+        include: {
+          unit: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      // Filter out items we already have (by ID)
+      const existingIds = new Set(items.map((item) => item.id));
+      const newItems = additionalItems.filter(
+        (item) => !existingIds.has(item.id)
+      );
+
+      if (newItems.length > 0) {
+        items.push(...newItems);
+        dayCompletionAdded = newItems.length;
+        completedDay = true;
+
+        // Re-apply reverse if needed after adding items
+        if (
+          (sortDirection === 'newest' && direction === 'prev') ||
+          (sortDirection === 'oldest' && direction === 'prev')
+        ) {
+          items = items.reverse();
+        }
+      }
+    }
+
     return {
       items: items as (Solve & { unit: { name: string } })[],
-      hasMore: items.length === params.limit,
+      hasMore: initialCount === originalLimit, // Use original count for hasMore logic
+      completedDay,
+      batchInfo: {
+        requestedLimit: originalLimit,
+        actualCount: items.length,
+        dayCompletionAdded,
+      },
     };
   }
 

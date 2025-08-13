@@ -43,6 +43,12 @@ export interface ListSolvesResponseDto {
   items: SolveListItemDto[];
   nextCursor?: string;
   prevCursor?: string;
+  completedDay?: boolean; // Indicates if the last day was completed for better card grouping
+  batchInfo?: {
+    requestedLimit: number;
+    actualCount: number;
+    dayCompletionAdded: number;
+  };
 }
 
 // DTOs for units summary API

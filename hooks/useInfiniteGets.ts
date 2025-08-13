@@ -14,6 +14,12 @@ interface ApiErrorResponse {
 interface InfiniteResponse<T> {
   items: T[];
   nextCursor?: string;
+  completedDay?: boolean;
+  batchInfo?: {
+    requestedLimit: number;
+    actualCount: number;
+    dayCompletionAdded: number;
+  };
 }
 
 export const useInfiniteGets = <TData>(

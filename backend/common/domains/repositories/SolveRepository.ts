@@ -14,6 +14,12 @@ export type SolveByUnitRow = {
 export interface PaginatedResult<T> {
   items: T[];
   hasMore: boolean;
+  completedDay?: boolean;
+  batchInfo?: {
+    requestedLimit: number;
+    actualCount: number;
+    dayCompletionAdded: number;
+  };
 }
 
 export interface PaginationFilters {

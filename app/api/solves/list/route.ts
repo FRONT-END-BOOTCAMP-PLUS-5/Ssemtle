@@ -46,10 +46,22 @@ export async function GET(req: NextRequest) {
     const useCase = new ListSolvesUseCase(repository);
     const result = await useCase.execute(request);
 
+    // Debug logging for day completion - remove after testing
+    if (result.batchInfo) {
+      console.log('[DEBUG] Day completion info:', {
+        requestedLimit: result.batchInfo.requestedLimit,
+        actualCount: result.batchInfo.actualCount,
+        dayCompletionAdded: result.batchInfo.dayCompletionAdded,
+        completedDay: result.completedDay,
+      });
+    }
+
     return NextResponse.json({
       items: result.items,
       nextCursor: result.nextCursor,
       prevCursor: result.prevCursor,
+      completedDay: result.completedDay,
+      batchInfo: result.batchInfo,
     });
   } catch (error) {
     console.error('Error listing solves:', error);

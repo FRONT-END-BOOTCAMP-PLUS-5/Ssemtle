@@ -9,7 +9,6 @@ import {
   PolarRadiusAxis,
   Radar,
   Tooltip,
-  TooltipProps,
 } from 'recharts';
 
 // ✅ 레이더 데이터 타입에 correct/total 추가
@@ -21,10 +20,14 @@ type RadarDatum = {
 };
 
 // ✅ 커스텀 툴팁
-function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
-  if (!active || !payload || !payload.length) return null;
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ payload: RadarDatum }>;
+};
 
-  const p = payload[0].payload as RadarDatum;
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
   const pct = p.total > 0 ? Math.round((p.correct / p.total) * 100) : 0;
 
   return (

@@ -96,7 +96,7 @@ export default function TestErrorNotesPage() {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4 p-6">
       <h1 className="text-xl font-bold">오답 노트 테스트</h1>
       <div className="flex items-center gap-2">
         <label className="text-sm">날짜</label>
@@ -104,17 +104,17 @@ export default function TestErrorNotesPage() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="border rounded px-2 py-1"
+          className="rounded border px-2 py-1"
         />
         <button
           onClick={callCommon}
-          className="border rounded px-3 py-1 bg-blue-600 text-white"
+          className="rounded border bg-blue-600 px-3 py-1 text-white"
         >
           일반(solves)만 조회
         </button>
         <button
           onClick={callUnit}
-          className="border rounded px-3 py-1 bg-green-600 text-white"
+          className="rounded border bg-green-600 px-3 py-1 text-white"
         >
           단원평가(unit_solves)만 조회
         </button>
@@ -124,12 +124,12 @@ export default function TestErrorNotesPage() {
 
       {resCommon && (
         <div className="space-y-2">
-          <div className="text-sm font-bold mt-6">일반(solves) 결과</div>
+          <div className="mt-6 text-sm font-bold">일반(solves) 결과</div>
           <div className="text-sm">전체 문제 수: {resCommon.question_nums}</div>
           <div className="text-sm">
             맞은 문제 수: {resCommon.is_correct_nums}
           </div>
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc space-y-1 pl-5">
             {resCommon.items.map((it, idx) => (
               <li key={idx}>
                 <div className="text-xs text-gray-600">
@@ -150,7 +150,7 @@ export default function TestErrorNotesPage() {
                   href={it.vid_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 underline text-xs"
+                  className="text-xs text-blue-600 underline"
                 >
                   단원 영상 보기
                 </a>
@@ -162,12 +162,12 @@ export default function TestErrorNotesPage() {
 
       {resUnit && (
         <div className="space-y-2">
-          <div className="text-sm font-bold mt-6">
+          <div className="mt-6 text-sm font-bold">
             단원평가(unit_solves) 결과
           </div>
           <div className="text-sm">전체 문제 수: {resUnit.question_nums}</div>
           <div className="text-sm">맞은 문제 수: {resUnit.is_correct_nums}</div>
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc space-y-1 pl-5">
             {resUnit.items.map((it, idx) => (
               <li key={idx}>
                 <div className="text-xs text-gray-600">
@@ -188,7 +188,7 @@ export default function TestErrorNotesPage() {
                   href={it.vid_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 underline text-xs"
+                  className="text-xs text-blue-600 underline"
                 >
                   단원 영상 보기
                 </a>

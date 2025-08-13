@@ -1,0 +1,395 @@
+[33mcommit 58634b194b5a1678a4095b78e1a21c4170217561[m[33m ([m[1;36mHEAD -> [m[1;32mfeat-admin_accept_list[m[33m)[m
+Merge: 8f54fca ba349c3
+Author: Hyung <h9564289@gmail.com>
+Date:   Tue Aug 12 17:42:19 2025 +0900
+
+    feat: TeacherAuthListResponseDto 적용
+
+[1mdiff --cc app/admin/approval-list/page.tsx[m
+[1mindex 1199bf5,0000000..9e8efab[m
+mode 100644,000000..100644[m
+[1m--- a/app/admin/approval-list/page.tsx[m
+[1m+++ b/app/admin/approval-list/page.tsx[m
+[36m@@@ -1,148 -1,0 +1,152 @@@[m
+[32m +'use client';[m
+[32m +import Image from 'next/image';[m
+[32m +import { useGets } from '@/hooks/useGets';[m
+[31m- import { TeacherAuthDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';[m
+[32m++import {[m
+[32m++  TeacherAuthDto,[m
+[32m++  TeacherAuthListResponseDto,[m
+[32m++} from '@/backend/admin/teachers/dtos/TeacherAuthDto';[m
+[32m +[m
+[32m +export default function ApprovalListPage() {[m
+[32m +  const {[m
+[32m +    data: response,[m
+[32m +    isLoading,[m
+[32m +    isError,[m
+[32m +    error,[m
+[32m +    refetch,[m
+[31m-   } = useGets([m
+[32m++  } = useGets<TeacherAuthListResponseDto>([m
+[32m +    ['teacher-auths'],[m
+[32m +    '/admin/teachers',[m
+[32m +    true,[m
+[32m +    undefined,[m
+[32m +    undefined,[m
+[32m +    {[m
+[32m +      staleTime: 5 * 60 * 1000,[m
+[32m +      refetchOnWindowFocus: false,[m
+[32m +    }[m
+[32m +  );[m
+[32m +[m
+[32m +  const handleApprove = async (teacherAuth: TeacherAuthDto) => {[m
+[32m +    console.log('승인:', teacherAuth);[m
+[31m-     alert(`${teacherAuth.teacherId} 선생님을 승인했습니다.`);[m
+[32m++    alert(`${teacherAuth.name} 선생님을 승인했습니다.`);[m
+[32m +  };[m
+[32m +[m
+[32m +  const handleReject = async (teacherAuth: TeacherAuthDto) => {[m
+[32m +    console.log('거절:', teacherAuth);[m
+[31m-     alert(`${teacherAuth.teacherId} 선생님을 거절했습니다.`);[m
+[32m++    alert(`${teacherAuth.name} 선생님을 거절했습니다.`);[m
+[32m +  };[m
+[32m +[m
+[32m +  if (isLoading) {[m
+[32m +    return ([m
+[32m +      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">[m
+[32m +        <div className="text-lg font-semibold text-gray-600">[m
+[32m +          선생님 승인 목록을 불러오는 중...[m
+[32m +        </div>[m
+[32m +      </div>[m
+[32m +    );[m
+[32m +  }[m
+[32m +[m
+[32m +  if (isError) {[m
+[32m +    return ([m
+[32m +      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">[m
+[32m +        <div className="mb-4 text-lg font-semibold text-red-600">[m
+[32m +          데이터를 불러오는데 실패했습니다[m
+[32m +        </div>[m
+[32m +        <div className="mb-4 text-sm text-gray-600">[m
+[32m +          {error?.message || '서버 오류가 발생했습니다.'}[m
+[32m +        </div>[m
+[32m +        <button[m
+[32m +          onClick={() => refetch()}[m
+[32m +          className="rounded-lg bg-violet-600 px-4 py-2 text-white transition-colors hover:bg-violet-700"[m
+[32m +        >[m
+[32m +          다시 시도[m
+[32m +        </button>[m
+[32m +      </div>[m
+[32m +    );[m
+[32m +  }[m
+[32m +[m
+[31m-   const teacherAuths: TeacherAuthDto[] =[m
+[31m-     ([m
+[31m-       response as {[m
+[31m-         data: { teacherAuths: TeacherAuthDto[] };[m
+[31m-       }[m
+[31m-     )?.data?.teacherAuths || [];[m
+[32m++  const teacherAuths = response?.data?.teacherAuths || [];[m
+[32m +[m
+[32m +  if (teacherAuths.length === 0) {[m
+[32m +    return ([m
+[32m +      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">[m
+[32m +        <div className="text-lg font-semibold text-gray-600">[m
+[32m +          승인 대기 중인 선생님이 없습니다[m
+[32m +        </div>[m
+[32m +      </div>[m
+[32m +    );[m
+[32m +  }[m
+[32m +[m
+[32m +  return ([m
+[32m +    <div className="flex h-[932px] w-[430px] flex-col items-center overflow-hidden bg-white">[m
+[32m +      <div className="mt-12 mb-8">[m
+[32m +        <div className="text-[32px] tracking-tight text-neutral-500">[m
+[32m +          선생님 승인[m
+[32m +        </div>[m
+[32m++        <div className="mt-2 text-center text-sm text-gray-500">[m
+[32m++          총 {response?.data?.total || 0}건의 승인 요청[m
+[32m++        </div>[m
+[32m +      </div>[m
+[32m +[m
+[32m +      <div className="flex flex-1 flex-col items-center gap-6 overflow-y-auto px-4">[m
+[32m +        {teacherAuths.map((teacherAuth) => ([m
+[32m +          <div[m
+[32m +            key={teacherAuth.id}[m
+[32m +            className="flex h-[265px] w-[360px] flex-col items-start justify-start gap-3 rounded-xl bg-purple-200 p-4"[m
+[32m +          >[m
+[32m +            <div className="relative h-[184px] w-[320px] overflow-hidden rounded-xl">[m
+[32m +              <Image[m
+[32m +                className="h-[184px] w-full object-cover bg-blend-luminosity"[m
+[32m +                src={teacherAuth.imgUrl || '/images/teacher-profile.png'}[m
+[31m-                 alt={`${teacherAuth.teacherId} 선생님 프로필`}[m
+[32m++                alt={`${teacherAuth.name} 선생님 프로필`}[m
+[32m +                width={320}[m
+[32m +                height={184}[m
+[32m +                onError={(e) => {[m
+[32m +                  e.currentTarget.src = '/images/teacher-profile.png';[m
+[32m +                }}[m
+[32m +              />[m
+[32m +            </div>[m
+[32m +[m
+[32m +            <div className="flex h-[41px] w-full items-center justify-start gap-2 self-stretch">[m
+[32m +              <div className="flex flex-1 flex-col items-start justify-start gap-1">[m
+[32m++                <div className="font-['Inter'] text-base font-semibold text-zinc-800">[m
+[32m++                  {teacherAuth.name}[m
+[32m++                </div>[m
+[32m +                <div className="text-xs text-gray-500">[m
+[31m-                   신청일:{' '}[m
+[32m++                  ID: {teacherAuth.teacherId} | 신청일:{' '}[m
+[32m +                  {new Date(teacherAuth.createdAt).toLocaleDateString('ko-KR')}[m
+[32m +                </div>[m
+[32m +              </div>[m
+[32m +[m
+[32m +              <button[m
+[32m +                onClick={() => handleReject(teacherAuth)}[m
+[32m +                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-white p-3 outline outline-2 outline-offset-[-2px] outline-red-200 transition-colors hover:bg-red-50 hover:outline-red-300"[m
+[32m +              >[m
+[32m +                <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-red-500 transition-colors hover:text-red-600">[m
+[32m +                  거절[m
+[32m +                </div>[m
+[32m +              </button>[m
+[32m +[m
+[32m +              <button[m
+[32m +                onClick={() => handleApprove(teacherAuth)}[m
+[32m +                className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700"[m
+[32m +              >[m
+[32m +                <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-white">[m
+[32m +                  승인[m
+[32m +                </div>[m
+[32m +              </button>[m
+[32m +            </div>[m
+[32m +          </div>[m
+[32m +        ))}[m
+[32m +      </div>[m
+[32m +[m
+[32m +      <div className="flex w-full items-center justify-center pb-4">[m
+[32m +        <button[m
+[32m +          onClick={() => refetch()}[m
+[32m +          className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-200"[m
+[32m +        >[m
+[32m +          새로고침[m
+[32m +        </button>[m
+[32m +      </div>[m
+[32m +    </div>[m
+[32m +  );[m
+[32m +}[m
+[1mdiff --cc app/test-error-notes/page.tsx[m
+[1mindex 0000000,760589f..51a037e[m
+mode 000000,100644..100644[m
+[1m--- a/app/test-error-notes/page.tsx[m
+[1m+++ b/app/test-error-notes/page.tsx[m
+[36m@@@ -1,0 -1,202 +1,202 @@@[m
+[32m+ 'use client';[m
+[32m+ [m
+[32m+ import { useState } from 'react';[m
+[32m+ [m
+[32m+ type ApiResponse = {[m
+[32m+   question_nums: number;[m
+[32m+   is_correct_nums: number;[m
+[32m+   items: Array<{[m
+[32m+     question?: string;[m
+[32m+     answer?: string;[m
+[32m+     helpText?: string;[m
+[32m+     userInput: string;[m
+[32m+     isCorrect: boolean;[m
+[32m+     created_at: string;[m
+[32m+     unit_name: string;[m
+[32m+     vid_url: string;[m
+[32m+     source: 'solve' | 'unitSolve';[m
+[32m+   }>;[m
+[32m+ };[m
+[32m+ [m
+[32m+ export default function TestErrorNotesPage() {[m
+[32m+   // 현재 날짜 기본값(YYYY-MM-DD)[m
+[32m+   const today = new Date();[m
+[32m+   const defaultDate = new Date([m
+[32m+     today.getFullYear(),[m
+[32m+     today.getMonth(),[m
+[32m+     today.getDate()[m
+[32m+   )[m
+[32m+     .toISOString()[m
+[32m+     .slice(0, 10);[m
+[32m+   const [date, setDate] = useState<string>(defaultDate);[m
+[32m+   const [loading, setLoading] = useState(false);[m
+[32m+ [m
+[32m+   const [resCommon, setResCommon] = useState<ApiResponse | null>(null);[m
+[32m+   const [resUnit, setResUnit] = useState<ApiResponse | null>(null);[m
+[32m+   const [error, setError] = useState<string | null>(null);[m
+[32m+ [m
+[32m+   const callCommon = async () => {[m
+[32m+     try {[m
+[32m+       setLoading(true);[m
+[32m+       setError(null);[m
+[32m+       setResCommon(null);[m
+[32m+       const r = await fetch([m
+[32m+         `/api/mypage/error-notes/common-question?date=${date}`[m
+[32m+       );[m
+[32m+       if (!r.ok) {[m
+[32m+         const j = await r.json().catch(() => ({}));[m
+[32m+         const errMsg =[m
+[32m+           typeof j === 'object' && j !== null && 'error' in j[m
+[32m+             ? String((j as { error?: unknown }).error)[m
+[32m+             : '요청 실패';[m
+[32m+         throw new Error(errMsg);[m
+[32m+       }[m
+[32m+       const data: ApiResponse = await r.json();[m
+[32m+       console.log('[ErrorNotes][Page] COMMON result', data);[m
+[32m+       setResCommon(data);[m
+[32m+     } catch (e: unknown) {[m
+[32m+       const message =[m
+[32m+         typeof e === 'object' && e !== null && 'message' in e[m
+[32m+           ? String((e as { message?: unknown }).message)[m
+[32m+           : '오류가 발생했습니다.';[m
+[32m+       setError(message);[m
+[32m+     } finally {[m
+[32m+       setLoading(false);[m
+[32m+     }[m
+[32m+   };[m
+[32m+ [m
+[32m+   const callUnit = async () => {[m
+[32m+     try {[m
+[32m+       setLoading(true);[m
+[32m+       setError(null);[m
+[32m+       setResUnit(null);[m
+[32m+       const r = await fetch([m
+[32m+         `/api/mypage/error-notes/unit-evaluation-question?date=${date}`[m
+[32m+       );[m
+[32m+       if (!r.ok) {[m
+[32m+         const j = await r.json().catch(() => ({}));[m
+[32m+         const errMsg =[m
+[32m+           typeof j === 'object' && j !== null && 'error' in j[m
+[32m+             ? String((j as { error?: unknown }).error)[m
+[32m+             : '요청 실패';[m
+[32m+         throw new Error(errMsg);[m
+[32m+       }[m
+[32m+       const data: ApiResponse = await r.json();[m
+[32m+       console.log('[ErrorNotes][Page] UNIT result', data);[m
+[32m+       setResUnit(data);[m
+[32m+     } catch (e: unknown) {[m
+[32m+       const message =[m
+[32m+         typeof e === 'object' && e !== null && 'message' in e[m
+[32m+           ? String((e as { message?: unknown }).message)[m
+[32m+           : '오류가 발생했습니다.';[m
+[32m+       setError(message);[m
+[32m+     } finally {[m
+[32m+       setLoading(false);[m
+[32m+     }[m
+[32m+   };[m
+[32m+ [m
+[32m+   return ([m
+[31m -    <div className="p-6 space-y-4">[m
+[32m++    <div className="space-y-4 p-6">[m
+[32m+       <h1 className="text-xl font-bold">오답 노트 테스트</h1>[m
+[32m+       <div className="flex items-center gap-2">[m
+[32m+         <label className="text-sm">날짜</label>[m
+[32m+         <input[m
+[32m+           type="date"[m
+[32m+           value={date}[m
+[32m+           onChange={(e) => setDate(e.target.value)}[m
+[31m -          className="border rounded px-2 py-1"[m
+[32m++          className="rounded border px-2 py-1"[m
+[32m+         />[m
+[32m+         <button[m
+[32m+           onClick={callCommon}[m
+[31m -          className="border rounded px-3 py-1 bg-blue-600 text-white"[m
+[32m++          className="rounded border bg-blue-600 px-3 py-1 text-white"[m
+[32m+         >[m
+[32m+           일반(solves)만 조회[m
+[32m+         </button>[m
+[32m+         <button[m
+[32m+           onClick={callUnit}[m
+[31m -          className="border rounded px-3 py-1 bg-green-600 text-white"[m
+[32m++          className="rounded border bg-green-600 px-3 py-1 text-white"[m
+[32m+         >[m
+[32m+           단원평가(unit_solves)만 조회[m
+[32m+         </button>[m
+[32m+       </div>[m
+[32m+       {loading && <div>로딩 중...</div>}[m
+[32m+       {error && <div className="text-red-600">{error}</div>}[m
+[32m+ [m
+[32m+       {resCommon && ([m
+[32m+         <div className="space-y-2">[m
+[31m -          <div className="text-sm font-bold mt-6">일반(solves) 결과</div>[m
+[32m++          <div className="mt-6 text-sm font-bold">일반(solves) 결과</div>[m
+[32m+           <div className="text-sm">전체 문제 수: {resCommon.question_nums}</div>[m
+[32m+           <div className="text-sm">[m
+[32m+             맞은 문제 수: {resCommon.is_correct_nums}[m
+[32m+           </div>[m
+[31m -          <ul className="list-disc pl-5 space-y-1">[m
+[32m++          <ul className="list-disc space-y-1 pl-5">[m
+[32m+             {resCommon.items.map((it, idx) => ([m
+[32m+               <li key={idx}>[m
+[32m+                 <div className="text-xs text-gray-600">[m
+[32m+                   [{it.source}] {it.unit_name}[m
+[32m+                 </div>[m
+[32m+                 {it.question && ([m
+[32m+                   <div className="text-sm">문제: {it.question}</div>[m
+[32m+                 )}[m
+[32m+                 <div className="text-xs">[m
+[32m+                   푼 날짜: {new Date(it.created_at).toLocaleString()}[m
+[32m+                 </div>[m
+[32m+                 {it.helpText && ([m
+[32m+                   <div className="text-xs">해설: {it.helpText}</div>[m
+[32m+                 )}[m
+[32m+                 <div className="text-xs">내 답: {it.userInput}</div>[m
+[32m+                 <div className="text-xs">정답: {it.answer}</div>[m
+[32m+                 <a[m
+[32m+                   href={it.vid_url}[m
+[32m+                   target="_blank"[m
+[32m+                   rel="noreferrer"[m
+[31m -                  className="text-blue-600 underline text-xs"[m
+[32m++                  className="text-xs text-blue-600 underline"[m
+[32m+                 >[m
+[32m+                   단원 영상 보기[m
+[32m+                 </a>[m
+[32m+               </li>[m
+[32m+             ))}[m
+[32m+           </ul>[m
+[32m+         </div>[m
+[32m+       )}[m
+[32m+ [m
+[32m+       {resUnit && ([m
+[32m+         <div className="space-y-2">[m
+[31m -          <div className="text-sm font-bold mt-6">[m
+[32m++          <div className="mt-6 text-sm font-bold">[m
+[32m+             단원평가(unit_solves) 결과[m
+[32m+           </div>[m
+[32m+           <div className="text-sm">전체 문제 수: {resUnit.question_nums}</div>[m
+[32m+           <div className="text-sm">맞은 문제 수: {resUnit.is_correct_nums}</div>[m
+[31m -          <ul className="list-disc pl-5 space-y-1">[m
+[32m++          <ul className="list-disc space-y-1 pl-5">[m
+[32m+             {resUnit.items.map((it, idx) => ([m
+[32m+               <li key={idx}>[m
+[32m+                 <div className="text-xs text-gray-600">[m
+[32m+                   [{it.source}] {it.unit_name}[m
+[32m+                 </div>[m
+[32m+                 {it.question && ([m
+[32m+                   <div className="text-sm">문제: {it.question}</div>[m
+[32m+                 )}[m
+[32m+                 <div className="text-xs">[m
+[32m+                   푼 날짜: {new Date(it.created_at).toLocaleString()}[m
+[32m+                 </div>[m
+[32m+                 {it.helpText && ([m
+[32m+                   <div className="text-xs">해설: {it.helpText}</div>[m
+[32m+                 )}[m
+[32m+                 <div className="text-xs">내 답: {it.userInput}</div>[m
+[32m+                 <div className="text-xs">정답: {it.answer}</div>[m
+[32m+                 <a[m
+[32m+                   href={it.vid_url}[m
+[32m+                   target="_blank"[m
+[32m+                   rel="noreferrer"[m
+[31m -                  className="text-blue-600 underline text-xs"[m
+[32m++                  className="text-xs text-blue-600 underline"[m
+[32m+                 >[m
+[32m+                   단원 영상 보기[m
+[32m+                 </a>[m
+[32m+               </li>[m
+[32m+             ))}[m
+[32m+           </ul>[m
+[32m+         </div>[m
+[32m+       )}[m
+[32m+     </div>[m
+[32m+   );[m
+[32m+ }[m

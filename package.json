@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed-infinite": "tsx scripts/seed-infinite-scroll-data.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",

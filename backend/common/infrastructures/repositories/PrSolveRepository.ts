@@ -9,6 +9,8 @@ import {
   PaginationParams,
   UnitStatsResult,
   SolveSample,
+  CalendarFilters,
+  DaySolvesResult,
 } from '@/backend/common/domains/repositories/SolveRepository';
 import { Prisma } from '@prisma/client';
 
@@ -377,5 +379,72 @@ export class PrSolveRepository implements ISolveRepository {
       select: { helpText: true },
     });
     return res; // { helpText } | null
+  }
+
+  async findByDateRangeForCalendar(
+    filters: CalendarFilters
+  ): Promise<DaySolvesResult[]> {
+    const where: Prisma.SolveWhereInput = {
+      userId: filters.userId,
+      createdAt: {
+        gte: filters.from,
+        lte: filters.to,
+      },
+    };
+
+    if (filters.isCorrect !== undefined) {
+      where.isCorrect = filters.isCorrect;
+    }
+
+    // Get all solves in the date range
+    const solves = await prisma.solve.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      include: {
+        unit: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Group by date (YYYY-MM-DD format)
+    const groupedByDate = new Map<
+      string,
+      (Solve & { unit: { name: string } })[]
+    >();
+
+    for (const solve of solves) {
+      const dateKey = solve.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      if (!groupedByDate.has(dateKey)) {
+        groupedByDate.set(dateKey, []);
+      }
+
+      groupedByDate
+        .get(dateKey)!
+        .push(solve as Solve & { unit: { name: string } });
+    }
+
+    // Convert to DaySolvesResult format
+    const result: DaySolvesResult[] = [];
+
+    for (const [date, daySolves] of groupedByDate) {
+      const correct = daySolves.filter((solve) => solve.isCorrect).length;
+      const total = daySolves.length;
+
+      result.push({
+        date,
+        total,
+        correct,
+        solves: daySolves,
+      });
+    }
+
+    // Sort by date (newest first)
+    result.sort((a, b) => b.date.localeCompare(a.date));
+
+    return result;
   }
 }

@@ -105,3 +105,27 @@ export interface UpdateSolveResponseDto {
   id: number;
   isCorrect: boolean;
 }
+
+// DTOs for calendar API
+export interface CalendarSolvesRequestDto {
+  userId: string;
+  month?: string; // Format: YYYY-MM
+  from?: string; // ISO date string
+  to?: string; // ISO date string
+  only?: 'all' | 'wrong';
+}
+
+export interface DaySolvesDto {
+  date: string; // YYYY-MM-DD format
+  total: number;
+  correct: number;
+  accuracy: number;
+  solves: SolveListItemDto[];
+}
+
+export interface CalendarSolvesResponseDto {
+  days: DaySolvesDto[];
+  monthTotal: number;
+  monthCorrect: number;
+  monthAccuracy: number;
+}

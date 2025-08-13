@@ -62,6 +62,20 @@ export interface SolveRepository {
   aggregateByUnit(filter: SolveAggregationFilter): Promise<SolveByUnitRow[]>;
 }
 
+export interface CalendarFilters {
+  userId: string;
+  from: Date;
+  to: Date;
+  isCorrect?: boolean;
+}
+
+export interface DaySolvesResult {
+  date: string; // YYYY-MM-DD
+  total: number;
+  correct: number;
+  solves: (Solve & { unit: { name: string } })[];
+}
+
 export interface ISolveRepository extends SolveRepository {
   findAll(): Promise<Solve[]>;
   findById(id: number): Promise<Solve | null>;
@@ -81,4 +95,7 @@ export interface ISolveRepository extends SolveRepository {
     limit: number,
     dateFilter?: { gte?: Date; lte?: Date }
   ): Promise<SolveSample[]>;
+  findByDateRangeForCalendar(
+    filters: CalendarFilters
+  ): Promise<DaySolvesResult[]>;
 }

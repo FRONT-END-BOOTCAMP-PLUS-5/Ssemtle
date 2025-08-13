@@ -35,3 +35,19 @@ export const UpdateSolveBody = z.object({
 });
 
 export type UpdateSolveBody = z.infer<typeof UpdateSolveBody>;
+
+export const CalendarSolvesQuery = z
+  .object({
+    month: z
+      .string()
+      .regex(/^\d{4}-\d{2}$/)
+      .optional(), // YYYY-MM format
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    only: z.enum(['wrong', 'all']).default('all'),
+  })
+  .refine((data) => data.month || (data.from && data.to), {
+    message: "Either 'month' or both 'from' and 'to' must be provided",
+  });
+
+export type CalendarSolvesQuery = z.infer<typeof CalendarSolvesQuery>;

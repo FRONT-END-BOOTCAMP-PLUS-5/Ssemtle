@@ -15,6 +15,9 @@ import {
   CategoryStatDto,
   UpdateSolveRequestDto,
   UpdateSolveResponseDto,
+  CalendarSolvesRequestDto,
+  CalendarSolvesResponseDto,
+  DaySolvesDto,
 } from '../dtos/SolveDto';
 
 export class ListSolvesUseCase {
@@ -315,5 +318,74 @@ export class UpdateSolveUseCase {
     // Handle regular decimal numbers
     const parsed = parseFloat(input);
     return isNaN(parsed) ? null : parsed;
+  }
+}
+
+export class GetCalendarSolvesUseCase {
+  constructor(private repository: ISolveRepository) {}
+
+  async execute(
+    request: CalendarSolvesRequestDto
+  ): Promise<CalendarSolvesResponseDto> {
+    // Determine date range
+    let from: Date;
+    let to: Date;
+
+    if (request.month) {
+      // Parse month format YYYY-MM
+      const [year, month] = request.month.split('-').map(Number);
+      from = new Date(year, month - 1, 1); // month is 0-indexed
+      to = new Date(year, month, 0, 23, 59, 59, 999); // Last day of month
+    } else if (request.from && request.to) {
+      from = new Date(request.from);
+      to = new Date(request.to);
+    } else {
+      throw new Error('Either month or from/to dates must be provided');
+    }
+
+    // Get calendar data from repository
+    const dayResults = await this.repository.findByDateRangeForCalendar({
+      userId: request.userId,
+      from,
+      to,
+      isCorrect: request.only === 'wrong' ? false : undefined,
+    });
+
+    // Transform repository results to DTOs
+    const days: DaySolvesDto[] = dayResults.map((dayResult) => {
+      const accuracy =
+        dayResult.total > 0 ? dayResult.correct / dayResult.total : 0;
+
+      return {
+        date: dayResult.date,
+        total: dayResult.total,
+        correct: dayResult.correct,
+        accuracy,
+        solves: dayResult.solves.map((solve) => ({
+          id: solve.id,
+          question: solve.question,
+          answer: solve.answer,
+          helpText: solve.helpText,
+          userInput: solve.userInput,
+          isCorrect: solve.isCorrect,
+          createdAt: solve.createdAt,
+          unitId: solve.unitId,
+          userId: solve.userId,
+          category: solve.unit.name,
+        })),
+      };
+    });
+
+    // Calculate month totals
+    const monthTotal = days.reduce((sum, day) => sum + day.total, 0);
+    const monthCorrect = days.reduce((sum, day) => sum + day.correct, 0);
+    const monthAccuracy = monthTotal > 0 ? monthCorrect / monthTotal : 0;
+
+    return {
+      days,
+      monthTotal,
+      monthCorrect,
+      monthAccuracy,
+    };
   }
 }

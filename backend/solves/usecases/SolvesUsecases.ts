@@ -61,6 +61,8 @@ export class ListSolvesUseCase {
       userId: request.userId,
       limit: request.limit + 1,
       filters,
+      direction: request.direction,
+      sortDirection: request.sortDirection,
     });
 
     const hasMore = result.items.length > request.limit;
@@ -68,14 +70,46 @@ export class ListSolvesUseCase {
       result.items.pop(); // Remove the extra item
     }
 
-    // Generate next cursor
+    // Generate cursors based on direction and sort
     let nextCursor = undefined;
-    if (hasMore && result.items.length > 0) {
+    let prevCursor = undefined;
+
+    if (result.items.length > 0) {
+      const firstItem = result.items[0];
       const lastItem = result.items[result.items.length - 1];
-      nextCursor = encodeCursor({
-        t: lastItem.createdAt.toISOString(),
-        id: lastItem.id,
-      });
+
+      const direction = request.direction || 'next';
+
+      // Generate cursors based on pagination direction and sort
+      if (direction === 'next') {
+        // Moving forward (next page)
+        if (hasMore) {
+          nextCursor = encodeCursor({
+            t: lastItem.createdAt.toISOString(),
+            id: lastItem.id,
+          });
+        }
+        // Always generate prev cursor when going next (except for very first page)
+        if (request.cursor || result.items.length > 0) {
+          prevCursor = encodeCursor({
+            t: firstItem.createdAt.toISOString(),
+            id: firstItem.id,
+          });
+        }
+      } else {
+        // Moving backward (prev page)
+        if (hasMore) {
+          prevCursor = encodeCursor({
+            t: firstItem.createdAt.toISOString(),
+            id: firstItem.id,
+          });
+        }
+        // Always generate next cursor when going prev
+        nextCursor = encodeCursor({
+          t: lastItem.createdAt.toISOString(),
+          id: lastItem.id,
+        });
+      }
     }
 
     // Transform data to include category from unit name
@@ -95,6 +129,7 @@ export class ListSolvesUseCase {
     return {
       items,
       nextCursor,
+      prevCursor,
     };
   }
 }

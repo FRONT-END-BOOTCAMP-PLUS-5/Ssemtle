@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
       only: searchParams.get('only') || 'all',
       limit: parseInt(searchParams.get('limit') || '20'),
       cursor: searchParams.get('cursor') || undefined,
+      direction: (searchParams.get('direction') as 'next' | 'prev') || 'next',
+      sortDirection:
+        (searchParams.get('sortDirection') as 'newest' | 'oldest') || 'newest',
     };
 
     const validated = ListSolvesQuery.parse(queryParams);
@@ -34,6 +37,8 @@ export async function GET(req: NextRequest) {
       only: validated.only as 'all' | 'wrong',
       limit: validated.limit,
       cursor: validated.cursor,
+      direction: validated.direction as 'next' | 'prev',
+      sortDirection: validated.sortDirection as 'newest' | 'oldest',
     };
 
     // Execute use case
@@ -44,6 +49,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       items: result.items,
       nextCursor: result.nextCursor,
+      prevCursor: result.prevCursor,
     });
   } catch (error) {
     console.error('Error listing solves:', error);

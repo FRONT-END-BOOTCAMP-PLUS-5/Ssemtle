@@ -33,6 +33,8 @@ export interface PaginationParams {
   userId: string;
   limit: number;
   filters: PaginationFilters;
+  direction?: 'next' | 'prev';
+  sortDirection?: 'newest' | 'oldest';
 }
 
 export interface UnitStatsResult {

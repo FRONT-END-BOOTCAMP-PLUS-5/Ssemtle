@@ -123,23 +123,56 @@ export class PrSolveRepository implements ISolveRepository {
       where.isCorrect = params.filters.isCorrect;
     }
 
+    // Determine sort order based on sortDirection and direction
+    const sortDirection = params.sortDirection || 'newest';
+    const direction = params.direction || 'next';
+
+    // For bidirectional pagination:
+    // - newest + next: DESC (default behavior)
+    // - newest + prev: ASC (reverse to get newer items)
+    // - oldest + next: ASC (reverse to get older items)
+    // - oldest + prev: DESC (reverse to get newer items)
+
+    let orderBy: Prisma.SolveOrderByWithRelationInput[];
+    let cursorOperator: 'lt' | 'gt';
+
+    if (sortDirection === 'newest') {
+      if (direction === 'next') {
+        orderBy = [{ createdAt: 'desc' }, { id: 'desc' }];
+        cursorOperator = 'lt';
+      } else {
+        orderBy = [{ createdAt: 'asc' }, { id: 'asc' }];
+        cursorOperator = 'gt';
+      }
+    } else {
+      if (direction === 'next') {
+        orderBy = [{ createdAt: 'asc' }, { id: 'asc' }];
+        cursorOperator = 'gt';
+      } else {
+        orderBy = [{ createdAt: 'desc' }, { id: 'desc' }];
+        cursorOperator = 'lt';
+      }
+    }
+
     // Cursor pagination
     if (params.filters.cursor) {
       const cursor = params.filters.cursor;
+      const cursorDate = new Date(cursor.t);
+
       where.OR = [
         {
-          createdAt: { lt: new Date(cursor.t) },
+          createdAt: { [cursorOperator]: cursorDate },
         },
         {
-          createdAt: new Date(cursor.t),
-          id: { lt: cursor.id },
+          createdAt: cursorDate,
+          id: { [cursorOperator]: cursor.id },
         },
       ];
     }
 
-    const items = await prisma.solve.findMany({
+    let items = await prisma.solve.findMany({
       where,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy,
       take: params.limit,
       include: {
         unit: {
@@ -149,6 +182,14 @@ export class PrSolveRepository implements ISolveRepository {
         },
       },
     });
+
+    // For reverse queries, we need to reverse the result to maintain proper order
+    if (
+      (sortDirection === 'newest' && direction === 'prev') ||
+      (sortDirection === 'oldest' && direction === 'prev')
+    ) {
+      items = items.reverse();
+    }
 
     return {
       items: items as (Solve & { unit: { name: string } })[],

@@ -22,6 +22,8 @@ export interface ListSolvesRequestDto {
   only?: 'all' | 'wrong';
   limit: number;
   cursor?: string;
+  direction?: 'next' | 'prev';
+  sortDirection?: 'newest' | 'oldest';
 }
 
 export interface SolveListItemDto {
@@ -40,6 +42,7 @@ export interface SolveListItemDto {
 export interface ListSolvesResponseDto {
   items: SolveListItemDto[];
   nextCursor?: string;
+  prevCursor?: string;
 }
 
 // DTOs for units summary API

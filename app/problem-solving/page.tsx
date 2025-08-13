@@ -66,6 +66,7 @@ export default function ProblemSolvingPage() {
     hasNextPage,
     fetchNextPage,
     isError: solvesError,
+    refetchWithParams,
   } = useInfiniteGets<SolveListItemDto>(
     ['solves', 'list', session?.user?.id, selectedUnits.join(','), dateSort],
     '/solves/list',
@@ -73,6 +74,7 @@ export default function ProblemSolvingPage() {
     {
       userId: session?.user?.id || '',
       limit: '20',
+      sortDirection: dateSort,
     }
   );
 
@@ -151,11 +153,26 @@ export default function ProblemSolvingPage() {
 
   const handleUnitSelectionChange = (selectedIds: (number | string)[]) => {
     setSelectedUnits(selectedIds);
+
+    // Refetch with current sort direction to ensure consistency
+    refetchWithParams({
+      userId: session?.user?.id || '',
+      limit: '20',
+      sortDirection: dateSort,
+    });
   };
 
   const handleDateSortChange = (selectedIds: (number | string)[]) => {
     if (selectedIds.length > 0) {
-      setDateSort(selectedIds[0] as 'newest' | 'oldest');
+      const newSort = selectedIds[0] as 'newest' | 'oldest';
+      setDateSort(newSort);
+
+      // Clear cache and refetch with new sort direction
+      refetchWithParams({
+        userId: session?.user?.id || '',
+        limit: '20',
+        sortDirection: newSort,
+      });
     }
   };
 
@@ -301,7 +318,7 @@ export default function ProblemSolvingPage() {
             );
           })}
 
-          {/* Loading more indicator */}
+          {/* Loading next page indicator */}
           {isFetchingNextPage && (
             <div className="flex justify-center py-6">
               <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>

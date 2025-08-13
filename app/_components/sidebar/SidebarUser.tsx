@@ -4,6 +4,8 @@ import { FaPen } from 'react-icons/fa6';
 import { GiBookshelf } from 'react-icons/gi';
 import { PiExamLight } from 'react-icons/pi';
 import { FaCircleUser } from 'react-icons/fa6';
+import Icon from './Icons';
+
 const SidebarWeb = () => {
   return (
     <>
@@ -15,21 +17,11 @@ const SidebarWeb = () => {
           width={110}
           height={110}
         />
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <FaPen className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <GiBookshelf className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <PiExamLight className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <FaCircleUser className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <LuLogOut className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
+        <Icon Icon={FaPen} />
+        <Icon Icon={GiBookshelf} />
+        <Icon Icon={PiExamLight} />
+        <Icon Icon={FaCircleUser} />
+        <Icon Icon={LuLogOut} />
       </div>
     </>
   );

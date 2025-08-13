@@ -2,12 +2,12 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import RadarChartComponent from './components/RadarChartComponent';
 import { useGets } from '@/hooks/useGets';
 import { GetStudentUnitPerformanceResponseDTO } from '@/backend/analysis/dtos/GetStudentUnitPerformanceDTO';
 import { CreateUserResponseDto } from '@/backend/auth/dtos/UserDto';
 import CalendarComponent from './components/CalenderComponent';
 import TestCard from '../_components/cards/TestCard';
+import PerformanceChart from './components/PerformanceChart';
 
 // ==== solves/list 응답 타입(카테고리/유닛은 옵션) ====
 type SolveItem = {
@@ -104,7 +104,7 @@ export default function MyPage() {
     return { resultsMap: resMap, attendanceMap: attMap };
   }, [solvesResp]);
 
-  // 5) 날짜 클릭 → 모달 오픈
+  // 날짜 클릭 → 모달 오픈
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -117,7 +117,7 @@ export default function MyPage() {
     setIsModalOpen(true);
   };
 
-  // 6) 모달 컨텐츠: 선택 날짜 풀이 → (카테고리가 있으면) 카테고리별 그룹
+  // 모달 컨텐츠: 선택 날짜 풀이 → (카테고리가 있으면) 카테고리별 그룹
   const solvesByCategoryForSelectedDate = useMemo(() => {
     if (!selectedDate) return {};
     const items = (solvesResp?.items ?? []).filter(
@@ -138,7 +138,7 @@ export default function MyPage() {
     return map;
   }, [solvesResp, selectedDate]);
 
-  // 7) 모달 열릴 때 body 스크롤 잠금
+  //모달 열릴 때 body 스크롤 잠금
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -175,7 +175,7 @@ export default function MyPage() {
 
       {/* 레이더 */}
       <div className="mt-4 w-full max-w-xl">
-        <RadarChartComponent data={radarData} />
+        <PerformanceChart data={radarData} />
       </div>
 
       {/* 캘린더 */}

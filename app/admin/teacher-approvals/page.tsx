@@ -1,9 +1,8 @@
 'use client';
-import Image from 'next/image';
 import { useGets } from '@/hooks/useGets';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
-import TechApproval from './TechApproval';
-import TechReject from './TechReject';
+import TeacherAuthCard from './TeacherAuthCard';
+import SidebarAdmin from '@/app/_components/sidebar/SidebarAdmin';
 
 export default function ApprovalListPage() {
   const {
@@ -24,88 +23,65 @@ export default function ApprovalListPage() {
     }
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">
-        <div className="text-lg font-semibold text-gray-600">
-          선생님 승인 목록을 불러오는 중...
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">
-        <div className="mb-4 text-lg font-semibold text-red-600">
-          데이터를 불러오는데 실패했습니다
-        </div>
-        <div className="mb-4 text-sm text-gray-600">
-          {error?.message || '서버 오류가 발생했습니다.'}
-        </div>
-        <button
-          onClick={() => refetch()}
-          className="rounded-lg bg-violet-600 px-4 py-2 text-white transition-colors hover:bg-violet-700"
-        >
-          다시 시도
-        </button>
-      </div>
-    );
-  }
-
   const teacherAuths = response?.data?.teacherAuths || [];
 
-  if (teacherAuths.length === 0) {
-    return (
-      <div className="flex h-[932px] w-[430px] flex-col items-center justify-center overflow-hidden bg-white">
-        <div className="text-lg font-semibold text-gray-600">
-          승인 대기 중인 선생님이 없습니다
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-[932px] w-[430px] flex-col items-center overflow-hidden bg-white">
-      <div className="mt-12 mb-8">
-        <div className="text-[32px] tracking-tight text-neutral-500">
-          선생님 승인
-        </div>
-      </div>
+    <div className="min-h-[932px] w-full bg-[#F8F5FF] md:min-h-[1180px] lg:min-h-[1024px]">
+      <div className="w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
+        <div className="flex">
+          <div className="hidden xl:block">
+            <SidebarAdmin />
+          </div>
 
-      <div className="flex flex-1 flex-col items-center gap-6 overflow-y-auto px-4">
-        {teacherAuths.map((teacherAuth) => (
-          <div
-            key={teacherAuth.id}
-            className="flex h-[265px] w-[360px] flex-col items-start justify-start gap-3 rounded-xl bg-purple-200 p-4"
-          >
-            <div className="relative h-[184px] w-[320px] overflow-hidden rounded-xl">
-              <Image
-                className="h-[184px] w-full object-cover bg-blend-luminosity"
-                src={teacherAuth.imgUrl || '/images/teacher-profile.png'}
-                alt={`${teacherAuth.name} 선생님 인증 이미지`}
-                width={320}
-                height={184}
-                onError={(e) => {
-                  e.currentTarget.src = '/images/teacher-profile.png';
-                }}
-              />
-            </div>
-
-            <div className="flex h-[41px] w-full items-center justify-start gap-2 self-stretch">
-              <div className="flex flex-1 flex-col items-start justify-start gap-1">
-                <div className="font-['Inter'] text-base font-semibold text-zinc-800">
-                  {teacherAuth.name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  ID: {teacherAuth.teacherId}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+                <div className="text-lg font-semibold text-gray-600">
+                  선생님 승인 목록을 불러오는 중...
                 </div>
               </div>
-              <TechReject teacherAuth={teacherAuth} onSuccess={refetch} />
-              <TechApproval teacherAuth={teacherAuth} onSuccess={refetch} />
-            </div>
+            ) : isError ? (
+              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+                <div className="mb-4 text-lg font-semibold text-red-600 lg:mb-4">
+                  데이터를 불러오는데 실패했습니다
+                </div>
+                <div className="mb-4 text-sm text-gray-600">
+                  {error?.message || '서버 오류가 발생했습니다.'}
+                </div>
+                <button
+                  onClick={() => refetch()}
+                  className="rounded-lg bg-violet-600 px-4 py-2 text-white transition-colors hover:bg-violet-700"
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : teacherAuths.length === 0 ? (
+              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+                <div className="text-lg font-semibold text-gray-600">
+                  승인 대기 중인 선생님이 없습니다
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <div className="mt-12 mb-4 w-full md:mt-16 xl:ml-16">
+                  <div className="mb-8 text-center text-[32px] tracking-tight text-neutral-500 md:text-[36px] xl:ml-8 xl:text-left xl:text-[32px]">
+                    선생님 승인
+                  </div>
+                </div>
+
+                <div className="grid w-full grid-cols-1 place-items-center gap-6 px-4 md:grid-cols-2 md:place-items-center md:gap-8 md:px-6 lg:grid-cols-3 lg:place-items-start lg:content-start lg:justify-start lg:gap-10 xl:px-16">
+                  {teacherAuths.map((teacherAuth) => (
+                    <TeacherAuthCard
+                      key={teacherAuth.id}
+                      teacherAuth={teacherAuth}
+                      onSuccess={refetch}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

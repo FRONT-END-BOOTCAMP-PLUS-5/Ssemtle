@@ -11,17 +11,28 @@ import {
   Tooltip,
 } from 'recharts';
 
-// 더미 데이터 (0~100)
-const DEFAULT_DATA = [
-  { subject: '수학 연산', value: 90 },
-  { subject: '일차방정식', value: 70 },
-  { subject: '확률', value: 65 },
-  { subject: 'PS', value: 50 },
-  { subject: 'AI', value: 40 },
-  { subject: 'ML', value: 80 },
-  { subject: '통계학', value: 75 },
-  { subject: '데이터베이스', value: 60 },
-];
+// ✅ 레이더 데이터 타입에 correct/total 추가
+type RadarDatum = {
+  subject: string;
+  value: number; // % 값 (0~100)
+  correct: number; // 맞은 개수
+  total: number; // 전체 개수
+};
+
+// ✅ 커스텀 툴팁
+function CustomTooltip({ active, payload }: unknown) {
+  if (!active || !payload || !payload.length) return null;
+  const p = payload[0].payload as RadarDatum;
+  const pct = p.total > 0 ? Math.round((p.correct / p.total) * 100) : 0;
+  return (
+    <div className="rounded-md bg-white/95 px-3 py-2 text-sm shadow">
+      <div className="mb-1 font-medium">{p.subject}</div>
+      <div>
+        {p.correct}/{p.total} • {pct}%
+      </div>
+    </div>
+  );
+}
 
 /**
  * RadarChartComponent
@@ -29,10 +40,10 @@ const DEFAULT_DATA = [
  * - props로 data(overrides) 전달 가능
  */
 export default function RadarChartComponent({
-  data = DEFAULT_DATA,
+  data = [],
   className = '',
 }: {
-  data?: { subject: string; value: number }[];
+  data?: RadarDatum[]; // ✅ 타입 교체
   className?: string;
 }) {
   return (
@@ -53,7 +64,8 @@ export default function RadarChartComponent({
               fill="rgba(124, 58, 237, 0.5)"
               strokeWidth={2}
             />
-            <Tooltip formatter={(v: number) => [`${v}`, '점수']} />
+            {/* ✅ 커스텀 툴팁로 교체 */}
+            <Tooltip content={<CustomTooltip />} />
           </RadarChart>
         </ResponsiveContainer>
       </div>

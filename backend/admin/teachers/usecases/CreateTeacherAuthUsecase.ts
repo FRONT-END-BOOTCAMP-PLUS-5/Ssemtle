@@ -11,10 +11,15 @@ export class CreateTeacherAuthUsecase {
 
   async execute(teacherAuthData: {
     teacherId: string;
+    name: string;
     imgUrl: string;
   }): Promise<TeacherAuthorization> {
-    if (!teacherAuthData.teacherId || !teacherAuthData.imgUrl) {
-      throw new Error('교사 ID와 인증 이미지를 모두 입력해주세요.');
+    if (
+      !teacherAuthData.teacherId ||
+      !teacherAuthData.name ||
+      !teacherAuthData.imgUrl
+    ) {
+      throw new Error('교사 ID, 이름, 인증 이미지를 모두 입력해주세요.');
     }
 
     try {
@@ -33,6 +38,7 @@ export class CreateTeacherAuthUsecase {
     try {
       return await this.teacherAuthRepository.create(
         teacherAuthData.teacherId.trim(),
+        teacherAuthData.name.trim(),
         teacherAuthData.imgUrl.trim()
       );
     } catch (error) {

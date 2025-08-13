@@ -6,6 +6,7 @@ import type { User } from './User';
 export interface TeacherAuthorization {
   readonly id: number;
   readonly teacherId: string;
+  readonly name: string;
   readonly imgUrl: string;
   readonly createdAt: Date;
 

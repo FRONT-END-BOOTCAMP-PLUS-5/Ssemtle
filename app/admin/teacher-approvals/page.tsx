@@ -1,8 +1,10 @@
 'use client';
 import { useGets } from '@/hooks/useGets';
+import { usePagination } from '@/hooks/usePagination';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import TeacherAuthCard from './TeacherAuthCard';
 import SidebarAdmin from '@/app/_components/sidebar/SidebarAdmin';
+import Pagination from '@/app/_components/common/Pagination';
 
 export default function ApprovalListPage() {
   const {
@@ -23,7 +25,13 @@ export default function ApprovalListPage() {
     }
   );
 
-  const teacherAuths = response?.data?.teacherAuths || [];
+  const allTeacherAuths = response?.data?.teacherAuths || [];
+
+  // 페이지네이션 훅 사용
+  const { currentPage, totalPages, currentData, goToPage } = usePagination({
+    data: allTeacherAuths,
+    itemsPerPage: 6,
+  });
 
   return (
     <div className="min-h-[932px] w-full bg-[#F8F5FF] md:min-h-[1180px] lg:min-h-[1024px]">
@@ -48,14 +56,8 @@ export default function ApprovalListPage() {
                 <div className="mb-4 text-sm text-gray-600">
                   {error?.message || '서버 오류가 발생했습니다.'}
                 </div>
-                <button
-                  onClick={() => refetch()}
-                  className="rounded-lg bg-violet-600 px-4 py-2 text-white transition-colors hover:bg-violet-700"
-                >
-                  다시 시도
-                </button>
               </div>
-            ) : teacherAuths.length === 0 ? (
+            ) : allTeacherAuths.length === 0 ? (
               <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
                 <div className="text-lg font-semibold text-gray-600">
                   승인 대기 중인 선생님이 없습니다
@@ -63,21 +65,36 @@ export default function ApprovalListPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <div className="mt-12 mb-4 w-full md:mt-16 xl:ml-16">
+                <div className="mb-4 w-full md:mt-16 xl:ml-16">
                   <div className="mb-8 text-center text-[32px] tracking-tight text-neutral-500 md:text-[36px] xl:ml-8 xl:text-left xl:text-[32px]">
                     선생님 승인
                   </div>
                 </div>
 
                 <div className="grid w-full grid-cols-1 place-items-center gap-6 px-4 md:grid-cols-2 md:place-items-center md:gap-8 md:px-6 lg:grid-cols-3 lg:place-items-start lg:content-start lg:justify-start lg:gap-10 xl:px-16">
-                  {teacherAuths.map((teacherAuth) => (
+                  {currentData.map((teacherAuth) => (
                     <TeacherAuthCard
                       key={teacherAuth.id}
                       teacherAuth={teacherAuth}
-                      onSuccess={refetch}
+                      onSuccess={() => {
+                        refetch();
+                        if (currentData.length === 1 && currentPage > 1) {
+                          goToPage(currentPage - 1);
+                        }
+                      }}
                     />
                   ))}
                 </div>
+
+                {/* 공용 페이지네이션 컴포넌트 */}
+                {totalPages > 1 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    className="mt-8"
+                  />
+                )}
               </div>
             )}
           </div>

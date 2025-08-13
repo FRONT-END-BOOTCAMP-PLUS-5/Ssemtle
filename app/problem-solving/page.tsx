@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IoChevronBack } from 'react-icons/io5';
-import FilterDropdown from '@/app/_components/FilterDropdown';
+import FilterDropdown from '@/app/_components/filters/FilterDropdown';
 import TestCard from '@/app/_components/cards/TestCard';
 import { useGets } from '@/hooks/useGets';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';

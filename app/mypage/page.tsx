@@ -1,24 +1,50 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import CalendarComponent from './components/CalenderComponent'; // 파일명 확인!
+import React, { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import RadarChartComponent from './components/RadarChartComponent';
 import { useGets } from '@/hooks/useGets';
 import { GetStudentUnitPerformanceResponseDTO } from '@/backend/analysis/dtos/GetStudentUnitPerformanceDTO';
 import { CreateUserResponseDto } from '@/backend/auth/dtos/UserDto';
+import CalendarComponent from './components/CalenderComponent';
+import TestCard from '../_components/cards/TestCard';
+
+// ==== solves/list 응답 타입(카테고리/유닛은 옵션) ====
+type SolveItem = {
+  id: number;
+  isCorrect: boolean;
+  createdAt: string; // ISO
+  category?: string;
+  unitId?: number;
+};
+
+type SolvesListResponse = {
+  items: SolveItem[];
+  nextCursor?: string | null;
+};
+
+// KST 기준 YYYY-MM-DD (UTC → KST 보정)
+function toKstYmd(iso: string) {
+  const d = new Date(iso);
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(kst.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 export default function MyPage() {
-  // 1) 세션 먼저
+  const router = useRouter();
+
+  // 1) 세션
   const { data: userData } = useGets<CreateUserResponseDto>(
     ['auth', 'session'],
     '/auth/session',
     true
   );
-
-  // 세션 구조 안전 처리 (user.userId 또는 userId)
   const username = userData?.user?.userId ?? userData?.userId ?? undefined;
 
-  // 2) 분석 데이터: username 있을 때만 호출
+  // 2) 레이더(단원 성과)
   const {
     data: analysisData,
     isLoading,
@@ -30,59 +56,109 @@ export default function MyPage() {
     !!username
   );
 
-  // 3) 차트 데이터 만들기
-  const { radarData, debugRows } = useMemo(() => {
-    const rows = analysisData?.units ?? [];
-
-    // 숫자형 보정 + 방어
-    const sane = rows.map((u) => ({
-      unitId: Number(u.unitId),
-      unitName: String(u.unitName ?? `Unit ${u.unitId}`),
-      total: Number(u.total) || 0,
-      correct: Number(u.correct) || 0,
+  const radarData = useMemo(() => {
+    const units = analysisData?.units ?? [];
+    return units.map((u) => ({
+      subject: u.unitName || `Unit ${u.unitId}`,
+      value: u.total > 0 ? Math.round((u.correct / u.total) * 100) : 0,
+      correct: u.correct,
+      total: u.total,
     }));
-    // total이 0인 항목은 퍼센트 0으로 두거나 제외하고 싶다면 여기서 필터 가능
-    // .filter(u => u.total > 0)
-    // unitName 기준으로 합산(중복 라벨 병합)
-    const agg = new Map<string, { total: number; correct: number }>();
-    for (const u of sane) {
-      const prev = agg.get(u.unitName) ?? { total: 0, correct: 0 };
-      agg.set(u.unitName, {
-        total: prev.total + u.total,
-        correct: prev.correct + u.correct,
-      });
-    }
-
-    // 퍼센트 계산 + 0~100 클램프
-    const data = Array.from(agg.entries()).map(([name, v]) => {
-      const pct = v.total > 0 ? Math.round((v.correct / v.total) * 100) : 0;
-      const value = Math.max(0, Math.min(100, pct));
-
-      return {
-        subject: name,
-        value,
-        correct: v.correct,
-        total: v.total,
-      };
-    });
-
-    data.sort((a, b) => a.subject.localeCompare(b.subject, 'ko'));
-
-    // 디버그 테이블용 원본 행 정리
-    const debug = sane
-      .map((u) => ({
-        unitId: u.unitId,
-        unitName: u.unitName,
-        correct: u.correct,
-        total: u.total,
-        pct: u.total > 0 ? Math.round((u.correct / u.total) * 100) : 0,
-      }))
-      .sort((a, b) => a.unitId - b.unitId);
-
-    return { radarData: data, debugRows: debug };
   }, [analysisData]);
 
+  const { data: solvesResp } = useGets<SolvesListResponse>(
+    ['solves', username],
+    '/solves/list',
+    !!username
+  );
+
+  // 캘린더 바인딩용 맵 생성 (resultsMap / attendanceMap)
+  const { resultsMap, attendanceMap } = useMemo(() => {
+    const resMap: Record<string, { correct: number; total: number }> = {};
+    const items = solvesResp?.items ?? [];
+
+    for (const it of items) {
+      const key = toKstYmd(it.createdAt);
+      const cur = resMap[key] ?? { correct: 0, total: 0 };
+      cur.total += 1;
+      if (it.isCorrect) cur.correct += 1;
+      resMap[key] = cur;
+    }
+
+    // 연속 출석(풀이가 있는 날짜 기준) → 값이 2 이상이면 🔥
+    const days = Object.keys(resMap).sort();
+    const attMap: Record<string, number> = {};
+    let streak = 0;
+    let prev: string | null = null;
+    const isNextDay = (a: string, b: string) => {
+      const da = new Date(a + 'T00:00:00Z').getTime();
+      const db = new Date(b + 'T00:00:00Z').getTime();
+      return db - da === 86400000;
+    };
+    for (const day of days) {
+      streak = prev && isNextDay(prev, day) ? streak + 1 : 1;
+      attMap[day] = streak;
+      prev = day;
+    }
+
+    return { resultsMap: resMap, attendanceMap: attMap };
+  }, [solvesResp]);
+
+  // 5) 날짜 클릭 → 모달 오픈
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleDayClick = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const key = `${yyyy}-${mm}-${dd}`;
+    setSelectedDate(key);
+    setIsModalOpen(true);
+  };
+
+  // 6) 모달 컨텐츠: 선택 날짜 풀이 → (카테고리가 있으면) 카테고리별 그룹
+  const solvesByCategoryForSelectedDate = useMemo(() => {
+    if (!selectedDate) return {};
+    const items = (solvesResp?.items ?? []).filter(
+      (it) => toKstYmd(it.createdAt) === selectedDate
+    );
+
+    // category가 없으면 "전체"로 묶음
+    const map: Record<string, SolveItem[]> = {};
+    for (const s of items) {
+      const cat = s.category || '전체';
+      (map[cat] ??= []).push(s);
+    }
+
+    // 최신순 정렬(옵션)
+    Object.values(map).forEach((arr) =>
+      arr.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    );
+    return map;
+  }, [solvesResp, selectedDate]);
+
+  // 7) 모달 열릴 때 body 스크롤 잠금
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isModalOpen]);
+
   const displayName = userData?.user?.name ?? userData?.name ?? '사용자';
+
+  const closeModal = () => setIsModalOpen(false);
+
+  const goSolvePage = (category: string) => {
+    // 문제풀이 페이지는 추후 구현 예정 → 라우팅만 연결
+    const q = new URLSearchParams();
+    if (selectedDate) q.set('date', selectedDate);
+    if (category) q.set('category', category);
+    router.push(`/solve?${q.toString()}`);
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-[rgb(254,247,255)]">
@@ -92,49 +168,76 @@ export default function MyPage() {
         </h1>
       </div>
 
-      {/* 로딩/에러 표시 */}
       {(!username || isLoading) && <div className="mt-4">불러오는 중…</div>}
       {isError && (
         <div className="mt-4 text-red-600">에러: {error?.message}</div>
       )}
 
-      {/* 레이더 차트 */}
-      <RadarChartComponent data={radarData} />
-
-      {/* 디버그: 원본 rows를 표로 잠깐 보여주기 (확인 끝나면 지워도 됨) */}
-      <div className="mt-6 w-full max-w-xl rounded-xl bg-white p-4 shadow">
-        <h2 className="mb-2 font-semibold">원본 데이터 확인</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500">
-                <th className="py-1 pr-2">unitId</th>
-                <th className="py-1 pr-2">unitName</th>
-                <th className="py-1 pr-2">correct</th>
-                <th className="py-1 pr-2">total</th>
-                <th className="py-1 pr-2">%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {debugRows.map((r, i) => (
-                <tr key={i} className="border-t border-gray-100">
-                  <td className="py-1 pr-2">{r.unitId}</td>
-                  <td className="py-1 pr-2">{r.unitName}</td>
-                  <td className="py-1 pr-2">{r.correct}</td>
-                  <td className="py-1 pr-2">{r.total}</td>
-                  <td className="py-1 pr-2">{r.pct}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-xs text-gray-500">
-          동일 과목명이 여러 유닛에 걸쳐 있으면 합산되어 차트에 한 번만
-          표시됩니다.
-        </p>
+      {/* 레이더 */}
+      <div className="mt-4 w-full max-w-xl">
+        <RadarChartComponent data={radarData} />
       </div>
 
-      <CalendarComponent />
+      {/* 캘린더 */}
+      <div className="mt-6">
+        <CalendarComponent
+          onChange={handleDayClick}
+          attendanceMap={attendanceMap}
+          resultsMap={resultsMap}
+        />
+      </div>
+
+      {/* 모달 오버레이 */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50">
+          {/* 반투명 배경 */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={closeModal}
+          />
+          {/* 패널 */}
+          <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-lg">
+            <div className="mx-3 mb-4 rounded-2xl bg-white shadow-lg outline outline-1 outline-gray-200">
+              {/* 헤더 */}
+              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                <div className="text-sm text-gray-500">선택한 날짜</div>
+                <button
+                  className="rounded-md px-2 py-1 text-sm hover:bg-gray-100"
+                  onClick={closeModal}
+                >
+                  닫기 ✕
+                </button>
+              </div>
+              <div className="px-4 pt-2 text-lg font-semibold">
+                {selectedDate}
+              </div>
+
+              {/* 스크롤 리스트 */}
+              <div className="max-h-[70vh] space-y-3 overflow-y-auto px-4 pt-2 pb-4">
+                {Object.keys(solvesByCategoryForSelectedDate).length === 0 && (
+                  <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
+                    해당 날짜에는 풀이 기록이 없습니다.
+                  </div>
+                )}
+
+                {Object.entries(solvesByCategoryForSelectedDate).map(
+                  ([category, solves]) => (
+                    <div
+                      key={category}
+                      role="button"
+                      onClick={() => goSolvePage(category)}
+                      className="cursor-pointer transition-transform hover:scale-[1.01]"
+                    >
+                      {/* ✅ TestCard에 solves/카테고리 주입 */}
+                      <TestCard solves={solves} category={category} />
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

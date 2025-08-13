@@ -14,7 +14,7 @@ export default function TeacherAuthCard({
   onSuccess,
 }: TeacherAuthCardProps) {
   return (
-    <div className="flex h-[265px] w-[360px] flex-col items-center justify-center gap-3 rounded-xl bg-purple-200 p-4">
+    <div className="flex h-[265px] w-[360px] flex-col items-center justify-center gap-3 rounded-xl border border-[#7949FF] bg-white p-4">
       <div className="relative h-[184px] w-[320px] overflow-hidden rounded-xl">
         <Image
           className="h-[184px] w-full object-cover bg-blend-luminosity"

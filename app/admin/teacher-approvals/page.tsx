@@ -27,7 +27,7 @@ export default function ApprovalListPage() {
 
   return (
     <div className="min-h-[932px] w-full bg-[#F8F5FF] md:min-h-[1180px] lg:min-h-[1024px]">
-      <div className="mx-auto w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
+      <div className="w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
         <div className="flex">
           <div className="hidden xl:block">
             <SidebarAdmin />

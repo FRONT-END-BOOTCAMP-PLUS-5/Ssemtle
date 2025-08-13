@@ -12,6 +12,10 @@ html {
   font-family: 'Pretendard Variable', sans-serif;
 }
 
+body {
+  background-color: #f8f5ff;
+}
+
 /* Design System Tokens as CSS Variables */
 :root {
   /* Color Tokens */

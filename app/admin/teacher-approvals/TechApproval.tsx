@@ -41,7 +41,7 @@ export default function TechApproval({
     <button
       onClick={handleApprove}
       disabled={approval.isPending}
-      className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex h-[41px] w-[65px] cursor-pointer items-center justify-center gap-1 rounded-lg bg-violet-600 p-3 transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="w-10 text-center font-['Inter'] text-sm font-semibold text-white">
         {approval.isPending ? '처리중' : '승인'}

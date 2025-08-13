@@ -100,11 +100,9 @@ export async function DELETE(request: NextRequest) {
 }
 
 // 교사 인증 요청 승인
-export async function PATCH(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const { id } = await request.json();
-
-    // 문자열을 숫자로 변환
     const numericId = parseInt(id);
     if (isNaN(numericId)) {
       return NextResponse.json(

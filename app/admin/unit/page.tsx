@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGets } from '@/hooks/useGets';
 import {
   UnitDto,
@@ -11,6 +11,8 @@ import CreateUnitModal from './CreateUnitModal';
 import EditUnitModal from './EditUnitModal';
 import { useDeletes } from '@/hooks/useDeletes';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Pagination from '@/app/_components/pagination/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 interface DeleteUnitResponse {
   message: string;
@@ -42,6 +44,21 @@ export default function UnitManagementPage() {
   );
 
   const units = response?.data?.units || [];
+
+  // 공통 페이지네이션(클라이언트 사이드)
+  const { currentPage, totalPages, currentData, goToPage } =
+    usePagination<UnitDto>({
+      data: units,
+      itemsPerPage: 8,
+    });
+
+  // 데이터 길이 변화 시 현재 페이지 보정
+  useEffect(() => {
+    if (totalPages === 0) return;
+    if (currentPage > totalPages) {
+      goToPage(totalPages);
+    }
+  }, [units.length, totalPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -107,7 +124,7 @@ export default function UnitManagementPage() {
         </div>
 
         {isLoading ? (
-          <div className="min-h[400px] flex items-center justify-center">
+          <div className="flex min-h-[400px] items-center justify-center">
             <div className="text-lg font-semibold text-gray-600">
               과목 목록을 불러오는 중...
             </div>
@@ -128,16 +145,26 @@ export default function UnitManagementPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
-            {units.map((unit) => (
-              <UnitCard
-                key={unit.id}
-                unit={unit}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+          <>
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
+              {currentData.map((unit) => (
+                <UnitCard
+                  key={unit.id}
+                  unit={unit}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+
+            <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
               />
-            ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
 

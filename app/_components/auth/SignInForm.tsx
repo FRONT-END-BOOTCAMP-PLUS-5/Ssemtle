@@ -7,10 +7,12 @@ import { signInSchema, type SignInFormData } from '@/libs/zod/auth';
 export default function SignInForm() {
   const [errors, setErrors] = useState<Partial<SignInFormData>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string>('');
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     setErrors({});
+    setAuthError('');
 
     try {
       const data = {
@@ -31,14 +33,21 @@ export default function SignInForm() {
         return;
       }
 
-      await signIn('credentials', {
+      const signInResult = await signIn('credentials', {
         id: data.id,
         password: data.password,
-        redirect: true,
+        redirect: false,
         callbackUrl: '/',
       });
+
+      if (signInResult?.error) {
+        setAuthError('아이디 또는 비밀번호가 올바르지 않습니다.');
+      } else if (signInResult?.ok) {
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Sign in error:', error);
+      setAuthError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -98,6 +107,12 @@ export default function SignInForm() {
             )}
           </div>
         </div>
+
+        {authError && (
+          <div className="rounded-lg bg-red-50 p-4">
+            <p className="text-sm text-red-600">{authError}</p>
+          </div>
+        )}
 
         <div>
           <button

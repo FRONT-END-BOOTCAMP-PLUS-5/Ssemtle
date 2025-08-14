@@ -34,7 +34,8 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
     <div className="rounded-md bg-white/95 px-3 py-2 text-sm shadow">
       <div className="mb-1 font-medium">{p.subject}</div>
       <div>
-        {p.correct}/{p.total} • {pct}%
+        <span className="font-bold text-green-600">{p.correct}</span>/{p.total}{' '}
+        • {pct}%
       </div>
     </div>
   );

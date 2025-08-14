@@ -10,24 +10,26 @@ import TestCard from '../_components/cards/TestCard';
 import PerformanceChart from './components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
-// solves/list 응답 타입
-type SolvesListResponse = {
-  items: SolveListItemDto[];
-  nextCursor?: string | null;
+// ---------- 달력(월별) API 응답 타입 ----------
+type CalendarDay = {
+  date: string; // 'YYYY-MM-DD'
+  total: number;
+  correct: number;
+  accuracy: number; // 0~1
+  solves: SolveListItemDto[]; // 당일 풀이 리스트
 };
 
-// UTC → KST → YYYY-MM-DD
-function toKstYmd(date: string | Date) {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000); // UTC+9
-  const y = kst.getUTCFullYear();
-  const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(kst.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+type CalendarResponse = {
+  days: CalendarDay[];
+};
 
-// Date 객체 → YYYY-MM-DD
-function ymd(d: Date) {
+// ---------- 유틸 ----------
+function ym(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+function ymd(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -43,7 +45,6 @@ export default function MyPage() {
     '/auth/session',
     true
   );
-
   type WithUserField = { user: { name?: string; userId?: string } };
   type WithUserId = { userId?: string };
 
@@ -61,7 +62,10 @@ export default function MyPage() {
     (userData as { name?: string })?.name ??
     '사용자';
 
-  // 2) 레이더 데이터
+  // 2) 현재 보고 있는 달 상태 (초기: 오늘)
+  const [month, setMonth] = useState<string>(() => ym(new Date()));
+
+  // 3) 레이더 차트 데이터
   const {
     data: analysisData,
     isLoading,
@@ -83,74 +87,65 @@ export default function MyPage() {
     }));
   }, [analysisData]);
 
-  // 3) solves 데이터
-  const { data: solvesResp } = useGets<SolvesListResponse>(
-    ['solves', username],
-    username ? `/solves/list` : '',
+  // 4) 월별 캘린더 데이터 호출: /api/solves/calendar?month=YYYY-MM
+  const { data: calendarResp } = useGets<CalendarResponse>(
+    ['solvesCalendar', username, month],
+    username ? `/solves/calendar?month=${month}` : '',
     !!username
   );
 
-  // 4) 캘린더 맵
+  // 5) 캘린더 바인딩 맵 만들기 (맞은/전체, 연속 출석)
   const { resultsMap, attendanceMap } = useMemo(() => {
-    const resMap: Record<string, { correct: number; total: number }> = {};
-    const items = solvesResp?.items ?? [];
+    const map: Record<string, { correct: number; total: number }> = {};
+    const days = calendarResp?.days ?? [];
 
-    for (const it of items) {
-      const key = toKstYmd(it.createdAt);
-      const cur = resMap[key] ?? { correct: 0, total: 0 };
-      cur.total += 1;
-      if (it.isCorrect) cur.correct += 1;
-      resMap[key] = cur;
+    for (const d of days) {
+      map[d.date] = { correct: d.correct, total: d.total };
     }
 
-    const days = Object.keys(resMap).sort();
-    const attMap: Record<string, number> = {};
+    // 🔥 연속 출석: 풀이가 있는 날들만 기준
+    const activeDays = days
+      .filter((d) => d.total > 0)
+      .map((d) => d.date)
+      .sort();
+    const att: Record<string, number> = {};
     let streak = 0;
     let prev: string | null = null;
-    const isNextDay = (a: string, b: string) => {
+
+    const isNextDay = (a: string, b: string): boolean => {
       const da = new Date(a + 'T00:00:00Z').getTime();
       const db = new Date(b + 'T00:00:00Z').getTime();
       return db - da === 86400000;
     };
-    for (const day of days) {
+
+    for (const day of activeDays) {
       streak = prev && isNextDay(prev, day) ? streak + 1 : 1;
-      attMap[day] = streak;
+      att[day] = streak;
       prev = day;
     }
 
-    return { resultsMap: resMap, attendanceMap: attMap };
-  }, [solvesResp]);
+    return { resultsMap: map, attendanceMap: att };
+  }, [calendarResp]);
 
-  // 5) 모달 상태
+  // 6) 날짜 클릭 → 모달로 그 날짜 solves 바로 표시
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedSolves, setSelectedSolves] = useState<SolveListItemDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDayClick = (d: Date) => {
-    setSelectedDate(ymd(d));
+    const key = ymd(d);
+    const day = calendarResp?.days.find((x) => x.date === key);
+    setSelectedDate(key);
+    setSelectedSolves(day?.solves ?? []);
     setIsModalOpen(true);
   };
 
-  const solvesByCategoryForSelectedDate = useMemo<
-    Record<string, SolveListItemDto[]>
-  >(() => {
-    if (!selectedDate) return {};
-    const items = solvesResp?.items ?? [];
+  // 7) 캘린더에서 월 바뀔 때 내려오는 콜백
+  const handleMonthChange = (newMonth: string) => {
+    setMonth(newMonth);
+  };
 
-    const filtered = items.filter(
-      (it) => toKstYmd(it.createdAt) === selectedDate
-    );
-
-    const map: Record<string, SolveListItemDto[]> = {};
-    for (const s of filtered) {
-      const cat = s.category ?? '전체';
-      (map[cat] ??= []).push(s);
-    }
-    Object.values(map).forEach((arr) =>
-      arr.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-    );
-    return map;
-  }, [solvesResp, selectedDate]);
-
+  // 모달 열릴 때 body 스크롤 잠금
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -169,31 +164,53 @@ export default function MyPage() {
     router.push(`/solve?${q.toString()}`);
   };
 
+  // 모달 리스트: 카테고리 그룹핑 (선택된 날짜의 solves 기준)
+  const solvesByCategory = useMemo<Record<string, SolveListItemDto[]>>(() => {
+    const map: Record<string, SolveListItemDto[]> = {};
+    for (const s of selectedSolves) {
+      const cat = s.category ?? '전체';
+      (map[cat] ??= []).push(s);
+    }
+    Object.values(map).forEach((arr) =>
+      arr.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    );
+    return map;
+  }, [selectedSolves]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center bg-[rgb(254,247,255)]">
-      <div className="w-full text-center">
-        <h1 className="text-2xl font-semibold sm:text-3xl">
-          {displayName}의 마이페이지
-        </h1>
-      </div>
+    // 레이아웃은 그대로 두고, 페이지에서만 가운데 정렬/배경 보정
+    <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
+      {/* 컨테이너: 좌우 가운데 + 최대 폭 */}
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <div className="w-full text-center">
+          <h1 className="text-2xl font-semibold sm:text-3xl">
+            {displayName}의 마이페이지
+          </h1>
+        </div>
 
-      {(!username || isLoading) && <div className="mt-4">불러오는 중…</div>}
-      {isError && (
-        <div className="mt-4 text-red-600">에러: {error?.message}</div>
-      )}
+        {(!username || isLoading) && (
+          <div className="mt-4 text-center">불러오는 중…</div>
+        )}
+        {isError && (
+          <div className="mt-4 text-center text-red-600">
+            에러: {error?.message}
+          </div>
+        )}
 
-      {/* 레이더 */}
-      <div className="mt-4 w-full max-w-xl">
-        <PerformanceChart data={radarData} />
-      </div>
+        {/* 성과 그래프 */}
+        <div className="mx-auto mt-4 w-full max-w-xl">
+          <PerformanceChart data={radarData} />
+        </div>
 
-      {/* 캘린더 */}
-      <div className="mt-6">
-        <CalendarComponent
-          onChange={handleDayClick}
-          attendanceMap={attendanceMap}
-          resultsMap={resultsMap}
-        />
+        {/* 캘린더: 월 바뀌면 onMonthChange로 YYYY-MM 올려주기 */}
+        <div className="mt-6 flex justify-center">
+          <CalendarComponent
+            onChange={handleDayClick}
+            onMonthChange={handleMonthChange}
+            attendanceMap={resultsMap && attendanceMap ? attendanceMap : {}}
+            resultsMap={resultsMap ? resultsMap : {}}
+          />
+        </div>
       </div>
 
       {/* 모달 */}
@@ -218,26 +235,26 @@ export default function MyPage() {
                 {selectedDate}
               </div>
 
-              <div className="max-h-[70vh] space-y-3 overflow-y-auto px-4 pt-2 pb-4">
-                {Object.keys(solvesByCategoryForSelectedDate).length === 0 && (
+              {/* ✅ 카드 리스트: flex + 중앙 정렬 (안정적) */}
+              <div className="flex max-h-[70vh] flex-col items-center gap-3 overflow-y-auto px-4 pt-2 pb-4">
+                {Object.keys(solvesByCategory).length === 0 && (
                   <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
                     해당 날짜에는 풀이 기록이 없습니다.
                   </div>
                 )}
 
-                {Object.entries(solvesByCategoryForSelectedDate).map(
-                  ([category, solves]) => (
-                    <div
-                      key={category}
-                      role="button"
-                      onClick={() => goSolvePage(category)}
-                      className="cursor-pointer transition-transform hover:scale-[1.01]"
-                    >
-                      <TestCard solves={solves} category={category} />
-                    </div>
-                  )
-                )}
+                {Object.entries(solvesByCategory).map(([category, solves]) => (
+                  <div
+                    key={category}
+                    role="button"
+                    onClick={() => goSolvePage(category)}
+                    className="mx-auto flex w-full max-w-md cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
+                  >
+                    <TestCard solves={solves} category={category} />
+                  </div>
+                ))}
               </div>
+              {/* --- 끝 --- */}
             </div>
           </div>
         </div>

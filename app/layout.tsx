@@ -3,7 +3,6 @@ import './globals.css';
 import Providers from '@/libs/providers';
 import Header from './_components/header/Header';
 import RoleBasedSidebar from './_components/sidebar/RoleBasedSidebar';
-import RoleDebugger from './_components/debug/RoleDebugger';
 
 export const metadata: Metadata = {
   title: 'Ssemtle',
@@ -25,11 +24,7 @@ export default async function RootLayout({
         >
           {/* 역할에 따른 사이드바 */}
           <RoleBasedSidebar />
-          <Providers>
-            {/* 세션 컨텍스트 내부에서 콘솔 디버깅 */}
-            <RoleDebugger />
-            {children}
-          </Providers>
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>

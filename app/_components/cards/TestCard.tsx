@@ -10,7 +10,7 @@ interface TestCardProps {
 export default function TestCard({ solves, category }: TestCardProps) {
   if (!solves?.length) {
     return (
-      <div className="inline-flex w-96 flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+      <div className="inline-flex w-96 flex-col items-center justify-center overflow-hidden rounded-2xl bg-white/90 p-4 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
         <div className="text-sm text-gray-600">데이터가 없습니다</div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function TestCard({ solves, category }: TestCardProps) {
     : '';
 
   return (
-    <div className="inline-flex w-96 flex-col items-start justify-start overflow-hidden rounded-2xl bg-white/90 p-4 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+    <div className="inline-flex w-96 flex-col items-start justify-start overflow-hidden rounded-2xl bg-white/90 p-4 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
       <div className="flex flex-col items-start justify-start self-stretch">
         <div className="inline-flex items-center justify-start self-stretch">
           <div className="justify-end font-['Inter'] text-lg leading-7 font-bold text-gray-800">

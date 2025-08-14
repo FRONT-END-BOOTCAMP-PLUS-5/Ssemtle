@@ -1,56 +1,64 @@
 'use client';
 
-import { useState } from 'react';
-import { usePosts } from '@/hooks/usePosts';
+import { useEffect, useState } from 'react';
+import { usePuts } from '@/hooks/usePuts';
 import { UnitDto } from '@/backend/admin/units/dtos/UnitDto';
 import FormModal from '@/app/_components/admin-modal/FormModal';
 import TextField from '@/app/_components/admin-modal/TextField';
 
-interface CreateUnitModalProps {
+interface EditUnitModalProps {
   isOpen: boolean;
+  unit: UnitDto | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-interface CreateUnitRequest {
+interface UpdateUnitRequest {
   name: string;
   vidUrl: string;
 }
 
-interface CreateUnitResponse {
+interface UpdateUnitResponse {
   message: string;
-  data: UnitDto;
+  data: UnitDto & { createdAt?: string };
 }
 
-export default function CreateUnitModal({
+export default function EditUnitModal({
   isOpen,
+  unit,
   onClose,
   onSuccess,
-}: CreateUnitModalProps) {
-  const [formData, setFormData] = useState<CreateUnitRequest>({
+}: EditUnitModalProps) {
+  const [formData, setFormData] = useState<UpdateUnitRequest>({
     name: '',
     vidUrl: '',
   });
-  const [errors, setErrors] = useState<Partial<CreateUnitRequest>>({});
+  const [errors, setErrors] = useState<Partial<UpdateUnitRequest>>({});
 
-  const { mutate: createUnit, isPending } = usePosts<
-    CreateUnitRequest,
-    CreateUnitResponse
+  useEffect(() => {
+    if (unit && isOpen) {
+      setFormData({ name: unit.name, vidUrl: unit.vidUrl });
+      setErrors({});
+    }
+  }, [unit, isOpen]);
+
+  const { mutate: updateUnit, isPending } = usePuts<
+    UpdateUnitRequest,
+    UpdateUnitResponse
   >({
     onSuccess: () => {
-      setFormData({ name: '', vidUrl: '' });
       setErrors({});
       onSuccess();
       onClose();
     },
     onError: (error) => {
-      console.error('과목 생성 실패:', error);
-      alert('과목 생성에 실패했습니다.');
+      console.error('과목 수정 실패:', error);
+      alert('과목 수정에 실패했습니다.');
     },
   });
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<CreateUnitRequest> = {};
+    const newErrors: Partial<UpdateUnitRequest> = {};
     if (!formData.name.trim()) newErrors.name = '과목명을 입력해주세요.';
     if (!formData.vidUrl.trim()) newErrors.vidUrl = '영상 URL을 입력해주세요.';
     setErrors(newErrors);
@@ -59,28 +67,29 @@ export default function CreateUnitModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!unit) return;
     if (!validateForm()) return;
 
-    createUnit({
-      postData: formData,
-      path: '/admin/units',
+    updateUnit({
+      putData: formData,
+      path: `/admin/units/${unit.id}`,
     });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof CreateUnitRequest]) {
+    if (errors[name as keyof UpdateUnitRequest]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !unit) return null;
 
   return (
     <FormModal
       isOpen={isOpen}
-      title="과목등록"
+      title="과목수정"
       onClose={onClose}
       isBusy={isPending}
     >
@@ -112,7 +121,7 @@ export default function CreateUnitModal({
             disabled={isPending}
             className="inline-flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-[#6366F1] px-7 py-4 text-lg leading-normal font-medium text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] disabled:opacity-50"
           >
-            과목등록
+            수정하기
           </button>
         </div>
       </form>

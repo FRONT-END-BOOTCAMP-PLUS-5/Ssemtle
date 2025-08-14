@@ -10,27 +10,27 @@ import TestCard from '../_components/cards/TestCard';
 import PerformanceChart from './components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
-// ==== solves/list 응답 타입(카테고리/유닛은 옵션) ====
-// type SolveItem = {
-//   id: number;
-//   isCorrect: boolean;
-//   createdAt: string; // ISO
-//   category?: string;
-//   unitId?: number;
-// };
-
+// solves/list 응답 타입
 type SolvesListResponse = {
   items: SolveListItemDto[];
   nextCursor?: string | null;
 };
 
-// KST 기준 YYYY-MM-DD (UTC → KST 보정)
-function toKstYmd(iso: string) {
-  const d = new Date(iso);
-  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+// UTC → KST → YYYY-MM-DD
+function toKstYmd(date: string | Date) {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000); // UTC+9
   const y = kst.getUTCFullYear();
   const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
   const day = String(kst.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Date 객체 → YYYY-MM-DD
+function ymd(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
@@ -43,6 +43,7 @@ export default function MyPage() {
     '/auth/session',
     true
   );
+
   type WithUserField = { user: { name?: string; userId?: string } };
   type WithUserId = { userId?: string };
 
@@ -60,7 +61,7 @@ export default function MyPage() {
     (userData as { name?: string })?.name ??
     '사용자';
 
-  // 2) 레이더(단원 성과)
+  // 2) 레이더 데이터
   const {
     data: analysisData,
     isLoading,
@@ -82,13 +83,14 @@ export default function MyPage() {
     }));
   }, [analysisData]);
 
+  // 3) solves 데이터
   const { data: solvesResp } = useGets<SolvesListResponse>(
     ['solves', username],
-    '/solves/list',
+    username ? `/solves/list` : '',
     !!username
   );
 
-  // 캘린더 바인딩용 맵 생성 (resultsMap / attendanceMap)
+  // 4) 캘린더 맵
   const { resultsMap, attendanceMap } = useMemo(() => {
     const resMap: Record<string, { correct: number; total: number }> = {};
     const items = solvesResp?.items ?? [];
@@ -101,7 +103,6 @@ export default function MyPage() {
       resMap[key] = cur;
     }
 
-    // 연속 출석(풀이가 있는 날짜 기준) → 값이 2 이상이면 🔥
     const days = Object.keys(resMap).sort();
     const attMap: Record<string, number> = {};
     let streak = 0;
@@ -120,21 +121,18 @@ export default function MyPage() {
     return { resultsMap: resMap, attendanceMap: attMap };
   }, [solvesResp]);
 
-  // 날짜 클릭 → 모달 오픈
+  // 5) 모달 상태
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDayClick = (d: Date) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const key = `${yyyy}-${mm}-${dd}`;
-    setSelectedDate(key);
+    setSelectedDate(ymd(d));
     setIsModalOpen(true);
   };
 
-  // 모달 컨텐츠: 선택 날짜 풀이 → (카테고리가 있으면) 카테고리별 그룹
-  const solvesByCategoryForSelectedDate = useMemo(() => {
+  const solvesByCategoryForSelectedDate = useMemo<
+    Record<string, SolveListItemDto[]>
+  >(() => {
     if (!selectedDate) return {};
     const items = solvesResp?.items ?? [];
 
@@ -153,7 +151,6 @@ export default function MyPage() {
     return map;
   }, [solvesResp, selectedDate]);
 
-  //모달 열릴 때 body 스크롤 잠금
   useEffect(() => {
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -166,7 +163,6 @@ export default function MyPage() {
   const closeModal = () => setIsModalOpen(false);
 
   const goSolvePage = (category: string) => {
-    // 문제풀이 페이지는 추후 구현 예정 → 라우팅만 연결
     const q = new URLSearchParams();
     if (selectedDate) q.set('date', selectedDate);
     if (category) q.set('category', category);
@@ -200,18 +196,15 @@ export default function MyPage() {
         />
       </div>
 
-      {/* 모달 오버레이 */}
+      {/* 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50">
-          {/* 반투명 배경 */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={closeModal}
           />
-          {/* 패널 */}
           <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-lg">
             <div className="mx-3 mb-4 rounded-2xl bg-white shadow-lg outline outline-1 outline-gray-200">
-              {/* 헤더 */}
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div className="text-sm text-gray-500">선택한 날짜</div>
                 <button
@@ -225,7 +218,6 @@ export default function MyPage() {
                 {selectedDate}
               </div>
 
-              {/* 스크롤 리스트 */}
               <div className="max-h-[70vh] space-y-3 overflow-y-auto px-4 pt-2 pb-4">
                 {Object.keys(solvesByCategoryForSelectedDate).length === 0 && (
                   <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
@@ -241,7 +233,6 @@ export default function MyPage() {
                       onClick={() => goSolvePage(category)}
                       className="cursor-pointer transition-transform hover:scale-[1.01]"
                     >
-                      {/* ✅ TestCard에 solves/카테고리 주입 */}
                       <TestCard solves={solves} category={category} />
                     </div>
                   )

@@ -41,12 +41,33 @@ export class GetStudentUnitPerformanceUseCase {
 
     // 4) 단원 메타 조회 (unitId → unitName)
     const unitIds = Array.from(new Set(rows.map((r) => r.unitId)));
+
+    // meta의 원소가 아래 두 형태 중 하나라고 가정:
+    // { id: number; name: string } | { unitId: number; name: string }
+    type MetaById = { id: number; name: string };
+    type MetaByUnitId = { unitId: number; name: string };
+
+    function isMetaById(x: unknown): x is MetaById {
+      if (typeof x !== 'object' || x === null) return false;
+      const o = x as { id?: unknown; name?: unknown };
+      return typeof o.id === 'number' && typeof o.name === 'string';
+    }
+    function isMetaByUnitId(x: unknown): x is MetaByUnitId {
+      if (typeof x !== 'object' || x === null) return false;
+      const o = x as { unitId?: unknown; name?: unknown };
+      return typeof o.unitId === 'number' && typeof o.name === 'string';
+    }
+
     const meta = await this.unitRepo.findNamesByIds(unitIds);
-    // meta 예: [{ id: 12, name: '수학 연산' }, ...]
-    // ⚠️ 만약 스키마가 { unitId, name }라면 아래 nameMap 생성부에서 m.id 대신 m.unitId 사용하세요.
-    const nameMap = new Map(
-      meta.map((m) => [(m as unknown).id ?? (m as unknown).unitId, m.name])
-    );
+    // meta의 런타임 타입을 안전하게 검사해서 Map을 채운다
+    const nameMap = new Map<number, string>();
+    for (const m of meta as ReadonlyArray<unknown>) {
+      if (isMetaById(m)) {
+        nameMap.set(m.id, m.name);
+      } else if (isMetaByUnitId(m)) {
+        nameMap.set(m.unitId, m.name);
+      }
+    }
 
     // 5) 정렬(선택): unitId 오름차순
     rows.sort((a, b) => a.unitId - b.unitId);

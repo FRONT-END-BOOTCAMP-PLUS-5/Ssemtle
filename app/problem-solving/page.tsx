@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { IoChevronBack } from 'react-icons/io5';
-import FilterDropdown from '@/app/_components/FilterDropdown';
+import FilterDropdown from '@/app/_components/filters/FilterDropdown';
 import TestCard from '@/app/_components/cards/TestCard';
 import { useGets } from '@/hooks/useGets';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
@@ -67,12 +67,28 @@ export default function ProblemSolvingPage() {
     fetchNextPage,
     isError: solvesError,
   } = useInfiniteGets<SolveListItemDto>(
-    ['solves', 'list', session?.user?.id, selectedUnits.join(','), dateSort],
+    [
+      'solves',
+      'list',
+      {
+        userId: session?.user?.id,
+        units: selectedUnits.join(','),
+        sort: dateSort,
+      },
+    ],
     '/solves/list',
     !!session?.user?.id,
     {
       userId: session?.user?.id || '',
       limit: '20',
+      sortDirection: dateSort,
+    },
+    undefined,
+    {
+      // Prevent stale data from showing during transitions
+      placeholderData: undefined,
+      // Keep cache time short for different sort variants
+      gcTime: 5 * 60 * 1000, // 5 minutes
     }
   );
 
@@ -92,13 +108,30 @@ export default function ProblemSolvingPage() {
     { id: 'oldest', name: '오래된순', checked: dateSort === 'oldest' },
   ];
 
-  const filteredAndGroupedSolves = useMemo(() => {
+  // Deduplicate items to prevent duplicate key errors
+  const deduplicatedSolves = useMemo(() => {
     if (!solvesData || solvesData.length === 0) return [];
 
+    const seen = new Set<number>();
+    const dedup: SolveListItemDto[] = [];
+
+    for (const item of solvesData) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        dedup.push(item);
+      }
+    }
+
+    return dedup;
+  }, [solvesData]);
+
+  const filteredAndGroupedSolves = useMemo(() => {
+    if (deduplicatedSolves.length === 0) return [];
+
     // Apply filtering first (this is the only client-side operation we should do)
-    let filtered = solvesData;
+    let filtered = deduplicatedSolves;
     if (selectedUnits.length > 0) {
-      filtered = solvesData.filter((solve: SolveListItemDto) =>
+      filtered = deduplicatedSolves.filter((solve: SolveListItemDto) =>
         selectedUnits.includes(solve.unitId)
       );
     }
@@ -130,24 +163,8 @@ export default function ProblemSolvingPage() {
 
     // Convert to array and sort groups by date
     const groupedArray = Array.from(grouped.values());
-    groupedArray.forEach((group) => {
-      // Sort solves within each group by the selected date order
-      group.solves.sort((a: SolveListItemDto, b: SolveListItemDto) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
-      });
-    });
-
-    // Sort the groups themselves by the first solve's date in each group
-    groupedArray.sort((a, b) => {
-      const dateA = new Date(a.solves[0].createdAt).getTime();
-      const dateB = new Date(b.solves[0].createdAt).getTime();
-      return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-
     return groupedArray;
-  }, [solvesData, selectedUnits, dateSort]);
+  }, [deduplicatedSolves, selectedUnits]);
 
   const handleUnitSelectionChange = (selectedIds: (number | string)[]) => {
     setSelectedUnits(selectedIds);
@@ -232,7 +249,7 @@ export default function ProblemSolvingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="mx-auto min-h-screen bg-gray-100">
       <div className="container mx-auto max-w-screen-sm px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <button
@@ -249,7 +266,7 @@ export default function ProblemSolvingPage() {
           </div>
         </div>
 
-        <div className="mb-6 flex gap-4">
+        <div className="mb-6 flex justify-center gap-6">
           <FilterDropdown
             title="종류별 정렬"
             options={unitOptions}
@@ -263,7 +280,10 @@ export default function ProblemSolvingPage() {
           />
         </div>
 
-        <div className="space-y-6">
+        <div
+          key={`${dateSort}-${selectedUnits.join(',')}`}
+          className="space-y-6"
+        >
           {solvesLoading && (
             <div className="flex justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
@@ -288,39 +308,47 @@ export default function ProblemSolvingPage() {
               </div>
             )}
 
-          {filteredAndGroupedSolves.map((group) => {
-            // Create stable key using the same logic as grouping
-            const firstSolve = group.solves[0];
-            const date = new Date(firstSolve.createdAt).toDateString();
-            const stableKey = `${group.unitId}-${group.category}-${date}`;
+          {/* Only render when we have data and not loading to prevent mixed data */}
+          {!solvesLoading &&
+            !solvesError &&
+            filteredAndGroupedSolves.length > 0 && (
+              <>
+                {filteredAndGroupedSolves.map((group) => {
+                  // Create stable key using the same logic as grouping
+                  const firstSolve = group.solves[0];
+                  const date = new Date(firstSolve.createdAt).toDateString();
+                  const stableKey = `${group.unitId}-${group.category}-${date}-${dateSort}`;
 
-            return (
-              <div key={stableKey} className="flex justify-center">
-                <TestCard solves={group.solves} category={group.category} />
-              </div>
-            );
-          })}
+                  return (
+                    <div key={stableKey} className="flex justify-center">
+                      <TestCard
+                        solves={group.solves}
+                        category={group.category}
+                      />
+                    </div>
+                  );
+                })}
 
-          {/* Loading more indicator */}
-          {isFetchingNextPage && (
-            <div className="flex justify-center py-6">
-              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>
-            </div>
-          )}
+                {/* Loading next page indicator */}
+                {isFetchingNextPage && (
+                  <div className="flex justify-center py-6">
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                  </div>
+                )}
 
-          {/* Intersection observer target for infinite scrolling */}
-          {hasNextPage && filteredAndGroupedSolves.length > 0 && (
-            <div ref={loaderRef} className="h-4 w-full" />
-          )}
+                {/* Intersection observer target for infinite scrolling */}
+                {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
 
-          {/* End of results indicator */}
-          {!hasNextPage && filteredAndGroupedSolves.length > 0 && (
-            <div className="flex justify-center py-6">
-              <div className="text-sm text-gray-500">
-                모든 문제 풀이 기록을 불러왔습니다
-              </div>
-            </div>
-          )}
+                {/* End of results indicator */}
+                {!hasNextPage && (
+                  <div className="flex justify-center py-6">
+                    <div className="text-sm text-gray-500">
+                      모든 문제 풀이 기록을 불러왔습니다
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
         </div>
       </div>
     </div>

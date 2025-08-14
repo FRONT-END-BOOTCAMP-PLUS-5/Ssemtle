@@ -240,7 +240,7 @@ export default function ProblemSolvingPage() {
 
   if (!session?.user?.id) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen">
         <div className="flex h-96 items-center justify-center">
           <div className="text-gray-600">로그인이 필요합니다</div>
         </div>
@@ -249,7 +249,7 @@ export default function ProblemSolvingPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen bg-gray-100">
+    <div className="mx-auto min-h-screen">
       <div className="container mx-auto max-w-screen-sm px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <button

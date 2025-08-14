@@ -8,18 +8,19 @@ import { CreateUserResponseDto } from '@/backend/auth/dtos/UserDto';
 import CalendarComponent from './components/CalenderComponent';
 import TestCard from '../_components/cards/TestCard';
 import PerformanceChart from './components/PerformanceChart';
+import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
 // ==== solves/list 응답 타입(카테고리/유닛은 옵션) ====
-type SolveItem = {
-  id: number;
-  isCorrect: boolean;
-  createdAt: string; // ISO
-  category?: string;
-  unitId?: number;
-};
+// type SolveItem = {
+//   id: number;
+//   isCorrect: boolean;
+//   createdAt: string; // ISO
+//   category?: string;
+//   unitId?: number;
+// };
 
 type SolvesListResponse = {
-  items: SolveItem[];
+  items: SolveListItemDto[];
   nextCursor?: string | null;
 };
 
@@ -135,18 +136,17 @@ export default function MyPage() {
   // 모달 컨텐츠: 선택 날짜 풀이 → (카테고리가 있으면) 카테고리별 그룹
   const solvesByCategoryForSelectedDate = useMemo(() => {
     if (!selectedDate) return {};
-    const items = (solvesResp?.items ?? []).filter(
+    const items = solvesResp?.items ?? [];
+
+    const filtered = items.filter(
       (it) => toKstYmd(it.createdAt) === selectedDate
     );
 
-    // category가 없으면 "전체"로 묶음
-    const map: Record<string, SolveItem[]> = {};
-    for (const s of items) {
-      const cat = s.category || '전체';
+    const map: Record<string, SolveListItemDto[]> = {};
+    for (const s of filtered) {
+      const cat = s.category ?? '전체';
       (map[cat] ??= []).push(s);
     }
-
-    // 최신순 정렬(옵션)
     Object.values(map).forEach((arr) =>
       arr.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
     );

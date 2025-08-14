@@ -6,7 +6,7 @@ import { PiExamLight } from 'react-icons/pi';
 import { FaCircleUser } from 'react-icons/fa6';
 import Icon from './Icons';
 
-const SidebarWeb = () => {
+const SidebarUser = () => {
   return (
     <>
       <div className="flex h-screen w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]">
@@ -27,4 +27,4 @@ const SidebarWeb = () => {
   );
 };
 
-export default SidebarWeb;
+export default SidebarUser;

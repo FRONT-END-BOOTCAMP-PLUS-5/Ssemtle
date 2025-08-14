@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { FaUserGear } from 'react-icons/fa6';
 import { LuLogOut } from 'react-icons/lu';
+import Icons from './Icons';
 
 const SidebarMobile = () => {
   return (
@@ -13,12 +14,8 @@ const SidebarMobile = () => {
           width={110}
           height={110}
         />
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <FaUserGear className="ml-1 h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
-        <div className="flex h-15 w-15 items-center justify-center rounded-2xl bg-[var(--color-sidebar-button)]">
-          <LuLogOut className="h-10 w-10 text-[var(--color-sidebar-icon)]" />
-        </div>
+        <Icons Icon={FaUserGear} />
+        <Icons Icon={LuLogOut} />
       </div>
     </>
   );

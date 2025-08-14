@@ -13,6 +13,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
     return {
       id: data.id,
       teacherId: data.teacherId,
+      name: data.name,
       imgUrl: data.imgUrl,
       createdAt: data.createdAt,
     };
@@ -20,6 +21,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
 
   async create(
     teacherId: string,
+    name: string,
     imgUrl: string
   ): Promise<TeacherAuthorization> {
     try {
@@ -42,6 +44,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
       const created = await this.prisma.teacherAuthorization.create({
         data: {
           teacherId,
+          name,
           imgUrl,
         },
       });

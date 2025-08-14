@@ -72,7 +72,8 @@ model Store {
 
 model TeacherAuthorization {
   id        Int      @id @default(autoincrement())
-  teacherId String      @map("teacher_id")
+  teacherId String   @map("teacher_id")
+  name      String   
   imgUrl    String   @map("img_url")
   createdAt DateTime @default(now()) @map("created_at")
   

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ListSolvesQuery } from '@/libs/zod/solves';
+import { CalendarSolvesQuery } from '@/libs/zod/solves';
 import { auth } from '@/auth';
 import { ZodError } from 'zod';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
-import { ListSolvesRequestDto } from '@/backend/solves/dtos/SolveDto';
-import { ListSolvesUseCase } from '@/backend/solves/usecases/SolvesUsecases';
+import { CalendarSolvesRequestDto } from '@/backend/solves/dtos/SolveDto';
+import { GetCalendarSolvesUseCase } from '@/backend/solves/usecases/SolvesUsecases';
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,44 +17,31 @@ export async function GET(req: NextRequest) {
     // Parse and validate query parameters
     const { searchParams } = new URL(req.url);
     const queryParams = {
+      month: searchParams.get('month') || undefined,
       from: searchParams.get('from') || undefined,
       to: searchParams.get('to') || undefined,
       only: searchParams.get('only') || 'all',
-      limit: parseInt(searchParams.get('limit') || '20'),
-      cursor: searchParams.get('cursor') || undefined,
-      direction: (searchParams.get('direction') as 'next' | 'prev') || 'next',
-      sortDirection:
-        (searchParams.get('sortDirection') as 'newest' | 'oldest') || 'newest',
     };
 
-    const validated = ListSolvesQuery.parse(queryParams);
+    const validated = CalendarSolvesQuery.parse(queryParams);
 
     // Create request DTO
-    const request: ListSolvesRequestDto = {
+    const request: CalendarSolvesRequestDto = {
       userId: session.user.id,
+      month: validated.month,
       from: validated.from,
       to: validated.to,
       only: validated.only as 'all' | 'wrong',
-      limit: validated.limit,
-      cursor: validated.cursor,
-      direction: validated.direction as 'next' | 'prev',
-      sortDirection: validated.sortDirection as 'newest' | 'oldest',
     };
 
     // Execute use case
     const repository = new PrSolveRepository();
-    const useCase = new ListSolvesUseCase(repository);
+    const useCase = new GetCalendarSolvesUseCase(repository);
     const result = await useCase.execute(request);
 
-    return NextResponse.json({
-      items: result.items,
-      nextCursor: result.nextCursor,
-      prevCursor: result.prevCursor,
-      completedDay: result.completedDay,
-      batchInfo: result.batchInfo,
-    });
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Error listing solves:', error);
+    console.error('Error fetching calendar solves:', error);
 
     if (error instanceof ZodError) {
       return NextResponse.json(
@@ -63,8 +50,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (error instanceof Error && error.message === 'Invalid cursor') {
-      return NextResponse.json({ error: 'Invalid cursor' }, { status: 400 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json(

@@ -1,10 +1,8 @@
-import SidebarUser from '../_components/sidebar/SidebarUser';
-
 const UnitPage = () => {
   return (
-    <>
-      <SidebarUser></SidebarUser>
-    </>
+    <div>
+      <span className="text-2xl font-bold">단원 평가</span>
+    </div>
   );
 };
 

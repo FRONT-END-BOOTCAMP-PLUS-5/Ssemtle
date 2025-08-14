@@ -42,7 +42,22 @@ export default function MyPage() {
     '/auth/session',
     true
   );
-  const username = userData?.user?.userId ?? userData?.userId ?? undefined;
+  type WithUserField = { user: { name?: string; userId?: string } };
+  type WithUserId = { userId?: string };
+
+  const username =
+    (userData &&
+      'user' in userData &&
+      (userData as WithUserField).user?.userId) ??
+    (userData as WithUserId)?.userId ??
+    undefined;
+
+  const displayName =
+    (userData &&
+      'user' in userData &&
+      (userData as WithUserField).user?.name) ??
+    (userData as { name?: string })?.name ??
+    '사용자';
 
   // 2) 레이더(단원 성과)
   const {
@@ -147,8 +162,6 @@ export default function MyPage() {
       };
     }
   }, [isModalOpen]);
-
-  const displayName = userData?.user?.name ?? userData?.name ?? '사용자';
 
   const closeModal = () => setIsModalOpen(false);
 

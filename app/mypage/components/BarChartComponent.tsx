@@ -58,7 +58,7 @@ export default function BarChartComponent({
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="subject" tick={{ fontSize: 12 }} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="value" fill="rgb(14, 165, 233)" />{' '}
             {/* tailwind sky-500 */}

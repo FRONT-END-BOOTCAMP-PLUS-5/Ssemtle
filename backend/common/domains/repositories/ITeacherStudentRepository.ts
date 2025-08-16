@@ -8,4 +8,7 @@ export interface ITeacherStudentRepository {
   ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>>;
   isUserIdExists(userId: string): Promise<boolean>;
   isStudentNameExists(name: string, teacherId: string): Promise<boolean>;
+  findByTeacherId(
+    teacherId: string
+  ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>>;
 }

@@ -77,4 +77,37 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
     });
     return !!existingStudent;
   }
+
+  async findByTeacherId(
+    teacherId: string
+  ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>> {
+    const teacherStudents = await this.prisma.teacherStudent.findMany({
+      where: { teacherId },
+      include: {
+        student: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return teacherStudents.map((ts) => ({
+      user: {
+        id: ts.student.id,
+        userId: ts.student.userId,
+        password: ts.student.password,
+        name: ts.student.name,
+        role: ts.student.role,
+        point: ts.student.point,
+        streak: ts.student.streak,
+        createdAt: ts.student.createdAt,
+      },
+      teacherStudent: {
+        id: ts.id,
+        teacherId: ts.teacherId,
+        studentId: ts.studentId,
+        createdAt: ts.createdAt,
+      },
+    }));
+  }
 }

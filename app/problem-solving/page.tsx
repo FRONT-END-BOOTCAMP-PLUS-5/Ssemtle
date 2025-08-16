@@ -250,7 +250,7 @@ export default function ProblemSolvingPage() {
 
   return (
     <div className="mx-auto">
-      <div className="container px-4 py-6">
+      <div className="px-4 py-6 desktop:px-48">
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => router.back()}

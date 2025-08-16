@@ -36,7 +36,7 @@ export default function TestCard({ solves, category }: TestCardProps) {
     : '';
 
   return (
-    <div className="inline-flex w-96 flex-col items-start justify-start overflow-hidden rounded-2xl bg-white/90 p-4 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px] desktop:min-w-96 desktop:grow">
+    <div className="inline-flex w-96 flex-col items-start justify-start overflow-hidden rounded-2xl bg-white/90 p-4 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px] desktop:w-6xl desktop:min-w-96 desktop:grow">
       <div className="flex flex-col items-start justify-start self-stretch">
         <div className="inline-flex items-center justify-start self-stretch">
           <div className="justify-end font-['Inter'] text-lg leading-7 font-bold text-gray-800">

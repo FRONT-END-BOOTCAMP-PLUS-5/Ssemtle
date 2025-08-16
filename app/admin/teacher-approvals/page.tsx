@@ -4,7 +4,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import TeacherAuthCard from './TeacherAuthCard';
 import SidebarAdmin from '@/app/_components/sidebar/SidebarAdmin';
-import Pagination from '@/app/_components/common/Pagination';
+import Pagination from '@/app/_components/pagination/Pagination';
 
 export default function ApprovalListPage() {
   const {

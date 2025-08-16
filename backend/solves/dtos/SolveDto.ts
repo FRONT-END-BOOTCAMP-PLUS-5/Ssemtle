@@ -22,6 +22,8 @@ export interface ListSolvesRequestDto {
   only?: 'all' | 'wrong';
   limit: number;
   cursor?: string;
+  direction?: 'next' | 'prev';
+  sortDirection?: 'newest' | 'oldest';
 }
 
 export interface SolveListItemDto {
@@ -40,6 +42,13 @@ export interface SolveListItemDto {
 export interface ListSolvesResponseDto {
   items: SolveListItemDto[];
   nextCursor?: string;
+  prevCursor?: string;
+  completedDay?: boolean; // Indicates if the last day was completed for better card grouping
+  batchInfo?: {
+    requestedLimit: number;
+    actualCount: number;
+    dayCompletionAdded: number;
+  };
 }
 
 // DTOs for units summary API
@@ -95,4 +104,28 @@ export interface UpdateSolveRequestDto {
 export interface UpdateSolveResponseDto {
   id: number;
   isCorrect: boolean;
+}
+
+// DTOs for calendar API
+export interface CalendarSolvesRequestDto {
+  userId: string;
+  month?: string; // Format: YYYY-MM
+  from?: string; // ISO date string
+  to?: string; // ISO date string
+  only?: 'all' | 'wrong';
+}
+
+export interface DaySolvesDto {
+  date: string; // YYYY-MM-DD format
+  total: number;
+  correct: number;
+  accuracy: number;
+  solves: SolveListItemDto[];
+}
+
+export interface CalendarSolvesResponseDto {
+  days: DaySolvesDto[];
+  monthTotal: number;
+  monthCorrect: number;
+  monthAccuracy: number;
 }

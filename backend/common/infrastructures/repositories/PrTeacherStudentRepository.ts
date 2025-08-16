@@ -1,4 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  type User as PrismaUser,
+  type TeacherStudent as PrismaTeacherStudent,
+} from '@prisma/client';
 import type { ITeacherStudentRepository } from '../../domains/repositories/ITeacherStudentRepository';
 import type { User } from '../../domains/entities/User';
 import type { TeacherStudent } from '../../domains/entities/TeacherStudent';
@@ -32,24 +36,7 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
           },
         });
 
-        results.push({
-          user: {
-            id: user.id,
-            userId: user.userId,
-            password: user.password,
-            name: user.name,
-            role: user.role,
-            point: user.point,
-            streak: user.streak,
-            createdAt: user.createdAt,
-          },
-          teacherStudent: {
-            id: teacherStudent.id,
-            teacherId: teacherStudent.teacherId,
-            studentId: teacherStudent.studentId,
-            createdAt: teacherStudent.createdAt,
-          },
-        });
+        results.push(this.mapToResult(user, teacherStudent));
       }
 
       return results;
@@ -91,24 +78,7 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
       },
     });
 
-    return teacherStudents.map((ts) => ({
-      user: {
-        id: ts.student.id,
-        userId: ts.student.userId,
-        password: ts.student.password,
-        name: ts.student.name,
-        role: ts.student.role,
-        point: ts.student.point,
-        streak: ts.student.streak,
-        createdAt: ts.student.createdAt,
-      },
-      teacherStudent: {
-        id: ts.id,
-        teacherId: ts.teacherId,
-        studentId: ts.studentId,
-        createdAt: ts.createdAt,
-      },
-    }));
+    return teacherStudents.map((ts) => this.mapToResult(ts.student, ts));
   }
 
   async addExistingStudent(
@@ -116,7 +86,6 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
     teacherId: string
   ): Promise<{ user: User; teacherStudent: TeacherStudent }> {
     return await this.prisma.$transaction(async (tx) => {
-      // 1. 기존 사용자 조회
       const existingUser = await tx.user.findUnique({
         where: { userId },
       });
@@ -125,7 +94,6 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
         throw new Error('존재하지 않는 사용자입니다.');
       }
 
-      // 2. 이미 등록되어 있는지 확인
       const existingRelation = await tx.teacherStudent.findFirst({
         where: {
           teacherId,
@@ -137,7 +105,6 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
         throw new Error('이미 등록된 학생입니다.');
       }
 
-      // 3. 선생님-학생 관계 생성
       const teacherStudent = await tx.teacherStudent.create({
         data: {
           teacherId,
@@ -145,24 +112,7 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
         },
       });
 
-      return {
-        user: {
-          id: existingUser.id,
-          userId: existingUser.userId,
-          password: existingUser.password,
-          name: existingUser.name,
-          role: existingUser.role,
-          point: existingUser.point,
-          streak: existingUser.streak,
-          createdAt: existingUser.createdAt,
-        },
-        teacherStudent: {
-          id: teacherStudent.id,
-          teacherId: teacherStudent.teacherId,
-          studentId: teacherStudent.studentId,
-          createdAt: teacherStudent.createdAt,
-        },
-      };
+      return this.mapToResult(existingUser, teacherStudent);
     });
   }
 
@@ -188,5 +138,58 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
     });
 
     return !!existingRelation;
+  }
+
+  async deleteStudent(
+    studentId: string,
+    teacherId: string
+  ): Promise<{ user: User; teacherStudent: TeacherStudent }> {
+    return await this.prisma.$transaction(async (tx) => {
+      const teacherStudent = await tx.teacherStudent.findFirst({
+        where: {
+          teacherId,
+          studentId,
+        },
+        include: {
+          student: true,
+        },
+      });
+
+      if (!teacherStudent) {
+        throw new Error('등록되지 않은 학생입니다.');
+      }
+
+      await tx.teacherStudent.delete({
+        where: {
+          id: teacherStudent.id,
+        },
+      });
+
+      return this.mapToResult(teacherStudent.student, teacherStudent);
+    });
+  }
+
+  private mapToResult(
+    user: PrismaUser,
+    teacherStudent: PrismaTeacherStudent
+  ): { user: User; teacherStudent: TeacherStudent } {
+    return {
+      user: {
+        id: user.id,
+        userId: user.userId,
+        password: user.password,
+        name: user.name,
+        role: user.role,
+        point: user.point,
+        streak: user.streak,
+        createdAt: user.createdAt,
+      },
+      teacherStudent: {
+        id: teacherStudent.id,
+        teacherId: teacherStudent.teacherId,
+        studentId: teacherStudent.studentId,
+        createdAt: teacherStudent.createdAt,
+      },
+    };
   }
 }

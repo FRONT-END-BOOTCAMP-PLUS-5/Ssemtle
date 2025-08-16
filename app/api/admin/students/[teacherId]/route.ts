@@ -8,10 +8,10 @@ import { PrTeacherStudentRepository } from '@/backend/common/infrastructures/rep
 //학생 일괄 등록
 export async function POST(
   request: NextRequest,
-  { params }: { params: { teacherId: string } }
+  { params }: { params: Promise<{ teacherId: string }> }
 ) {
   try {
-    const { teacherId } = params;
+    const { teacherId } = await params;
     const body = await request.json();
     const { studentNames } = body;
 
@@ -59,10 +59,10 @@ export async function POST(
 //학생 목록 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { teacherId: string } }
+  { params }: { params: Promise<{ teacherId: string }> }
 ) {
   try {
-    const { teacherId } = params;
+    const { teacherId } = await params;
 
     const repository = new PrTeacherStudentRepository(prisma);
     const usecase = new SelectStudentList(repository);
@@ -99,10 +99,10 @@ export async function GET(
 //기존 사용자를 학생으로 등록
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { teacherId: string } }
+  { params }: { params: Promise<{ teacherId: string }> }
 ) {
   try {
-    const { teacherId } = params;
+    const { teacherId } = await params;
     const body = await request.json();
     const { userId } = body;
 

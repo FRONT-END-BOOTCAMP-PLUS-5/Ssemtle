@@ -19,4 +19,8 @@ export interface ITeacherStudentRepository {
     userId: string,
     teacherId: string
   ): Promise<boolean>;
+  deleteStudent(
+    studentId: string,
+    teacherId: string
+  ): Promise<{ user: User; teacherStudent: TeacherStudent }>;
 }

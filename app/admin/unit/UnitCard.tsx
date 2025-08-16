@@ -8,7 +8,6 @@ interface UnitCardProps {
   onDelete?: (unit: UnitDto) => void;
 }
 
-/** 과목 카드: 불필요 클래스 제거, 모바일 줄바꿈 방지(ellipsis) 유지 */
 export default function UnitCard({ unit, onEdit, onDelete }: UnitCardProps) {
   return (
     <div className="h-[140px] w-full rounded-2xl border border-purple-100 bg-white/70 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-100/50 sm:h-[150px] md:h-[160px]">

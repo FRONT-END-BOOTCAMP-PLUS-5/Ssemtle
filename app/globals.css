@@ -17,7 +17,7 @@ body {
 }
 
 /* Design System Tokens as CSS Variables */
-:root {
+@theme {
   /* Color Tokens */
   --color-primary: #8B5CF6;
   --color-primary-dark: #4a5d3a;

@@ -11,4 +11,12 @@ export interface ITeacherStudentRepository {
   findByTeacherId(
     teacherId: string
   ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>>;
+  addExistingStudent(
+    userId: string,
+    teacherId: string
+  ): Promise<{ user: User; teacherStudent: TeacherStudent }>;
+  isStudentAlreadyRegistered(
+    userId: string,
+    teacherId: string
+  ): Promise<boolean>;
 }

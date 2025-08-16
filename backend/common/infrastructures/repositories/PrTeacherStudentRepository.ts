@@ -110,4 +110,83 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
       },
     }));
   }
+
+  async addExistingStudent(
+    userId: string,
+    teacherId: string
+  ): Promise<{ user: User; teacherStudent: TeacherStudent }> {
+    return await this.prisma.$transaction(async (tx) => {
+      // 1. 기존 사용자 조회
+      const existingUser = await tx.user.findUnique({
+        where: { userId },
+      });
+
+      if (!existingUser) {
+        throw new Error('존재하지 않는 사용자입니다.');
+      }
+
+      // 2. 이미 등록되어 있는지 확인
+      const existingRelation = await tx.teacherStudent.findFirst({
+        where: {
+          teacherId,
+          studentId: existingUser.id,
+        },
+      });
+
+      if (existingRelation) {
+        throw new Error('이미 등록된 학생입니다.');
+      }
+
+      // 3. 선생님-학생 관계 생성
+      const teacherStudent = await tx.teacherStudent.create({
+        data: {
+          teacherId,
+          studentId: existingUser.id,
+        },
+      });
+
+      return {
+        user: {
+          id: existingUser.id,
+          userId: existingUser.userId,
+          password: existingUser.password,
+          name: existingUser.name,
+          role: existingUser.role,
+          point: existingUser.point,
+          streak: existingUser.streak,
+          createdAt: existingUser.createdAt,
+        },
+        teacherStudent: {
+          id: teacherStudent.id,
+          teacherId: teacherStudent.teacherId,
+          studentId: teacherStudent.studentId,
+          createdAt: teacherStudent.createdAt,
+        },
+      };
+    });
+  }
+
+  async isStudentAlreadyRegistered(
+    userId: string,
+    teacherId: string
+  ): Promise<boolean> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!existingUser) {
+      return false;
+    }
+
+    const existingRelation = await this.prisma.teacherStudent.findFirst({
+      where: {
+        teacherId,
+        studentId: existingUser.id,
+      },
+      select: { id: true },
+    });
+
+    return !!existingRelation;
+  }
 }

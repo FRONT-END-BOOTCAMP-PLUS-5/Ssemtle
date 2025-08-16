@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Providers from '@/libs/providers';
 import Header from './_components/header/Header';
-import SidebarUser from './_components/sidebar/SidebarUser';
+import RoleBasedSidebar from './_components/sidebar/RoleBasedSidebar';
 
 export const metadata: Metadata = {
   title: 'Ssemtle',
@@ -14,18 +14,21 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="flex min-h-screen flex-col">
         <Header logoSrc="/logos/Ssemtle_logo.png" logoHref="/" />
-        <div className="flex">
-          {/* 차후 userID에 따라 다른 사이드바 렌더링 처리해야함 */}
-          <SidebarUser />
+        <div
+          className="flex w-full"
+          style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
+        >
+          {/* 역할에 따른 사이드바 */}
+          <RoleBasedSidebar />
           <Providers>{children}</Providers>
         </div>
       </body>

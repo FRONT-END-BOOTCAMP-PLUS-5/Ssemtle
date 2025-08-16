@@ -47,7 +47,9 @@ body {
   /* Breakpoint Variant Tokens */
   --breakpoint-tablet: 1180px;
   --breakpoint-desktop: 1440px;
+}
 
+:root {
   /* Button Variant Tokens */
   /* Primary */
   --button-variant-primary-bg: var(--color-primary);

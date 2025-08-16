@@ -1,7 +1,7 @@
 import HeaderSizeObserver from './HeaderSizeObserver';
 import Image from 'next/image';
 import Icons from './Icons';
-import { FaUserGear } from 'react-icons/fa6';
+import { LuUserRoundPlus } from 'react-icons/lu';
 import { BsFillGridFill } from 'react-icons/bs';
 import { LuLogOut } from 'react-icons/lu';
 
@@ -20,7 +20,7 @@ const SidebarAdmin = () => {
           width={110}
           height={110}
         />
-        <Icons Icon={FaUserGear} />
+        <Icons Icon={LuUserRoundPlus} wrapperClassName="pl-1" />
         <Icons Icon={BsFillGridFill} />
         <Icons Icon={LuLogOut} />
       </div>

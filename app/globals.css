@@ -30,7 +30,6 @@ body {
   --color-sidebar: rgb(254,247,255);
   --color-sidebar-button: #EADDFF;
   --color-sidebar-icon: #6750A4;
-  
 
   /* Spacing Tokens */
   --spacing-0: 0px;
@@ -44,6 +43,10 @@ body {
   --spacing-8: 32px;
   --spacing-9: 36px;
   --spacing-10: 40px;
+
+  /* Breakpoint Variant Tokens */
+  --breakpoint-tablet: 1180px;
+  --breakpoint-desktop: 1440px;
 
   /* Button Variant Tokens */
   /* Primary */

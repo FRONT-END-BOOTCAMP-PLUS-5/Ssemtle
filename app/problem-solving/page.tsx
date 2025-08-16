@@ -249,8 +249,8 @@ export default function ProblemSolvingPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen">
-      <div className="container mx-auto max-w-screen-sm px-4 py-6">
+    <div className="mx-auto">
+      <div className="container px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => router.back()}
@@ -266,7 +266,7 @@ export default function ProblemSolvingPage() {
           </div>
         </div>
 
-        <div className="mb-6 flex justify-center gap-6">
+        <div className="mb-6 flex justify-center gap-6 tablet:justify-end-safe">
           <FilterDropdown
             title="종류별 정렬"
             options={unitOptions}
@@ -282,7 +282,7 @@ export default function ProblemSolvingPage() {
 
         <div
           key={`${dateSort}-${selectedUnits.join(',')}`}
-          className="space-y-6"
+          className="space-y-6 tablet:grid tablet:grid-cols-2 tablet:gap-6 tablet:space-y-0"
         >
           {solvesLoading && (
             <div className="flex justify-center py-12">
@@ -320,7 +320,10 @@ export default function ProblemSolvingPage() {
                   const stableKey = `${group.unitId}-${group.category}-${date}-${dateSort}`;
 
                   return (
-                    <div key={stableKey} className="flex justify-center">
+                    <div
+                      key={stableKey}
+                      className="flex justify-center tablet:justify-stretch"
+                    >
                       <TestCard
                         solves={group.solves}
                         category={group.category}

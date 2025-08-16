@@ -23,4 +23,7 @@ export interface ITeacherStudentRepository {
     studentId: string,
     teacherId: string
   ): Promise<{ user: User; teacherStudent: TeacherStudent }>;
+  findBulkCreatedStudents(
+    teacherId: string
+  ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>>;
 }

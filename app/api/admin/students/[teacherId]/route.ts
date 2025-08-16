@@ -3,6 +3,7 @@ import prisma from '@/libs/prisma';
 import { BulkCreateStudentsUsecase } from '@/backend/admin/students/usecases/BulkCreateStudentsUsecase';
 import { SelectStudentList } from '@/backend/admin/students/usecases/SelectStudentList';
 import { CreateStudentUsecase } from '@/backend/admin/students/usecases/CreateStudentUsecase';
+import { ExportBulkStudents } from '@/backend/admin/students/usecases/ExportBulkStudents';
 import { PrTeacherStudentRepository } from '@/backend/common/infrastructures/repositories/PrTeacherStudentRepository';
 
 //학생 일괄 등록
@@ -56,34 +57,57 @@ export async function POST(
   }
 }
 
-//학생 목록 조회
+//학생 목록 조회(엑셀 내보내기 추가)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teacherId: string }> }
 ) {
   try {
     const { teacherId } = await params;
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
 
     const repository = new PrTeacherStudentRepository(prisma);
-    const usecase = new SelectStudentList(repository);
 
-    const result = await usecase.execute(teacherId);
+    if (type === 'bulk') {
+      // 일괄 등록 학생만 내보내기
+      const usecase = new ExportBulkStudents(repository);
+      const result = await usecase.execute(teacherId);
 
-    const response = {
-      students: result.map(({ user }) => ({
-        id: user.id,
-        userId: user.userId,
-        name: user.name,
-        point: user.point,
-        streak: user.streak,
-        createdAt: user.createdAt,
-      })),
-      total: result.length,
-    };
+      const response = {
+        students: result.map(({ user }) => ({
+          userId: user.userId,
+          password: '1234',
+          name: user.name,
+          point: user.point,
+          streak: user.streak,
+          createdAt: user.createdAt,
+        })),
+        total: result.length,
+      };
 
-    return NextResponse.json(response, { status: 200 });
+      return NextResponse.json(response, { status: 200 });
+    } else {
+      // 전체 학생 목록 조회
+      const usecase = new SelectStudentList(repository);
+      const result = await usecase.execute(teacherId);
+
+      const response = {
+        students: result.map(({ user }) => ({
+          id: user.id,
+          userId: user.userId,
+          name: user.name,
+          point: user.point,
+          streak: user.streak,
+          createdAt: user.createdAt,
+        })),
+        total: result.length,
+      };
+
+      return NextResponse.json(response, { status: 200 });
+    }
   } catch (error) {
-    console.error('학생 목록 조회 오류:', error);
+    console.error('학생 조회 오류:', error);
 
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

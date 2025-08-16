@@ -140,6 +140,32 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
     return !!existingRelation;
   }
 
+  async findBulkCreatedStudents(
+    teacherId: string
+  ): Promise<Array<{ user: User; teacherStudent: TeacherStudent }>> {
+    const teacherStudents = await this.prisma.teacherStudent.findMany({
+      where: {
+        teacherId,
+        student: {
+          role: 'student',
+        },
+      },
+      include: {
+        student: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // 대문자 영문 6자리 패턴으로 필터링
+    const bulkCreatedStudents = teacherStudents.filter((ts) =>
+      /^[A-Z]{6}$/.test(ts.student.userId)
+    );
+
+    return bulkCreatedStudents.map((ts) => this.mapToResult(ts.student, ts));
+  }
+
   async deleteStudent(
     studentId: string,
     teacherId: string

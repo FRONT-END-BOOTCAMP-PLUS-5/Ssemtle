@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import BulkRegisterModal from './components/BulkRegisterModal';
 import RegisterModal from './components/RegisterModal';
+import DeleteStudentIcon from './components/DeleteStudentIcon';
 
 interface StudentsResponse {
   students: StudentDto[];
@@ -104,10 +105,6 @@ export default function StudentManagementPage() {
     console.log('문제집 보러가기:', studentId);
   };
 
-  const handleDelete = (studentId: string) => {
-    console.log('학생 삭제:', studentId);
-  };
-
   return (
     <div className="min-h-screen w-full bg-[#F8F5FF]">
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[1200px] lg:px-8 lg:py-16">
@@ -153,19 +150,9 @@ export default function StudentManagementPage() {
                   아이디
                 </span>
               </div>
-              <div className="px-6 py-3 text-left">
-                <span className="text-xs font-bold text-neutral-700">
-                  평가분석
-                </span>
-              </div>
-              <div className="px-6 py-3 text-left">
-                <span className="text-xs font-bold text-neutral-700">
-                  문제집
-                </span>
-              </div>
-              <div className="px-6 py-3 text-center">
-                <span className="text-xs font-bold text-neutral-700">관리</span>
-              </div>
+              <div className="px-6 py-3 text-left"></div>
+              <div className="px-6 py-3 text-left"></div>
+              <div className="px-6 py-3 text-center"></div>
             </div>
 
             {students.length === 0 ? (
@@ -195,7 +182,7 @@ export default function StudentManagementPage() {
                       onClick={() => handleViewAnalysis(student.id)}
                       className="rounded bg-slate-500 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-slate-600"
                     >
-                      보러가기
+                      평가분석
                     </button>
                   </div>
 
@@ -204,30 +191,12 @@ export default function StudentManagementPage() {
                       onClick={() => handleViewWorkbook(student.id)}
                       className="rounded bg-indigo-400 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-indigo-500"
                     >
-                      보러가기
+                      문제집
                     </button>
                   </div>
 
                   <div className="flex items-center justify-center px-6 py-3">
-                    <button
-                      onClick={() => handleDelete(student.id)}
-                      className="flex h-6 w-6 items-center justify-center text-rose-500 transition-colors hover:text-rose-600"
-                      title="학생 삭제"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
+                    <DeleteStudentIcon student={student} onSuccess={refetch} />
                   </div>
                 </div>
               ))
@@ -246,21 +215,9 @@ export default function StudentManagementPage() {
                   아이디
                 </span>
               </div>
-              <div className="px-2 py-2 text-left sm:px-4 sm:py-3 md:px-6">
-                <span className="text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                  평가분석
-                </span>
-              </div>
-              <div className="px-2 py-2 text-left sm:px-4 sm:py-3 md:px-6">
-                <span className="text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                  문제집
-                </span>
-              </div>
-              <div className="px-2 py-2 text-center sm:px-4 sm:py-3 md:px-6">
-                <span className="text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                  관리
-                </span>
-              </div>
+              <div className="px-2 py-2 text-left sm:px-4 sm:py-3 md:px-6"></div>
+              <div className="px-2 py-2 text-left sm:px-4 sm:py-3 md:px-6"></div>
+              <div className="px-2 py-2 text-center sm:px-4 sm:py-3 md:px-6"></div>
             </div>
 
             {students.length === 0 ? (
@@ -306,25 +263,11 @@ export default function StudentManagementPage() {
                   </div>
 
                   <div className="flex items-center justify-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <button
-                      onClick={() => handleDelete(student.id)}
+                    <DeleteStudentIcon
+                      student={student}
+                      onSuccess={refetch}
                       className="flex h-4 w-4 items-center justify-center text-rose-500 transition-colors hover:text-rose-600 sm:h-5 sm:w-5 md:h-6 md:w-6"
-                      title="학생 삭제"
-                    >
-                      <svg
-                        className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
+                    />
                   </div>
                 </div>
               ))
@@ -343,24 +286,11 @@ export default function StudentManagementPage() {
                       {student.userId}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(student.id)}
+                  <DeleteStudentIcon
+                    student={student}
+                    onSuccess={refetch}
                     className="flex h-6 w-6 items-center justify-center text-rose-500 hover:text-rose-600"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
+                  />
                 </div>
                 <div className="flex gap-2">
                   <button

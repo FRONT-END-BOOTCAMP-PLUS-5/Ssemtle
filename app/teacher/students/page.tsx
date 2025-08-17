@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGets } from '@/hooks/useGets';
 import { useSession } from 'next-auth/react';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
@@ -8,6 +8,7 @@ import BulkRegisterModal from './components/BulkRegisterModal';
 import RegisterModal from './components/RegisterModal';
 import DeleteStudentIcon from './components/DeleteStudentIcon';
 import ExportButton from './components/ExportButton';
+import Pagination from '@/app/_components/pagination/Pagination';
 
 interface StudentsResponse {
   students: StudentDto[];
@@ -18,6 +19,8 @@ export default function StudentManagementPage() {
   const { data: session, status } = useSession();
   const [isBulkRegisterOpen, setIsBulkRegisterOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
 
   const {
     data: response,
@@ -36,7 +39,21 @@ export default function StudentManagementPage() {
     }
   );
 
-  const students = response?.students || [];
+  const students = useMemo(
+    () => response?.students || [],
+    [response?.students]
+  );
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return students.slice(startIndex, endIndex);
+  }, [students, currentPage]);
+
+  const totalPages = Math.ceil(students.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   if (status === 'loading') {
     return (
@@ -152,46 +169,63 @@ export default function StudentManagementPage() {
                 등록된 학생이 없습니다.
               </div>
             ) : (
-              students.map((student) => (
-                <div
-                  key={student.id}
-                  className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
-                >
-                  <div className="flex items-center px-6 py-3">
-                    <span className="text-xs font-bold text-neutral-700">
-                      {student.name}
-                    </span>
-                  </div>
+              <>
+                {paginatedStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
+                  >
+                    <div className="flex items-center px-6 py-3">
+                      <span className="text-xs font-bold text-neutral-700">
+                        {student.name}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center px-6 py-3">
-                    <span className="text-xs font-bold text-neutral-700">
-                      {student.userId}
-                    </span>
-                  </div>
+                    <div className="flex items-center px-6 py-3">
+                      <span className="text-xs font-bold text-neutral-700">
+                        {student.userId}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center px-6 py-3">
-                    <button
-                      onClick={() => handleViewAnalysis(student.id)}
-                      className="rounded bg-slate-500 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-slate-600"
-                    >
-                      평가분석
-                    </button>
-                  </div>
+                    <div className="flex items-center px-6 py-3">
+                      <button
+                        onClick={() => handleViewAnalysis(student.id)}
+                        className="rounded bg-slate-500 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-slate-600"
+                      >
+                        평가분석
+                      </button>
+                    </div>
 
-                  <div className="flex items-center px-6 py-3">
-                    <button
-                      onClick={() => handleViewWorkbook(student.id)}
-                      className="rounded bg-indigo-400 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-indigo-500"
-                    >
-                      문제집
-                    </button>
-                  </div>
+                    <div className="flex items-center px-6 py-3">
+                      <button
+                        onClick={() => handleViewWorkbook(student.id)}
+                        className="rounded bg-indigo-400 px-6 py-1 text-xs font-medium text-white transition-colors hover:bg-indigo-500"
+                      >
+                        문제집
+                      </button>
+                    </div>
 
-                  <div className="flex items-center justify-center px-6 py-3">
-                    <DeleteStudentIcon student={student} onSuccess={refetch} />
+                    <div className="flex items-center justify-center px-6 py-3">
+                      <DeleteStudentIcon
+                        student={student}
+                        onSuccess={refetch}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="py-4">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                      className="mt-4"
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -217,89 +251,126 @@ export default function StudentManagementPage() {
                 등록된 학생이 없습니다.
               </div>
             ) : (
-              students.map((student) => (
-                <div
-                  key={student.id}
-                  className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
-                >
-                  <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                      {student.name}
-                    </span>
-                  </div>
+              <>
+                {paginatedStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
+                  >
+                    <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+                      <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
+                        {student.name}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                      {student.userId}
-                    </span>
-                  </div>
+                    <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+                      <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
+                        {student.userId}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <button
-                      onClick={() => handleViewAnalysis(student.id)}
-                      className="flex h-2 w-8 items-center justify-center rounded bg-slate-500 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-slate-600 sm:h-[16px] sm:w-[68px] sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs"
-                    >
-                      <span className="hidden sm:inline">평가분석</span>
-                      <span className="sm:hidden">보기</span>
-                    </button>
-                  </div>
+                    <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+                      <button
+                        onClick={() => handleViewAnalysis(student.id)}
+                        className="flex h-2 w-8 items-center justify-center rounded bg-slate-500 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-slate-600 sm:h-[16px] sm:w-[68px] sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs"
+                      >
+                        <span className="hidden sm:inline">평가분석</span>
+                        <span className="sm:hidden">보기</span>
+                      </button>
+                    </div>
 
-                  <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <button
-                      onClick={() => handleViewWorkbook(student.id)}
-                      className="flex h-2 w-8 items-center justify-center rounded bg-indigo-400 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-indigo-500 sm:h-3 sm:w-12 sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs"
-                    >
-                      <span className="hidden sm:inline">문제집</span>
-                      <span className="sm:hidden">보기</span>
-                    </button>
-                  </div>
+                    <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+                      <button
+                        onClick={() => handleViewWorkbook(student.id)}
+                        className="flex h-2 w-8 items-center justify-center rounded bg-indigo-400 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-indigo-500 sm:h-3 sm:w-12 sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs"
+                      >
+                        <span className="hidden sm:inline">문제집</span>
+                        <span className="sm:hidden">보기</span>
+                      </button>
+                    </div>
 
-                  <div className="flex items-center justify-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
-                    <DeleteStudentIcon
-                      student={student}
-                      onSuccess={refetch}
-                      className="flex h-4 w-4 items-center justify-center text-rose-500 transition-colors hover:text-rose-600 sm:h-5 sm:w-5 md:h-6 md:w-6"
+                    <div className="flex items-center justify-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+                      <DeleteStudentIcon
+                        student={student}
+                        onSuccess={refetch}
+                        className="flex h-4 w-4 items-center justify-center text-rose-500 transition-colors hover:text-rose-600 sm:h-5 sm:w-5 md:h-6 md:w-6"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="py-4">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                      className="mt-4"
                     />
                   </div>
-                </div>
-              ))
+                )}
+              </>
             )}
           </div>
 
           <div className="md:hidden">
-            {students.map((student) => (
-              <div key={student.id} className="border-b border-gray-200 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-neutral-700">
-                      {student.name}
+            {students.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                등록된 학생이 없습니다.
+              </div>
+            ) : (
+              <>
+                {paginatedStudents.map((student) => (
+                  <div
+                    key={student.id}
+                    className="border-b border-gray-200 p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold text-neutral-700">
+                          {student.name}
+                        </div>
+                        <div className="text-xs text-neutral-500">
+                          {student.userId}
+                        </div>
+                      </div>
+                      <DeleteStudentIcon
+                        student={student}
+                        onSuccess={refetch}
+                        className="flex h-6 w-6 items-center justify-center text-rose-500 hover:text-rose-600"
+                      />
                     </div>
-                    <div className="text-xs text-neutral-500">
-                      {student.userId}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewAnalysis(student.id)}
+                        className="flex-1 rounded bg-slate-500 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600"
+                      >
+                        평가분석
+                      </button>
+                      <button
+                        onClick={() => handleViewWorkbook(student.id)}
+                        className="flex-1 rounded bg-indigo-400 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+                      >
+                        문제집
+                      </button>
                     </div>
                   </div>
-                  <DeleteStudentIcon
-                    student={student}
-                    onSuccess={refetch}
-                    className="flex h-6 w-6 items-center justify-center text-rose-500 hover:text-rose-600"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleViewAnalysis(student.id)}
-                    className="flex-1 rounded bg-slate-500 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600"
-                  >
-                    평가분석
-                  </button>
-                  <button
-                    onClick={() => handleViewWorkbook(student.id)}
-                    className="flex-1 rounded bg-indigo-400 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-                  >
-                    문제집
-                  </button>
-                </div>
-              </div>
-            ))}
+                ))}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="py-4">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                      className="mt-4"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

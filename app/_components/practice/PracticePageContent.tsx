@@ -248,7 +248,7 @@ export default function PracticePageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="mx-auto min-h-screen">
       <div className="container mx-auto max-w-screen-sm px-4 py-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">

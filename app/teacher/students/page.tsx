@@ -7,6 +7,7 @@ import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import BulkRegisterModal from './components/BulkRegisterModal';
 import RegisterModal from './components/RegisterModal';
 import DeleteStudentIcon from './components/DeleteStudentIcon';
+import ExportButton from './components/ExportButton';
 
 interface StudentsResponse {
   students: StudentDto[];
@@ -93,10 +94,6 @@ export default function StudentManagementPage() {
     refetch();
   };
 
-  const handleExport = () => {
-    console.log('학생 데이터 내보내기');
-  };
-
   const handleViewAnalysis = (studentId: string) => {
     console.log('평가분석 보러가기:', studentId);
   };
@@ -130,12 +127,7 @@ export default function StudentManagementPage() {
             >
               학생 등록
             </button>
-            <button
-              onClick={handleExport}
-              className="h-10 w-full rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 sm:w-40"
-            >
-              내보내기
-            </button>
+            <ExportButton />
           </div>
         </div>
 

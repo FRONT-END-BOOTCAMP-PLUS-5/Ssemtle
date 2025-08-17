@@ -87,7 +87,7 @@ export default function AnswerSection({
             placeholder={placeholder}
             variant="outline"
             disabled={disabled || loading}
-            className="pr-8"
+            className="border-2 border-zinc-200 text-center"
           />
 
           {/* Clear Button */}

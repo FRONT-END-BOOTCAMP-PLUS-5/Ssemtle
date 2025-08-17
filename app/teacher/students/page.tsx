@@ -1,84 +1,85 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { HiSearch } from 'react-icons/hi';
+import { useState } from 'react';
+import { useGets } from '@/hooks/useGets';
+import { useSession } from 'next-auth/react';
+import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
+import BulkRegisterModal from './components/BulkRegisterModal';
 
-interface Student {
-  id: string;
-  name: string;
-  studentId: string;
-  hasAnalysis: boolean;
-  hasWorkbook: boolean;
+interface StudentsResponse {
+  students: StudentDto[];
+  total: number;
 }
 
-const mockStudents: Student[] = [
-  {
-    id: '1',
-    name: '형대희',
-    studentId: '25ABCD01',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '2',
-    name: '임정훈',
-    studentId: '25ABCD02',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '3',
-    name: '권동규',
-    studentId: '25ABCD03',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '4',
-    name: '최광민',
-    studentId: '25ABCD04',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '5',
-    name: '유재석',
-    studentId: '25ABCD05',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '6',
-    name: '하하',
-    studentId: '25ABCD06',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-  {
-    id: '7',
-    name: '김종국',
-    studentId: '25ABCD07',
-    hasAnalysis: true,
-    hasWorkbook: true,
-  },
-];
-
 export default function StudentManagementPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredStudents, setFilteredStudents] =
-    useState<Student[]>(mockStudents);
+  const { data: session, status } = useSession();
+  const [isBulkRegisterOpen, setIsBulkRegisterOpen] = useState(false);
 
-  useEffect(() => {
-    const filtered = mockStudents.filter(
-      (student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.studentId.toLowerCase().includes(searchTerm.toLowerCase())
+  const {
+    data: response,
+    isLoading,
+    isError,
+    refetch,
+  } = useGets<StudentsResponse>(
+    ['students', session?.user?.id],
+    session?.user?.id ? `/admin/students/${session.user.id}` : '',
+    !!session?.user?.id,
+    undefined,
+    undefined,
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const students = response?.students || [];
+
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
+        <div className="text-lg font-semibold text-gray-600">
+          로그인 정보를 확인하는 중...
+        </div>
+      </div>
     );
-    setFilteredStudents(filtered);
-  }, [searchTerm]);
+  }
+
+  if (status === 'unauthenticated' || !session?.user?.id) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
+        <div className="text-lg font-semibold text-gray-600">
+          로그인이 필요합니다.
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
+        <div className="text-lg font-semibold text-gray-600">
+          학생 목록을 불러오는 중...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
+        <div className="text-lg font-semibold text-red-600">
+          학생 목록을 불러오는데 실패했습니다.
+        </div>
+      </div>
+    );
+  }
 
   const handleBulkRegister = () => {
-    console.log('학생 일괄 등록');
+    setIsBulkRegisterOpen(true);
+  };
+
+  const handleBulkRegisterSuccess = () => {
+    refetch();
   };
 
   const handleRegister = () => {
@@ -111,20 +112,7 @@ export default function StudentManagementPage() {
         </div>
 
         <div className="mb-8 flex flex-col gap-4 md:flex-col md:items-center md:items-end md:justify-between md:justify-end lg:flex-row lg:justify-between">
-          <div className="flex flex-col gap-4 sm:flex-row lg:gap-2">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="이름 검색"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 w-full rounded-[10px] border border-neutral-300 bg-white px-4 text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.25)] focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:w-80"
-              />
-              <div className="absolute top-1/2 right-3 -translate-y-1/2 transform">
-                <HiSearch className="h-7 w-7 text-neutral-400" />
-              </div>
-            </div>
-          </div>
+          <div className="flex flex-col gap-4 sm:flex-row lg:gap-2"></div>
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
@@ -174,12 +162,12 @@ export default function StudentManagementPage() {
               </div>
             </div>
 
-            {filteredStudents.length === 0 ? (
+            {students.length === 0 ? (
               <div className="py-8 text-center text-gray-500">
-                검색 결과가 없습니다.
+                등록된 학생이 없습니다.
               </div>
             ) : (
-              filteredStudents.map((student) => (
+              students.map((student) => (
                 <div
                   key={student.id}
                   className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
@@ -192,7 +180,7 @@ export default function StudentManagementPage() {
 
                   <div className="flex items-center px-6 py-3">
                     <span className="text-xs font-bold text-neutral-700">
-                      {student.studentId}
+                      {student.userId}
                     </span>
                   </div>
 
@@ -269,12 +257,12 @@ export default function StudentManagementPage() {
               </div>
             </div>
 
-            {filteredStudents.length === 0 ? (
+            {students.length === 0 ? (
               <div className="py-8 text-center text-gray-500">
-                검색 결과가 없습니다.
+                등록된 학생이 없습니다.
               </div>
             ) : (
-              filteredStudents.map((student) => (
+              students.map((student) => (
                 <div
                   key={student.id}
                   className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
@@ -287,7 +275,7 @@ export default function StudentManagementPage() {
 
                   <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6">
                     <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs">
-                      {student.studentId}
+                      {student.userId}
                     </span>
                   </div>
 
@@ -338,7 +326,7 @@ export default function StudentManagementPage() {
           </div>
 
           <div className="md:hidden">
-            {filteredStudents.map((student) => (
+            {students.map((student) => (
               <div key={student.id} className="border-b border-gray-200 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div>
@@ -346,7 +334,7 @@ export default function StudentManagementPage() {
                       {student.name}
                     </div>
                     <div className="text-xs text-neutral-500">
-                      {student.studentId}
+                      {student.userId}
                     </div>
                   </div>
                   <button
@@ -387,6 +375,12 @@ export default function StudentManagementPage() {
           </div>
         </div>
       </div>
+
+      <BulkRegisterModal
+        isOpen={isBulkRegisterOpen}
+        onClose={() => setIsBulkRegisterOpen(false)}
+        onSuccess={handleBulkRegisterSuccess}
+      />
     </div>
   );
 }

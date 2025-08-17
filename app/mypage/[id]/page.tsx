@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useGets } from '@/hooks/useGets';
 import { GetStudentUnitPerformanceResponseDTO } from '@/backend/analysis/dtos/GetStudentUnitPerformanceDTO';
-import { CreateUserResponseDto } from '@/backend/auth/dtos/UserDto';
-import CalendarComponent from './components/CalenderComponent';
-import TestCard from '../_components/cards/TestCard';
-import PerformanceChart from './components/PerformanceChart';
+import { GetUserInfoResponseDTO } from '@/backend/auth/dtos/UserDto';
+import CalendarComponent from '../components/CalenderComponent';
+import TestCard from '../../_components/cards/TestCard';
+import PerformanceChart from '../components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 
 // ---------- 달력(월별) API 응답 타입 ----------
@@ -38,34 +38,24 @@ function ymd(d: Date): string {
 
 export default function MyPage() {
   const router = useRouter();
+  const { id: userId } = useParams(); // /mypage/[id]
 
-  // 1) 세션
-  const { data: userData } = useGets<CreateUserResponseDto>(
-    ['auth', 'session'],
-    '/auth/session',
-    true
+  // 1) 유저 정보 (납작 구조)
+  const { data: userData } = useGets<GetUserInfoResponseDTO>(
+    ['user-info', userId],
+    `/users/${userId}`,
+    !!userId
   );
-  type WithUserField = { user: { name?: string; userId?: string } };
-  type WithUserId = { userId?: string };
+  // userData: { id, userId, name, role }
 
-  const username =
-    (userData &&
-      'user' in userData &&
-      (userData as WithUserField).user?.userId) ??
-    (userData as WithUserId)?.userId ??
-    undefined;
-
-  const displayName =
-    (userData &&
-      'user' in userData &&
-      (userData as WithUserField).user?.name) ??
-    (userData as { name?: string })?.name ??
-    '사용자';
+  // ✅ 납작 구조 기반 파생 값
+  const username = userData?.userId; // 분석/캘린더 API에 사용할 외부 식별자
+  const displayName = userData?.name ?? '사용자'; // 화면표시용 이름
 
   // 2) 현재 보고 있는 달 상태 (초기: 오늘)
   const [month, setMonth] = useState<string>(() => ym(new Date()));
 
-  // 3) 레이더 차트 데이터
+  // 3) 레이더 차트 데이터 (학생 단원 성과)
   const {
     data: analysisData,
     isLoading,
@@ -87,14 +77,14 @@ export default function MyPage() {
     }));
   }, [analysisData]);
 
-  // 4) 월별 캘린더 데이터 호출: /api/solves/calendar?month=YYYY-MM
+  // 4) 월별 캘린더 데이터
   const { data: calendarResp } = useGets<CalendarResponse>(
     ['solvesCalendar', username, month],
     username ? `/solves/calendar?month=${month}` : '',
     !!username
   );
 
-  // 5) 캘린더 바인딩 맵 만들기 (맞은/전체, 연속 출석)
+  // 5) 캘린더 바인딩 맵 (맞은/전체, 연속 출석)
   const { resultsMap, attendanceMap } = useMemo(() => {
     const map: Record<string, { correct: number; total: number }> = {};
     const days = calendarResp?.days ?? [];
@@ -127,7 +117,7 @@ export default function MyPage() {
     return { resultsMap: map, attendanceMap: att };
   }, [calendarResp]);
 
-  // 6) 날짜 클릭 → 모달로 그 날짜 solves 바로 표시
+  // 6) 날짜 클릭 → 모달로 그 날짜 solves 표시
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSolves, setSelectedSolves] = useState<SolveListItemDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -140,7 +130,7 @@ export default function MyPage() {
     setIsModalOpen(true);
   };
 
-  // 7) 캘린더에서 월 바뀔 때 내려오는 콜백
+  // 7) 달 변경 콜백
   const handleMonthChange = (newMonth: string) => {
     setMonth(newMonth);
   };
@@ -164,7 +154,7 @@ export default function MyPage() {
     router.push(`/solve?${q.toString()}`);
   };
 
-  // 모달 리스트: 카테고리 그룹핑 (선택된 날짜의 solves 기준)
+  // 모달 리스트: 카테고리 그룹핑
   const solvesByCategory = useMemo<Record<string, SolveListItemDto[]>>(() => {
     const map: Record<string, SolveListItemDto[]> = {};
     for (const s of selectedSolves) {
@@ -178,9 +168,7 @@ export default function MyPage() {
   }, [selectedSolves]);
 
   return (
-    // 레이아웃은 그대로 두고, 페이지에서만 가운데 정렬/배경 보정
     <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
-      {/* 컨테이너: 좌우 가운데 + 최대 폭 */}
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <div className="w-full text-center">
           <h1 className="text-2xl font-semibold sm:text-3xl">
@@ -202,13 +190,13 @@ export default function MyPage() {
           <PerformanceChart data={radarData} />
         </div>
 
-        {/* 캘린더: 월 바뀌면 onMonthChange로 YYYY-MM 올려주기 */}
+        {/* 캘린더 */}
         <div className="mt-6 flex justify-center">
           <CalendarComponent
             onChange={handleDayClick}
             onMonthChange={handleMonthChange}
-            attendanceMap={resultsMap && attendanceMap ? attendanceMap : {}}
-            resultsMap={resultsMap ? resultsMap : {}}
+            attendanceMap={attendanceMap ?? {}}
+            resultsMap={resultsMap ?? {}}
           />
         </div>
       </div>
@@ -235,7 +223,6 @@ export default function MyPage() {
                 {selectedDate}
               </div>
 
-              {/* ✅ 카드 리스트: flex + 중앙 정렬 (안정적) */}
               <div className="flex max-h-[70vh] flex-col items-center gap-3 overflow-y-auto px-4 pt-2 pb-4">
                 {Object.keys(solvesByCategory).length === 0 && (
                   <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">

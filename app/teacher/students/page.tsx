@@ -5,6 +5,7 @@ import { useGets } from '@/hooks/useGets';
 import { useSession } from 'next-auth/react';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import BulkRegisterModal from './components/BulkRegisterModal';
+import RegisterModal from './components/RegisterModal';
 
 interface StudentsResponse {
   students: StudentDto[];
@@ -14,6 +15,7 @@ interface StudentsResponse {
 export default function StudentManagementPage() {
   const { data: session, status } = useSession();
   const [isBulkRegisterOpen, setIsBulkRegisterOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const {
     data: response,
@@ -83,7 +85,11 @@ export default function StudentManagementPage() {
   };
 
   const handleRegister = () => {
-    console.log('학생 등록');
+    setIsRegisterOpen(true);
+  };
+
+  const handleRegisterSuccess = () => {
+    refetch();
   };
 
   const handleExport = () => {
@@ -380,6 +386,12 @@ export default function StudentManagementPage() {
         isOpen={isBulkRegisterOpen}
         onClose={() => setIsBulkRegisterOpen(false)}
         onSuccess={handleBulkRegisterSuccess}
+      />
+
+      <RegisterModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
+        onSuccess={handleRegisterSuccess}
       />
     </div>
   );

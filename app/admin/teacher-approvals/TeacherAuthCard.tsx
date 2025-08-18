@@ -14,33 +14,41 @@ export default function TeacherAuthCard({
   onSuccess,
 }: TeacherAuthCardProps) {
   return (
-    <div className="flex h-[265px] w-[360px] flex-col items-center justify-center gap-3 rounded-xl border border-[#7949FF] bg-white p-4">
-      <div className="relative h-[184px] w-[320px] overflow-hidden rounded-xl">
-        <Image
-          className="h-[184px] w-full object-cover bg-blend-luminosity"
-          src={teacherAuth.imgUrl || '/images/teacher-profile.png'}
-          alt={`${teacherAuth.name} 선생님 인증 이미지`}
-          width={320}
-          height={184}
-          onError={(e) => {
-            e.currentTarget.src = '/images/teacher-profile.png';
-          }}
-        />
-      </div>
-
-      <div className="flex h-[41px] w-full items-center gap-2">
-        <div className="flex flex-1 flex-col items-start justify-start gap-1">
-          <div className="font-['Inter'] text-base font-semibold text-zinc-800">
-            {teacherAuth.name}
-          </div>
-          <div className="text-xs text-gray-500">
-            ID: {teacherAuth.teacherId}
-          </div>
+    <div className="mx-auto w-full max-w-[280px] rounded-xl border-2 border-[#7949FF] bg-white shadow-lg transition-shadow duration-300 hover:shadow-xl">
+      <div className="p-0">
+        <div className="rounded-t-xl bg-gradient-to-r from-[#7949FF] via-[#8979FF] to-[#7A6AFF] p-2 text-center text-white">
+          <div className="mb-0.5 text-xs font-semibold">대한민국 교육부</div>
+          <div className="text-xs opacity-90">교원자격증</div>
         </div>
 
-        <div className="ml-auto inline-flex items-center gap-2">
-          <TechReject teacherAuth={teacherAuth} onSuccess={onSuccess} />
-          <TechApproval teacherAuth={teacherAuth} onSuccess={onSuccess} />
+        <div className="p-3 text-center">
+          <div className="relative mx-auto mb-2">
+            <Image
+              src={teacherAuth.imgUrl || '/images/teacher-profile.png'}
+              alt={`${teacherAuth.name} 선생님 인증 이미지`}
+              width={240}
+              height={224}
+              className="h-56 w-full rounded-lg border-2 border-gray-300 object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/images/teacher-profile.png';
+              }}
+            />
+          </div>
+
+          <div className="space-y-1 text-sm">
+            <div className="text-lg font-bold text-gray-900">
+              {teacherAuth.name}
+            </div>
+            <div className="h-px w-full bg-gray-400"></div>
+            <div className="font-mono text-xs text-gray-600">
+              ID: {teacherAuth.teacherId}
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <TechReject teacherAuth={teacherAuth} onSuccess={onSuccess} />
+            <TechApproval teacherAuth={teacherAuth} onSuccess={onSuccess} />
+          </div>
         </div>
       </div>
     </div>

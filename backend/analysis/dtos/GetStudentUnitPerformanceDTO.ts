@@ -10,6 +10,7 @@ export interface GetStudentUnitPerformanceRequestDTO {
 /** 응답 DTO */
 export interface UnitPerformanceDTO {
   unitId: number;
+  unitName: string;
   total: number; // 해당 단원 풀이 개수
   correct: number; // 해당 단원 정답 개수
 }

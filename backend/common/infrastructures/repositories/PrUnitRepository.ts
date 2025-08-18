@@ -4,6 +4,7 @@
 import { PrismaClient } from '@prisma/client';
 import { IUnitRepository } from '../../domains/repositories/IUnitRepository';
 import { Unit } from '../../domains/entities/Unit';
+import prisma from '@/libs/prisma';
 
 export class PrUnitRepository implements IUnitRepository {
   private prisma: PrismaClient;
@@ -47,5 +48,14 @@ export class PrUnitRepository implements IUnitRepository {
       vidUrl: u.vidUrl,
       createdAt: u.createdAt,
     }));
+  }
+
+  async findNamesByIds(ids: number[]) {
+    if (!ids.length) return [];
+    // Unit 테이블의 PK가 id라고 가정. 만약 unitId라면 필드명 교체
+    return prisma.unit.findMany({
+      where: { id: { in: ids } }, // or { unitId: { in: ids } }
+      select: { id: true, name: true }, // or { unitId: true, name: true }
+    });
   }
 }

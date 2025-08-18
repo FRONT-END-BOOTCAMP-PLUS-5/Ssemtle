@@ -15,6 +15,7 @@ interface Problem {
 }
 
 interface PracticeInterfaceProps {
+  userName: string;
   unitName: string;
   currentProblem: Problem | null;
   videoUrl?: string;
@@ -27,6 +28,7 @@ interface PracticeInterfaceProps {
 }
 
 export default function PracticeInterface({
+  userName,
   unitName,
   currentProblem,
   videoUrl,
@@ -121,8 +123,7 @@ export default function PracticeInterface({
     <div className="mx-auto w-full max-w-md space-y-6">
       {/* Problem Display */}
       <ProblemDisplay
-        title={`${unitName} - 수와 연산`}
-        instruction={currentProblem.instruction || 'x값을 구하시오'}
+        title={`${userName} - ${unitName}`}
         equation={currentProblem.question}
       />
 
@@ -132,7 +133,6 @@ export default function PracticeInterface({
         onChange={handleInputChange}
         onSubmit={handleSubmit}
         onNext={handleNext}
-        onClear={handleClear}
         submitState={submitState}
         loading={isSubmitting}
         disabled={loading}

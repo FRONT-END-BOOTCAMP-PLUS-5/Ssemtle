@@ -2,13 +2,11 @@
 
 interface ProblemDisplayProps {
   title: string;
-  instruction: string;
   equation: string;
 }
 
 export default function ProblemDisplay({
   title,
-  instruction,
   equation,
 }: ProblemDisplayProps) {
   return (
@@ -19,15 +17,6 @@ export default function ProblemDisplay({
           <h1 className="font-['Inter'] text-2xl font-bold text-gray-800">
             {title}
           </h1>
-        </div>
-
-        {/* Instruction Card */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="text-center">
-            <p className="font-['Inter'] text-lg font-bold text-gray-800">
-              {instruction}
-            </p>
-          </div>
         </div>
 
         {/* Equation Card */}

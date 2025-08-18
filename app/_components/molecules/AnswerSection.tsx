@@ -1,7 +1,7 @@
 'use client';
 
 import Button, { ButtonVariant } from '../atoms/Button';
-import Input from '../atoms/Input';
+import MathInput from './MathInput';
 
 export type SubmitState = 'initial' | 'correct' | 'incorrect' | 'next';
 
@@ -10,7 +10,6 @@ interface AnswerSectionProps {
   onChange: (value: string) => void;
   onSubmit: () => void;
   onNext: () => void;
-  onClear: () => void;
   submitState: SubmitState;
   loading?: boolean;
   disabled?: boolean;
@@ -51,7 +50,6 @@ export default function AnswerSection({
   onChange,
   onSubmit,
   onNext,
-  onClear,
   submitState,
   loading = false,
   disabled = false,
@@ -69,50 +67,30 @@ export default function AnswerSection({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isDisabled) {
-      handleButtonClick();
-    }
-  };
-
   return (
     <div className="mx-auto w-full max-w-md">
-      <div className="flex items-center gap-2">
-        {/* Input Container */}
-        <div className="relative flex-1">
-          <Input
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            variant="outline"
-            disabled={disabled || loading}
-            className="border-2 border-zinc-200 text-center"
-          />
-
-          {/* Clear Button */}
-          {value && (
-            <button
-              onClick={onClear}
-              className="absolute top-1/2 right-2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-gray-200 text-sm text-black transition-colors hover:bg-gray-300"
-              disabled={disabled || loading}
-            >
-              ×
-            </button>
-          )}
-        </div>
+      <div className="space-y-4">
+        {/* Math Input */}
+        <MathInput
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled || loading}
+        />
 
         {/* Submit/Next Button */}
-        <Button
-          variant={config.variant}
-          onClick={handleButtonClick}
-          disabled={isDisabled}
-          loading={loading}
-          icon={config.icon}
-          className="min-w-[80px]"
-        >
-          {config.text}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            variant={config.variant}
+            onClick={handleButtonClick}
+            disabled={isDisabled}
+            loading={loading}
+            icon={config.icon}
+            className="min-w-[120px]"
+          >
+            {config.text}
+          </Button>
+        </div>
       </div>
     </div>
   );

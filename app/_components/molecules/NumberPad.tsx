@@ -26,9 +26,10 @@ function KeypadButton({
     'flex min-h-12 min-w-12 items-center justify-center rounded-xl text-xl font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
 
   const variantClasses = {
-    number: 'bg-gray-100 text-black hover:bg-gray-200',
-    operator: 'bg-violet-100 text-violet-600 hover:bg-violet-200',
-    clear: 'bg-red-100 text-red-600 hover:bg-red-200',
+    number: 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm',
+    operator:
+      'bg-violet-100 text-violet-700 hover:bg-violet-200 shadow-sm font-semibold',
+    clear: 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm',
   };
 
   return (
@@ -45,16 +46,18 @@ function KeypadButton({
 export default function NumberPad({
   onNumberClick,
   onOperatorClick,
+  onClear,
   disabled = false,
 }: NumberPadProps) {
-  const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  const operators = ['+', '-', '√', '^', '×', '÷'];
+  const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const advancedOperators = ['√', '^', '(', ')'];
+  const variables = ['x', 'y', 'π'];
 
   return (
-    <div className="mx-auto w-full max-w-xs">
-      <div className="grid grid-cols-4 gap-3 rounded-2xl bg-white p-4 shadow-lg">
-        {/* Numbers 1-9 */}
-        {numbers.slice(1).map((number) => (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="grid grid-cols-4 gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg">
+        {/* Row 1: Numbers 1-3 + Clear */}
+        {numbers.slice(0, 3).map((number) => (
           <KeypadButton
             key={number}
             onClick={() => onNumberClick(number)}
@@ -63,14 +66,74 @@ export default function NumberPad({
             {number}
           </KeypadButton>
         ))}
+        <KeypadButton onClick={onClear} variant="clear" disabled={disabled}>
+          C
+        </KeypadButton>
 
-        {/* Zero */}
+        {/* Row 2: Numbers 4-6 + Addition */}
+        {numbers.slice(3, 6).map((number) => (
+          <KeypadButton
+            key={number}
+            onClick={() => onNumberClick(number)}
+            disabled={disabled}
+          >
+            {number}
+          </KeypadButton>
+        ))}
+        <KeypadButton
+          onClick={() => onOperatorClick('+')}
+          variant="operator"
+          disabled={disabled}
+        >
+          +
+        </KeypadButton>
+
+        {/* Row 3: Numbers 7-9 + Subtraction */}
+        {numbers.slice(6, 9).map((number) => (
+          <KeypadButton
+            key={number}
+            onClick={() => onNumberClick(number)}
+            disabled={disabled}
+          >
+            {number}
+          </KeypadButton>
+        ))}
+        <KeypadButton
+          onClick={() => onOperatorClick('-')}
+          variant="operator"
+          disabled={disabled}
+        >
+          -
+        </KeypadButton>
+
+        {/* Row 4: 0, decimal, multiplication, division */}
         <KeypadButton onClick={() => onNumberClick('0')} disabled={disabled}>
           0
         </KeypadButton>
+        <KeypadButton
+          onClick={() => onOperatorClick('.')}
+          variant="operator"
+          disabled={disabled}
+        >
+          .
+        </KeypadButton>
+        <KeypadButton
+          onClick={() => onOperatorClick('×')}
+          variant="operator"
+          disabled={disabled}
+        >
+          ×
+        </KeypadButton>
+        <KeypadButton
+          onClick={() => onOperatorClick('÷')}
+          variant="operator"
+          disabled={disabled}
+        >
+          ÷
+        </KeypadButton>
 
-        {/* Operators */}
-        {operators.map((operator) => (
+        {/* Row 5: Advanced operators */}
+        {advancedOperators.map((operator) => (
           <KeypadButton
             key={operator}
             onClick={() => onOperatorClick(operator)}
@@ -80,6 +143,25 @@ export default function NumberPad({
             {operator}
           </KeypadButton>
         ))}
+
+        {/* Row 6: Variables and constants */}
+        {variables.map((variable) => (
+          <KeypadButton
+            key={variable}
+            onClick={() => onOperatorClick(variable)}
+            variant="operator"
+            disabled={disabled}
+          >
+            {variable}
+          </KeypadButton>
+        ))}
+        <KeypadButton
+          onClick={() => onOperatorClick('/')}
+          variant="operator"
+          disabled={disabled}
+        >
+          /
+        </KeypadButton>
       </div>
     </div>
   );

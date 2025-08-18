@@ -13,7 +13,6 @@ interface Problem {
   question: string;
   answer: string;
   helpText: string;
-  instruction?: string;
 }
 
 interface Unit {
@@ -71,7 +70,6 @@ export default function PracticePageContent() {
         question: solveDto.question,
         answer: solveDto.answer,
         helpText: solveDto.helpText || '도움말이 없습니다.',
-        instruction: 'x값을 구하시오',
       };
     },
     []
@@ -268,6 +266,7 @@ export default function PracticePageContent() {
 
         {/* Practice Interface */}
         <PracticeInterface
+          userName={session.user.name || ''}
           unitName={currentUnit?.name || ''}
           currentProblem={currentProblem}
           videoUrl={videoData?.data?.vidUrl}

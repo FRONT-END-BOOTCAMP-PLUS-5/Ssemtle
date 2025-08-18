@@ -32,7 +32,7 @@ interface UnitVideoResponse {
 }
 
 export default function PracticePageContent() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -195,10 +195,21 @@ export default function PracticePageContent() {
     fetchNewProblemBatch,
   ]);
 
-  // Check authentication
-  if (!session?.user?.id) {
+  // Check authentication and loading state
+  if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user?.id) {
+    return (
+      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="mb-4 text-gray-600">로그인이 필요합니다</p>
           <button
@@ -215,7 +226,7 @@ export default function PracticePageContent() {
   // Show loading state
   if (unitsLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -227,7 +238,7 @@ export default function PracticePageContent() {
   // Handle missing or invalid unit parameter
   if (!unitId || isNaN(unitId) || (!unitsLoading && !currentUnit)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
             {!unitId || isNaN(unitId)
@@ -246,8 +257,8 @@ export default function PracticePageContent() {
   }
 
   return (
-    <div className="mx-auto min-h-screen">
-      <div className="container mx-auto max-w-screen-sm px-4 py-6">
+    <div className="mx-auto min-h-screen w-full">
+      <div className="container mx-auto px-4 tablet:px-24 tablet:py-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <button

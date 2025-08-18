@@ -29,9 +29,9 @@ body {
   --color-text-placeholder: #9ca3af;
   --color-error: #e87a74;
   --color-disabled: #a0aec0;
-  --color-sidebar: rgb(254, 247, 255);
-  --color-sidebar-button: #eaddff;
-  --color-sidebar-icon: #6750a4;
+  --color-sidebar: rgb(254,247,255);
+  --color-sidebar-button: #EADDFF;
+  --color-sidebar-icon: #6750A4;
 
   /* Spacing Tokens */
   --spacing-0: 0px;

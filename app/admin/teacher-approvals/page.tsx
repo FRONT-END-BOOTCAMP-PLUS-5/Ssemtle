@@ -28,22 +28,22 @@ export default function ApprovalListPage() {
 
   const { currentPage, totalPages, currentData, goToPage } = usePagination({
     data: allTeacherAuths,
-    itemsPerPage: 6,
+    itemsPerPage: 4,
   });
 
   return (
-    <div className="min-h-[932px] w-full bg-[#F8F5FF] md:min-h-[1180px] lg:min-h-[1024px]">
+    <div className="h-screen w-full bg-[#F8F5FF] lg:overflow-hidden">
       <div className="w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
         <div className="flex">
           <div className="flex-1">
             {isLoading ? (
-              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+              <div className="flex h-full flex-col items-center justify-center">
                 <div className="text-lg font-semibold text-gray-600">
                   선생님 승인 목록을 불러오는 중...
                 </div>
               </div>
             ) : isError ? (
-              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+              <div className="flex h-full flex-col items-center justify-center">
                 <div className="mb-4 text-lg font-semibold text-red-600 lg:mb-4">
                   데이터를 불러오는데 실패했습니다
                 </div>
@@ -52,20 +52,20 @@ export default function ApprovalListPage() {
                 </div>
               </div>
             ) : allTeacherAuths.length === 0 ? (
-              <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">
+              <div className="flex h-full flex-col items-center justify-center">
                 <div className="text-lg font-semibold text-gray-600">
                   승인 대기 중인 선생님이 없습니다
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <div className="mb-4 w-full md:mt-16 xl:ml-16">
-                  <div className="mb-8 text-center text-[32px] tracking-tight text-neutral-500 md:text-[36px] xl:ml-8 xl:text-left xl:text-[32px]">
+                <div className="mb-4 w-full md:mt-16 lg:pl-3 xl:ml-16">
+                  <div className="mb-8 text-center text-4xl text-[32px] font-semibold tracking-tight text-neutral-500 md:text-[36px] lg:pl-3 xl:ml-8 xl:text-left xl:text-[32px]">
                     선생님 승인
                   </div>
                 </div>
 
-                <div className="grid w-full grid-cols-1 place-items-center gap-6 px-4 md:grid-cols-2 md:place-items-center md:gap-8 md:px-6 lg:grid-cols-3 lg:place-items-start lg:content-start lg:justify-start lg:gap-10 xl:px-16">
+                <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 md:gap-6 md:px-6 lg:grid-cols-4 lg:gap-8 xl:px-8">
                   {currentData.map((teacherAuth) => (
                     <TeacherAuthCard
                       key={teacherAuth.id}
@@ -80,14 +80,17 @@ export default function ApprovalListPage() {
                   ))}
                 </div>
 
-                {/* 공용 페이지네이션 컴포넌트 */}
                 {totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                    className="mt-8"
-                  />
+                  <div className="w-full px-4 md:px-6 xl:px-8">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={goToPage}
+                      className="mt-8"
+                      maxVisiblePages={4}
+                      showFirstLast={true}
+                    />
+                  </div>
                 )}
               </div>
             )}

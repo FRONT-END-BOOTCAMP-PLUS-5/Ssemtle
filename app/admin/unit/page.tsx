@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGets } from '@/hooks/useGets';
 import {
   UnitDto,
@@ -51,14 +51,6 @@ export default function UnitManagementPage() {
       data: units,
       itemsPerPage: 8,
     });
-
-  // 데이터 길이 변화 시 현재 페이지 보정
-  useEffect(() => {
-    if (totalPages === 0) return;
-    if (currentPage > totalPages) {
-      goToPage(totalPages);
-    }
-  }, [units.length, totalPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -162,6 +154,8 @@ export default function UnitManagementPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={goToPage}
+                maxVisiblePages={4}
+                showFirstLast={true}
               />
             </div>
           </>

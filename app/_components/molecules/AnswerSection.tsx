@@ -11,6 +11,7 @@ interface AnswerSectionProps {
   onSubmit: () => void;
   onNext: () => void;
   submitState: SubmitState;
+  wasAnswerCorrect?: boolean;
   loading?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -51,11 +52,21 @@ export default function AnswerSection({
   onSubmit,
   onNext,
   submitState,
+  wasAnswerCorrect,
   loading = false,
   disabled = false,
   placeholder = '답을 입력해 주세요',
 }: AnswerSectionProps) {
   const config = submitStateConfig[submitState];
+
+  // Override variant for next button based on answer correctness
+  const buttonVariant =
+    submitState === 'next' && wasAnswerCorrect !== undefined
+      ? wasAnswerCorrect
+        ? 'correct'
+        : 'incorrect'
+      : config.variant;
+
   const isDisabled =
     disabled || loading || (submitState === 'initial' && !value.trim());
 
@@ -81,12 +92,12 @@ export default function AnswerSection({
         {/* Submit/Next Button */}
         <div className="flex justify-center">
           <Button
-            variant={config.variant}
+            variant={buttonVariant}
             onClick={handleButtonClick}
             disabled={isDisabled}
             loading={loading}
             icon={config.icon}
-            className="min-w-[120px]"
+            className="w-full"
           >
             {config.text}
           </Button>

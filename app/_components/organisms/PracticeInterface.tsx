@@ -39,6 +39,9 @@ export default function PracticeInterface({
   const [userInput, setUserInput] = useState('');
   const [submitState, setSubmitState] = useState<SubmitState>('initial');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wasAnswerCorrect, setWasAnswerCorrect] = useState<boolean | undefined>(
+    undefined
+  );
 
   const handleInputChange = (value: string) => {
     setUserInput(value);
@@ -73,6 +76,7 @@ export default function PracticeInterface({
 
     try {
       const result = await onSubmitAnswer(userInput.trim(), currentProblem);
+      setWasAnswerCorrect(result.isCorrect);
       setSubmitState(result.isCorrect ? 'correct' : 'incorrect');
 
       // Auto-transition to next state after 1.5 seconds
@@ -91,6 +95,7 @@ export default function PracticeInterface({
   const handleNext = () => {
     setUserInput('');
     setSubmitState('initial');
+    setWasAnswerCorrect(undefined);
     onGenerateNext();
   };
 
@@ -134,6 +139,7 @@ export default function PracticeInterface({
         onSubmit={handleSubmit}
         onNext={handleNext}
         submitState={submitState}
+        wasAnswerCorrect={wasAnswerCorrect}
         loading={isSubmitting}
         disabled={loading}
       />

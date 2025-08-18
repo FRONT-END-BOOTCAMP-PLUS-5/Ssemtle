@@ -1,16 +1,22 @@
 // app/api/students/[id]/unit/route.ts
 import { NextResponse } from 'next/server';
-import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
-import { GetStudentUnitPerformanceUseCase } from '@/backend/analysis/usecases/GetStudentUnitPerformanceUsecase';
 import prisma from '@/libs/prisma';
 
-const useCase = new GetStudentUnitPerformanceUseCase(new PrSolveRepository());
+import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
+import { PrUnitRepository } from '@/backend/common/infrastructures/repositories/PrUnitRepository';
+import { GetStudentUnitPerformanceUseCase } from '@/backend/analysis/usecases/GetStudentUnitPerformanceUsecase';
+
+const useCase = new GetStudentUnitPerformanceUseCase(
+  new PrSolveRepository(),
+  new PrUnitRepository(prisma) // ✅ prisma 주입
+);
 
 export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id: username } = await params;
+  const { id: username } = await context.params;
+
   if (!username || username.trim() === '') {
     return NextResponse.json(
       { error: 'username is required' },
@@ -18,21 +24,18 @@ export async function GET(
     );
   }
 
-  // 1) username → uuid 변환
   const user = await prisma.user.findUnique({
     where: { userId: username },
-    select: { id: true }, // UUID
+    select: { id: true },
   });
-
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const url = new URL(_req.url);
+  const url = new URL(req.url);
   const from = url.searchParams.get('from') ?? undefined;
   const to = url.searchParams.get('to') ?? undefined;
 
-  // 2) UUID로 UseCase 실행
   try {
     const result = await useCase.execute({ userId: user.id, from, to });
     return NextResponse.json(result, { status: 200 });

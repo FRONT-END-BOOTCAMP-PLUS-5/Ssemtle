@@ -53,3 +53,10 @@ export interface AuthenticationResult {
   user?: AuthenticatedUserDto;
   error?: string;
 }
+
+export type GetUserInfoResponseDTO = {
+  id: string;
+  userId: string;
+  name: string;
+  role: 'student' | 'teacher' | 'admin' | 'pending-teacher';
+};

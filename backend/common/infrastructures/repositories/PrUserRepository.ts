@@ -4,6 +4,8 @@ import { IUserRepository } from '../../domains/repositories/IUserRepository';
 
 export class PrUserRepository implements IUserRepository {
   async findByUserId(userId: string): Promise<User | null> {
+    if (!userId) return null;
+
     const user = await prisma.user.findUnique({
       where: { userId },
     });

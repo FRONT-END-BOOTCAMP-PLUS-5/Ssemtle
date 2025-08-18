@@ -24,7 +24,6 @@ export default function BulkRegisterModal({
   const { data: session } = useSession();
   const [studentNames, setStudentNames] = useState<string>('');
 
-  // ABOUTME: 모달이 열릴 때마다 input 초기화
   useEffect(() => {
     if (isOpen) {
       setStudentNames('');

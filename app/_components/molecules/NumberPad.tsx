@@ -125,11 +125,11 @@ export default function NumberPad({
           ×
         </KeypadButton>
         <KeypadButton
-          onClick={() => onOperatorClick('÷')}
+          onClick={() => onOperatorClick('/')}
           variant="operator"
           disabled={disabled}
         >
-          ÷
+          /
         </KeypadButton>
 
         {/* Row 5: Advanced operators */}
@@ -156,11 +156,11 @@ export default function NumberPad({
           </KeypadButton>
         ))}
         <KeypadButton
-          onClick={() => onOperatorClick('/')}
+          onClick={() => onOperatorClick(',')}
           variant="operator"
           disabled={disabled}
         >
-          /
+          ,
         </KeypadButton>
       </div>
     </div>

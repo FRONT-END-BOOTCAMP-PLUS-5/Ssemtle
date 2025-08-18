@@ -2,6 +2,21 @@ import { parse } from 'mathjs';
 
 /** Convert "ASCII-ish" math (√, ∛, implicit mult, etc.) to LaTeX via mathjs. */
 export function asciiToLatex(input: string): string {
+  // Handle comma-separated multiple answers
+  if (input.includes(',')) {
+    const parts = input.split(',').map((part) => part.trim());
+    const latexParts = parts.map((part) => {
+      if (part === '') return '';
+      const normalized = toMathjsFriendly(part);
+      const latex = parse(normalized).toTex({
+        parenthesis: 'auto',
+        implicit: 'hide',
+      });
+      return latex.replace(/\\cdot/g, '\\times');
+    });
+    return latexParts.join(', ');
+  }
+
   const normalized = toMathjsFriendly(input);
   const latex = parse(normalized).toTex({
     parenthesis: 'auto',
@@ -23,6 +38,9 @@ function toMathjsFriendly(s: string): string {
     .replace(/[×·•]/g, '*')
     .replace(/[÷]/g, '/')
     .replace(/[−–—]/g, '-');
+
+  // Handle commas for multiple answers - preserve them but ensure proper spacing
+  // LaTeX will handle comma spacing automatically in math mode
 
   // handle radicals (√, ∛, ∜) with optional index [n]
   s = normalizeRadicals(s);

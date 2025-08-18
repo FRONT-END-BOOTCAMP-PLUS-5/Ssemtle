@@ -15,17 +15,17 @@ export default function Header({
 
   return (
     <header
-      className="w-full sticky top-0 z-50"
+      className="sticky top-0 z-50 w-full"
       style={{ backgroundColor: 'rgb(254,247,255)' }}
     >
-      <div className="mx-auto max-w-screen-xl h-12 px-3 sm:px-4 flex items-center justify-between">
+      <div className="mx-auto flex h-12 max-w-screen-xl items-center justify-between px-3 sm:px-4">
         {/* Left: Hamburger */}
         <button
           onClick={handleHamburgerClick}
           aria-label="Open menu"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gray-50 active:scale-[.98] transition sm:w-10 sm:h-10"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-gray-50 active:scale-[.98] sm:h-10 sm:w-10"
         >
-          <span className="relative block w-5 h-3.5" aria-hidden>
+          <span className="relative block h-3.5 w-5" aria-hidden>
             <span className="absolute inset-x-0 top-0 h-0.5 rounded bg-gray-900" />
             <span className="absolute inset-x-0 top-1.5 h-0.5 rounded bg-gray-900" />
             <span className="absolute inset-x-0 bottom-0 h-0.5 rounded bg-gray-900" />
@@ -35,7 +35,7 @@ export default function Header({
         {/* Center: Logo */}
         <a
           href={logoHref}
-          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 select-none"
+          className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 select-none"
           aria-label="Go to homepage"
         >
           <Image

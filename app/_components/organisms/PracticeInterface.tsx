@@ -125,39 +125,42 @@ export default function PracticeInterface({
   }
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-6">
-      {/* Problem Display */}
-      <ProblemDisplay
-        title={`${userName} - ${unitName}`}
-        equation={currentProblem.question}
-      />
+    <div className="mx-auto flex w-full flex-col space-y-6 tablet:flex-row tablet:justify-center-safe tablet:gap-12">
+      <div className="flex w-full flex-col space-y-6 tablet:w-auto">
+        {/* Problem Display */}
+        <ProblemDisplay
+          title={`${userName} - ${unitName}`}
+          equation={currentProblem.question}
+        />
 
-      {/* Answer Input */}
-      <AnswerSection
-        value={userInput}
-        onChange={handleInputChange}
-        onSubmit={handleSubmit}
-        onNext={handleNext}
-        submitState={submitState}
-        wasAnswerCorrect={wasAnswerCorrect}
-        loading={isSubmitting}
-        disabled={loading}
-      />
+        {/* Answer Input */}
+        <AnswerSection
+          value={userInput}
+          onChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onNext={handleNext}
+          submitState={submitState}
+          wasAnswerCorrect={wasAnswerCorrect}
+          loading={isSubmitting}
+          disabled={loading}
+        />
 
-      {/* Number Pad */}
-      <NumberPad
-        onNumberClick={handleNumberClick}
-        onOperatorClick={handleOperatorClick}
-        onClear={handleClear}
-        disabled={loading || isSubmitting || submitState !== 'initial'}
-      />
-
+        {/* Number Pad */}
+        <NumberPad
+          onNumberClick={handleNumberClick}
+          onOperatorClick={handleOperatorClick}
+          onClear={handleClear}
+          disabled={loading || isSubmitting || submitState !== 'initial'}
+        />
+      </div>
+      <div>
+        <HelpSection
+          helpText={currentProblem.helpText}
+          videoUrl={videoUrl}
+          unitName={unitName}
+        />
+      </div>
       {/* Help Section */}
-      <HelpSection
-        helpText={currentProblem.helpText}
-        videoUrl={videoUrl}
-        unitName={unitName}
-      />
     </div>
   );
 }

@@ -28,7 +28,7 @@ function KeypadButton({
   const variantClasses = {
     number: 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm',
     operator:
-      'bg-violet-100 text-violet-700 hover:bg-violet-200 shadow-sm font-semibold',
+      'bg-violet-100 text-primary hover:bg-violet-200 shadow-sm font-semibold',
     clear: 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm',
   };
 

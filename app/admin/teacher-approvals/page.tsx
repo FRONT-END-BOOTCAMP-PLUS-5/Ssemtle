@@ -3,7 +3,6 @@ import { useGets } from '@/hooks/useGets';
 import { usePagination } from '@/hooks/usePagination';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import TeacherAuthCard from './TeacherAuthCard';
-import SidebarAdmin from '@/app/_components/sidebar/SidebarAdmin';
 import Pagination from '@/app/_components/pagination/Pagination';
 
 export default function ApprovalListPage() {
@@ -27,7 +26,6 @@ export default function ApprovalListPage() {
 
   const allTeacherAuths = response?.data?.teacherAuths || [];
 
-  // 페이지네이션 훅 사용
   const { currentPage, totalPages, currentData, goToPage } = usePagination({
     data: allTeacherAuths,
     itemsPerPage: 6,
@@ -37,10 +35,6 @@ export default function ApprovalListPage() {
     <div className="min-h-[932px] w-full bg-[#F8F5FF] md:min-h-[1180px] lg:min-h-[1024px]">
       <div className="w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
         <div className="flex">
-          <div className="hidden xl:block">
-            <SidebarAdmin />
-          </div>
-
           <div className="flex-1">
             {isLoading ? (
               <div className="flex min-h-[932px] flex-col items-center justify-center md:min-h-[1180px] lg:min-h-[1024px]">

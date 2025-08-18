@@ -186,7 +186,10 @@ export default function MyPage() {
         )}
 
         {/* 성과 그래프 */}
-        <div className="mx-auto mt-4 w-full max-w-xl">
+        <div
+          className="mx-auto mt-4 w-full max-w-xl outline-none focus:outline-none"
+          onMouseDown={(e) => e.preventDefault()}
+        >
           <PerformanceChart data={radarData} />
         </div>
 
@@ -209,7 +212,7 @@ export default function MyPage() {
             onClick={closeModal}
           />
           <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-lg">
-            <div className="mx-3 mb-4 rounded-2xl bg-white shadow-lg outline outline-1 outline-gray-200">
+            <div className="mx-3 mb-4 rounded-2xl bg-white shadow-lg outline outline-gray-200">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div className="text-sm text-gray-500">선택한 날짜</div>
                 <button
@@ -223,7 +226,7 @@ export default function MyPage() {
                 {selectedDate}
               </div>
 
-              <div className="flex max-h-[70vh] flex-col items-center gap-3 overflow-y-auto px-4 pt-2 pb-4">
+              <div className="flex max-h-[80vh] flex-col items-center gap-3 overflow-y-auto px-4 pt-2 pb-4">
                 {Object.keys(solvesByCategory).length === 0 && (
                   <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
                     해당 날짜에는 풀이 기록이 없습니다.

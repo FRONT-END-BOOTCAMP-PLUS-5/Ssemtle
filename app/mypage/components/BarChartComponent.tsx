@@ -50,7 +50,7 @@ export default function BarChartComponent({
 }) {
   return (
     <div className={`w-full max-w-xl ${className}`}>
-      <div className="h-[280px] p-4 backdrop-blur sm:h-[340px] sm:p-6">
+      <div className="h-[280px] p-4 sm:h-[340px] sm:p-6">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}

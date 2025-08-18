@@ -2,7 +2,7 @@
 import { useGets } from '@/hooks/useGets';
 import { usePagination } from '@/hooks/usePagination';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
-import TeacherAuthCard from './TeacherAuthCard';
+import TeacherAuthCard from './components/TeacherAuthCard';
 import Pagination from '@/app/_components/pagination/Pagination';
 
 export default function ApprovalListPage() {

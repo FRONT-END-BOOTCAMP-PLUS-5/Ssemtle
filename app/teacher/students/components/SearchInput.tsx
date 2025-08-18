@@ -29,7 +29,7 @@ export default function SearchInput({
 
           <div className="absolute top-[9px] right-[23px] flex h-8 w-8 items-center justify-center">
             <svg
-              className="h-8 w-8 text-neutral-400"
+              className="h-6 w-6 text-neutral-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

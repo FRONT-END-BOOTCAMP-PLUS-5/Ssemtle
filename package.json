@@ -34,6 +34,7 @@
     "react-js-pagination": "^3.0.2",
     "recharts": "^3.1.2",
     "tailwindcss": "^4.1.11",
+    "xlsx": "0.18.5",
     "zod": "^4.0.17",
     "zustand": "^5.0.7"
   },
@@ -53,6 +54,8 @@
     "eslint-config-next": "15.4.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jest": "^29.0.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "husky": "^9.1.7",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",

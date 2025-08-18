@@ -27,10 +27,10 @@ body {
   --color-text-secondary: white;
   --color-error: #e87a74;
   --color-disabled: #a0aec0;
-  --color-sidebar: rgb(254,247,255);
-  --color-sidebar-button: #EADDFF;
-  --color-sidebar-icon: #6750A4;
-
+  --color-sidebar: rgb(254, 247, 255);
+  --color-sidebar-button: #eaddff;
+  --color-sidebar-icon: #6750a4;
+  --color-card-background: #f2e8fe;
   /* Spacing Tokens */
   --spacing-0: 0px;
   --spacing-1: 4px;

@@ -90,7 +90,7 @@ export default function StudentManagementPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    goToPage(1); // 검색 시 첫 페이지로 이동
+    goToPage(1);
   };
 
   if (status === 'loading') {
@@ -120,16 +120,12 @@ export default function StudentManagementPage() {
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[1200px] lg:px-8 lg:py-16">
         <div className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight text-neutral-500">
-            학생관리
+            학생 관리
           </h1>
         </div>
 
         <div className="mb-8 flex flex-col gap-4 md:flex-col md:items-center md:items-end md:justify-between md:justify-end lg:flex-row lg:justify-between">
-          <SearchInput
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="학생 이름을 검색하세요"
-          />
+          <SearchInput value={searchTerm} onChange={handleSearchChange} />
           <ActionButtons
             onBulkRegister={handleBulkRegister}
             onRegister={handleRegister}

@@ -103,7 +103,7 @@ export default function UnitManagementPage() {
     <div className="min-h-screen w-full bg-[#F8F5FF]">
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[970px] lg:px-8 lg:py-16">
         <div className="mb-8 flex flex-col items-center sm:flex-row sm:justify-between">
-          <h1 className="text-4xl font-semibold tracking-tight text-neutral-500">
+          <h1 className="sm: mb-4 text-4xl font-semibold tracking-tight text-neutral-500">
             과목 관리
           </h1>
           <button

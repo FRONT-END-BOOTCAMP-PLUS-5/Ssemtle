@@ -158,6 +158,7 @@ export default function PracticeInterface({
           helpText={currentProblem.helpText}
           videoUrl={videoUrl}
           unitName={unitName}
+          submitState={submitState}
         />
       </div>
       {/* Help Section */}

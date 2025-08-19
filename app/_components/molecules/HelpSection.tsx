@@ -1,24 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { SubmitState } from './AnswerSection';
 
 interface HelpSectionProps {
   helpText: string;
   videoUrl?: string;
   unitName?: string;
+  submitState?: SubmitState;
 }
 
 export default function HelpSection({
   helpText,
   videoUrl,
   unitName,
+  submitState = 'initial',
 }: HelpSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className="mx-auto mt-6 w-full max-w-md">
-      {/* Help Text Section */}
-      {helpText && (
+    <div className="mx-auto w-full max-w-md">
+      {/* Help Text Section - only show after answer submission */}
+      {helpText && submitState !== 'initial' && (
         <div className="mb-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}

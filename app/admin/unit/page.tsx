@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGets } from '@/hooks/useGets';
 import {
   UnitDto,
   UnitListResponseDto,
 } from '@/backend/admin/units/dtos/UnitDto';
-import UnitCard from './UnitCard';
-import CreateUnitModal from './CreateUnitModal';
-import EditUnitModal from './EditUnitModal';
+import UnitCard from './components/UnitCard';
+import CreateUnitModal from './components/CreateUnitModal';
+import EditUnitModal from './components/EditUnitModal';
 import { useDeletes } from '@/hooks/useDeletes';
-import DeleteConfirmModal from './DeleteConfirmModal';
+import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Pagination from '@/app/_components/pagination/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 
@@ -45,20 +45,11 @@ export default function UnitManagementPage() {
 
   const units = response?.data?.units || [];
 
-  // 공통 페이지네이션(클라이언트 사이드)
   const { currentPage, totalPages, currentData, goToPage } =
     usePagination<UnitDto>({
       data: units,
       itemsPerPage: 8,
     });
-
-  // 데이터 길이 변화 시 현재 페이지 보정
-  useEffect(() => {
-    if (totalPages === 0) return;
-    if (currentPage > totalPages) {
-      goToPage(totalPages);
-    }
-  }, [units.length, totalPages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -113,7 +104,7 @@ export default function UnitManagementPage() {
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[970px] lg:px-8 lg:py-16">
         <div className="mb-8 flex flex-col items-center sm:flex-row sm:justify-between">
           <h1 className="text-4xl font-semibold tracking-tight text-neutral-500">
-            과목관리
+            과목 관리
           </h1>
           <button
             onClick={handleOpenModal}
@@ -162,6 +153,8 @@ export default function UnitManagementPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={goToPage}
+                maxVisiblePages={4}
+                showFirstLast={true}
               />
             </div>
           </>

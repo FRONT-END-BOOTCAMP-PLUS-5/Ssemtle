@@ -41,7 +41,7 @@ export default function FormModal({
                   onClick={onClose}
                   disabled={isBusy}
                   aria-label="닫기"
-                  className="inline-flex items-center justify-center"
+                  className="inline-flex cursor-pointer items-center justify-center"
                 >
                   <Image
                     src="/icons/close-circle.svg"

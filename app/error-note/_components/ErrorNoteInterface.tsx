@@ -291,7 +291,74 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-32">
-        <div className="mx-auto flex w-full gap-12">
+        {/* Mobile Layout: Help Section above Cards */}
+        <div className="tablet:hidden">
+          {/* Header */}
+          <div className="mb-6 px-4 text-center">
+            <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+            <p className="mt-2 text-gray-600">틀린 문제들을 다시 풀어보세요</p>
+          </div>
+
+          {/* Contextual Help Section - Draggable on mobile */}
+          <div className="mb-6 px-4">
+            <ContextualHelpSection
+              focusZone={focusedProblemId ? 'answer' : 'none'}
+              currentProblem={
+                focusedProblemId
+                  ? wrongProblems.find((p) => p.id === focusedProblemId)
+                  : undefined
+              }
+              isDraggable={true}
+            />
+          </div>
+
+          {/* Error Note Cards */}
+          <div className="space-y-6 px-4">
+            {wrongProblems.map((problem) => (
+              <ErrorNoteCard
+                key={problem.id}
+                problem={problem}
+                onFocus={handleCardFocus}
+                onBlur={handleCardBlur}
+                onInputChange={handleInputChange}
+                userInput={userInputs.get(problem.id) || ''}
+                submissionState={submissionStates.get(problem.id) || 'initial'}
+                onSubmissionResult={handleSubmissionResult}
+              />
+            ))}
+
+            {/* Loading indicator for infinite scroll */}
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-4">
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
+              </div>
+            )}
+
+            {/* Intersection observer target for infinite scrolling */}
+            {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
+
+            {/* End of results indicator */}
+            {!hasNextPage && wrongProblems.length > 0 && (
+              <div className="flex justify-center py-6">
+                <div className="text-sm text-gray-500">
+                  모든 오답노트를 불러왔습니다
+                </div>
+              </div>
+            )}
+
+            {/* Error state */}
+            {isError && (
+              <div className="flex justify-center py-12">
+                <div className="text-sm text-red-600">
+                  데이터를 불러오는데 실패했습니다
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tablet+ Layout: Side-by-side layout */}
+        <div className="mx-auto hidden w-full gap-12 tablet:flex">
           {/* Main Content - Scrollable Cards */}
           <div className="max-h-full flex-1 overflow-y-auto pr-4">
             <div className="space-y-6">
@@ -349,7 +416,7 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
             </div>
           </div>
 
-          {/* Contextual Help Section - Fixed */}
+          {/* Contextual Help Section - Fixed on tablet+ */}
           <div className="w-80 flex-shrink-0">
             <div className="sticky top-6">
               <ContextualHelpSection
@@ -359,6 +426,7 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
                     ? wrongProblems.find((p) => p.id === focusedProblemId)
                     : undefined
                 }
+                isDraggable={false}
               />
             </div>
           </div>

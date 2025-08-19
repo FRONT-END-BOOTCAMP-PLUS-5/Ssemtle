@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type FocusZone = 'none' | 'problem' | 'answer';
 
@@ -16,13 +16,20 @@ interface ErrorNoteProblem {
 interface ContextualHelpSectionProps {
   focusZone: FocusZone;
   currentProblem?: ErrorNoteProblem;
+  isDraggable?: boolean;
 }
 
 export default function ContextualHelpSection({
   focusZone,
   currentProblem,
+  isDraggable = false,
 }: ContextualHelpSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const elementRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLButtonElement>(null);
 
   const getHelpContent = () => {
     if (!currentProblem || focusZone === 'none') {
@@ -58,18 +65,152 @@ export default function ContextualHelpSection({
 
   const helpContent = getHelpContent();
 
+  // Draggable functionality for mobile
+  useEffect(() => {
+    if (!isDraggable || !dragHandleRef.current) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({
+        x: touch.clientX - position.x,
+        y: touch.clientY - position.y,
+      });
+    };
+
+    const dragHandle = dragHandleRef.current;
+    dragHandle.addEventListener('mousedown', handleMouseDown);
+    dragHandle.addEventListener('touchstart', handleTouchStart);
+
+    return () => {
+      dragHandle.removeEventListener('mousedown', handleMouseDown);
+      dragHandle.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, [isDraggable, position.x, position.y]);
+
+  // Constrain position to viewport boundaries
+  const constrainToViewport = (x: number, y: number) => {
+    if (!elementRef.current) return { x, y };
+
+    const element = elementRef.current;
+    const rect = element.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Calculate boundaries (with small padding)
+    const padding = 16;
+    const minX = -rect.width + padding;
+    const maxX = viewportWidth - padding;
+    const minY = padding;
+    const maxY = viewportHeight - rect.height - padding;
+
+    return {
+      x: Math.max(minX, Math.min(maxX, x)),
+      y: Math.max(minY, Math.min(maxY, y)),
+    };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newPosition = constrainToViewport(
+        e.clientX - dragStart.x,
+        e.clientY - dragStart.y
+      );
+      setPosition(newPosition);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const newPosition = constrainToViewport(
+        touch.clientX - dragStart.x,
+        touch.clientY - dragStart.y
+      );
+      setPosition(newPosition);
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+      // Ensure final position is within viewport
+      setPosition((prev) => constrainToViewport(prev.x, prev.y));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
+    };
+  }, [isDragging, dragStart.x, dragStart.y]);
+
+  // Handle viewport resize to keep element in bounds
+  useEffect(() => {
+    if (!isDraggable) return;
+
+    const handleResize = () => {
+      setPosition((prev) => constrainToViewport(prev.x, prev.y));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isDraggable]);
+
   return (
-    <div className="mx-auto w-full tablet:min-w-sm">
+    <div
+      ref={elementRef}
+      className={`mx-auto w-full tablet:min-w-sm ${
+        isDraggable ? 'fixed top-0 left-0 max-w-sm' : ''
+      }`}
+      style={
+        isDraggable
+          ? {
+              transform: `translate(${position.x}px, ${position.y}px)`,
+              zIndex: isDragging ? 1000 : 50,
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+              width: isDraggable ? 'calc(100vw - 2rem)' : 'auto',
+              maxWidth: isDraggable ? '400px' : 'auto',
+            }
+          : {}
+      }
+    >
       {/* Help Content Section */}
       <div className="mb-4">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full rounded-xl bg-gray-50 p-4 text-left transition-colors hover:bg-gray-100"
+          className={`w-full rounded-xl bg-gray-50 p-4 text-left transition-colors hover:bg-gray-100 ${
+            isDraggable ? 'cursor-move' : ''
+          } ${isDragging ? 'bg-gray-100 shadow-2xl' : ''}`}
+          ref={isDraggable ? dragHandleRef : undefined}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-800">
-              {helpContent.title}
-            </h3>
+            <div className="flex items-center space-x-2">
+              {isDraggable && (
+                <div className="flex flex-col space-y-1 opacity-50">
+                  <div className="h-1 w-4 rounded bg-gray-400"></div>
+                  <div className="h-1 w-4 rounded bg-gray-400"></div>
+                  <div className="h-1 w-4 rounded bg-gray-400"></div>
+                </div>
+              )}
+              <h3 className="text-lg font-bold text-gray-800">
+                {helpContent.title}
+              </h3>
+            </div>
             <span
               className={`text-gray-600 transition-transform ${
                 isExpanded ? 'rotate-180' : ''

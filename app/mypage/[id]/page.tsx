@@ -9,6 +9,8 @@ import CalendarComponent from '../components/CalenderComponent';
 import TestCard from '../../_components/cards/TestCard';
 import PerformanceChart from '../components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
+import AccountSettingsCard from '../components/AccountSettingsCard';
+import { useSession } from 'next-auth/react';
 
 // ---------- 달력(월별) API 응답 타입 ----------
 type CalendarDay = {
@@ -39,6 +41,7 @@ function ymd(d: Date): string {
 export default function MyPage() {
   const router = useRouter();
   const { id: userId } = useParams(); // /mypage/[id]
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   // 1) 유저 정보 (납작 구조)
   const { data: userData } = useGets<GetUserInfoResponseDTO>(
@@ -46,9 +49,8 @@ export default function MyPage() {
     `/users/${userId}`,
     !!userId
   );
-  // userData: { id, userId, name, role }
 
-  // ✅ 납작 구조 기반 파생 값
+  //  납작 구조 기반 파생 값
   const username = userData?.userId; // 분석/캘린더 API에 사용할 외부 식별자
   const displayName = userData?.name ?? '사용자'; // 화면표시용 이름
 
@@ -80,10 +82,11 @@ export default function MyPage() {
   // 4) 월별 캘린더 데이터
   const { data: calendarResp } = useGets<CalendarResponse>(
     ['solvesCalendar', username, month],
-    username ? `/solves/calendar?month=${month}` : '',
+    username ? `/solves/calendar/user/${username}?month=${month}` : '',
     !!username
   );
-
+  console.log('📅 월별 풀이 캘린더:', calendarResp);
+  console.log('username:', username, 'month:', month);
   // 5) 캘린더 바인딩 맵 (맞은/전체, 연속 출석)
   const { resultsMap, attendanceMap } = useMemo(() => {
     const map: Record<string, { correct: number; total: number }> = {};
@@ -167,6 +170,10 @@ export default function MyPage() {
     return map;
   }, [selectedSolves]);
 
+  const { data: session } = useSession();
+  console.log('UserData:', userData);
+  console.log('Session:', session);
+
   return (
     <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
       <div className="mx-auto w-full max-w-xl px-4 py-6">
@@ -175,7 +182,6 @@ export default function MyPage() {
             {displayName}의 마이페이지
           </h1>
         </div>
-
         {(!username || isLoading) && (
           <div className="mt-4 text-center">불러오는 중…</div>
         )}
@@ -184,10 +190,19 @@ export default function MyPage() {
             에러: {error?.message}
           </div>
         )}
-
         {/* 성과 그래프 */}
-        <div className="mx-auto mt-4 w-full max-w-xl">
-          <PerformanceChart data={radarData} />
+
+        <div
+          className="mx-auto mt-4 w-full max-w-xl outline-none focus:outline-none"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          {calendarResp?.days?.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              아직 문제를 푼 적이 없습니다.
+            </div>
+          ) : (
+            <PerformanceChart data={radarData} />
+          )}
         </div>
 
         {/* 캘린더 */}
@@ -199,17 +214,47 @@ export default function MyPage() {
             resultsMap={resultsMap ?? {}}
           />
         </div>
+        {session?.user.userId === userData?.userId && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setIsAccountOpen(true)}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white shadow hover:brightness-110 active:scale-[.99]"
+            >
+              아이디/비밀번호 변경
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* ★ 추가: 계정 설정 모달 */}
+      {isAccountOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsAccountOpen(false)}
+          />
+          <div className="relative mx-auto w-full max-w-lg">
+            <AccountSettingsCard
+              internalId={userData?.id ?? ''}
+              currentUserId={userData?.userId ?? ''}
+              onClose={() => setIsAccountOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {' '}
+          {/* ★ 변경: flex 가운데 정렬 */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={closeModal}
           />
-          <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-lg">
-            <div className="mx-3 mb-4 rounded-2xl bg-white shadow-lg outline outline-1 outline-gray-200">
+          {/* ★ 변경: bottom-0 제거, 가운데 카드 */}
+          <div className="relative mx-auto w-full max-w-lg">
+            <div className="flex max-h-[min(88vh,720px)] flex-col overflow-hidden rounded-2xl bg-white shadow-lg outline outline-gray-200">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div className="text-sm text-gray-500">선택한 날짜</div>
                 <button
@@ -219,11 +264,13 @@ export default function MyPage() {
                   닫기 ✕
                 </button>
               </div>
+
               <div className="px-4 pt-2 text-lg font-semibold">
                 {selectedDate}
               </div>
 
-              <div className="flex max-h-[70vh] flex-col items-center gap-3 overflow-y-auto px-4 pt-2 pb-4">
+              {/* ★ 변경: max-h-[80vh] 제거 → 내부만 스크롤 */}
+              <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4">
                 {Object.keys(solvesByCategory).length === 0 && (
                   <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
                     해당 날짜에는 풀이 기록이 없습니다.

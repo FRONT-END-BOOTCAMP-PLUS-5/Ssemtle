@@ -38,8 +38,8 @@ export default function UnitExamCodeTable({
                 {item.code}
               </span>
             </div>
-            <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+            <div className="flex items-start px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
+              <span className="text-[8px] font-bold break-words whitespace-pre-wrap text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
                 {item.category}
               </span>
             </div>
@@ -80,7 +80,9 @@ export default function UnitExamCodeTable({
               <div className="text-sm font-bold text-neutral-700">
                 {item.code}
               </div>
-              <div className="text-xs text-neutral-500">{item.category}</div>
+              <div className="text-xs break-words whitespace-pre-wrap text-neutral-500">
+                {item.category}
+              </div>
               <div className="text-xs text-neutral-500">{item.createdAt}</div>
             </div>
             <div className="flex justify-end">

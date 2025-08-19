@@ -22,7 +22,6 @@ export async function GET() {
       select: { code: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
-    console.log('[unit-exam-codes] step1 exams:', exams);
 
     // 2) 각 코드별로 unit_questions에서 unit_id 수집 (대소문자/공백 보정)
     type QRow = { unit_id: number; unit_code: string };
@@ -33,14 +32,8 @@ export async function GET() {
     }>;
     for (const e of exams) {
       const code = e.code;
-      console.log('[unit-exam-codes] step2 code:', code);
       const qRows: QRow[] = await prisma.$queryRaw(
         Prisma.sql`SELECT unit_id, unit_code FROM unit_questions WHERE UPPER(TRIM(unit_code)) = ${code}`
-      );
-      console.log(
-        '[unit-exam-codes] step2 qRows(count,sample):',
-        qRows.length,
-        qRows.slice(0, 5)
       );
 
       const unitIds = Array.from(
@@ -48,7 +41,6 @@ export async function GET() {
           qRows.map((r) => Number(r.unit_id)).filter((n) => !Number.isNaN(n))
         )
       );
-      console.log('[unit-exam-codes] step3 unitIds:', unitIds);
 
       let names: Array<{ id: number; name: string }> = [];
       if (unitIds.length > 0) {
@@ -57,13 +49,10 @@ export async function GET() {
           select: { id: true, name: true },
         });
       }
-      console.log('[unit-exam-codes] step4 names:', names);
 
       const categories = names.map((n) => n.name).filter(Boolean);
       unitExams.push({ code, createdAt: e.createdAt, categories });
     }
-
-    console.log('[unit-exam-codes] step5 result:', unitExams);
 
     return NextResponse.json({
       success: true,

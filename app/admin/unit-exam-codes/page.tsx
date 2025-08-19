@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Pagination from '@/app/_components/pagination/Pagination';
 import SearchInput from '@/app/teacher/students/components/SearchInput';
 import TableHeader from './components/TableHeader';
@@ -29,16 +29,8 @@ export default function UnitExamCodesPage() {
     { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false }
   );
 
-  // Debug logs: 서버 응답과 매핑 결과 확인
-  useEffect(() => {
-    if (data) {
-      console.log('[unit-exam-codes][api.data]', data);
-    }
-  }, [data]);
-
   const rows = useMemo(() => {
     const list = data?.data?.unitExams ?? [];
-    console.log('[unit-exam-codes][api.unitExams]', list);
     return list.map((r, idx) => ({
       id: String(idx + 1),
       code: r.code,
@@ -71,10 +63,8 @@ export default function UnitExamCodesPage() {
   const handleOpenCreate = () => setIsCreateOpen(true);
   const handleCloseCreate = () => setIsCreateOpen(false);
   const handleCreate = (categories: string[]) => {
-    console.log('선택된 카테고리:', categories);
-    alert(
-      `${categories.length}개의 카테고리로 단원평가가 생성됩니다. (UI만 구현됨)`
-    );
+    void categories;
+    // 모달 내에서 실제 생성 및 알림 처리 완료됨 → 여기서는 목록 갱신만 수행
     setIsCreateOpen(false);
     refetch();
   };

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGets } from '@/hooks/useGets';
 import type { UnitListResponseDto } from '@/backend/admin/units/dtos/UnitDto';
-import SearchInput from '@/app/teacher/students/components/SearchInput';
+import SearchInput from '@/app/teacher/student/components/SearchInput';
 
 interface CreateUnitExamModalProps {
   isOpen: boolean;

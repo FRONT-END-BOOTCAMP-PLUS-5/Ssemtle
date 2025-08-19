@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Pagination from '@/app/_components/pagination/Pagination';
-import SearchInput from '@/app/teacher/students/components/SearchInput';
+import SearchInput from '@/app/teacher/student/components/SearchInput';
 import TableHeader from './components/TableHeader';
 import UnitExamCodeTable from './components/UnitExamCodeTable';
 import CreateUnitExamModal from './components/CreateUnitExamModal';
@@ -62,8 +62,7 @@ export default function UnitExamCodesPage() {
 
   const handleOpenCreate = () => setIsCreateOpen(true);
   const handleCloseCreate = () => setIsCreateOpen(false);
-  const handleCreate = (categories: string[]) => {
-    void categories;
+  const handleCreate = () => {
     // 모달 내에서 실제 생성 및 알림 처리 완료됨 → 여기서는 목록 갱신만 수행
     setIsCreateOpen(false);
     refetch();

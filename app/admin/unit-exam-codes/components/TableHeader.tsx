@@ -12,7 +12,7 @@ export default function TableHeader() {
         <span className="text-xs font-bold text-neutral-700">카테고리</span>
       </div>
       <div className="px-6 py-3 text-left">
-        <span className="text-xs font-bold text-neutral-700">문제 보기</span>
+        <span className="text-xs font-bold text-neutral-700">시험지 보기</span>
       </div>
       <div className="px-6 py-3 text-left">
         <span className="text-xs font-bold text-neutral-700">생성일</span>

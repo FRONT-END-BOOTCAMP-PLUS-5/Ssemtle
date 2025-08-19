@@ -119,7 +119,27 @@ export default function UnitExamCodesPage() {
             ) : (
               <UnitExamCodeTable
                 items={currentData}
-                onDelete={(id: string) => alert('삭제 준비 중: ' + id)}
+                onDelete={async (code: string) => {
+                  const ok = confirm(
+                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
+                  );
+                  if (!ok) return;
+                  try {
+                    const res = await fetch(
+                      `/api/admin/unit-exam-codes/${code}`,
+                      { method: 'DELETE' }
+                    );
+                    const json = await res.json();
+                    if (!res.ok || !json?.success) {
+                      alert(json?.error || '삭제에 실패했습니다.');
+                      return;
+                    }
+                    refetch();
+                  } catch (e) {
+                    console.error('[delete unit-exam-code] error:', e);
+                    alert('삭제 중 오류가 발생했습니다.');
+                  }
+                }}
                 onOpenProblems={(code: string) => {
                   setProblemsForCode(code);
                   setIsProblemsOpen(true);
@@ -151,7 +171,27 @@ export default function UnitExamCodesPage() {
             ) : (
               <UnitExamCodeTable
                 items={currentData}
-                onDelete={(id: string) => alert('삭제 준비 중: ' + id)}
+                onDelete={async (code: string) => {
+                  const ok = confirm(
+                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
+                  );
+                  if (!ok) return;
+                  try {
+                    const res = await fetch(
+                      `/api/admin/unit-exam-codes/${code}`,
+                      { method: 'DELETE' }
+                    );
+                    const json = await res.json();
+                    if (!res.ok || !json?.success) {
+                      alert(json?.error || '삭제에 실패했습니다.');
+                      return;
+                    }
+                    refetch();
+                  } catch (e) {
+                    console.error('[delete unit-exam-code] error:', e);
+                    alert('삭제 중 오류가 발생했습니다.');
+                  }
+                }}
               />
             )}
 

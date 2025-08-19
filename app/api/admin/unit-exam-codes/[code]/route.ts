@@ -38,6 +38,21 @@ export async function DELETE(
       );
     }
 
+    // 이미 응시(UnitSolve)가 존재하면 삭제 불가
+    const solvesCount = await prisma.unitSolve.count({
+      where: { question: { unitCode: unitCode } },
+    });
+    if (solvesCount > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            '이미 응시한 내역이 있어 삭제할 수 없습니다. 응시 기록이 존재합니다.',
+        },
+        { status: 400 }
+      );
+    }
+
     await prisma.$transaction([
       prisma.unitQuestion.deleteMany({ where: { unitCode: unitCode } }),
       prisma.unitExam.delete({ where: { code: unitCode } }),

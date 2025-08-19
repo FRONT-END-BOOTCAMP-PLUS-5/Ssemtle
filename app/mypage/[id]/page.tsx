@@ -9,6 +9,8 @@ import CalendarComponent from '../components/CalenderComponent';
 import TestCard from '../../_components/cards/TestCard';
 import PerformanceChart from '../components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
+import AccountSettingsCard from '../components/AccountSettingsCard';
+import { useSession } from 'next-auth/react';
 
 // ---------- 달력(월별) API 응답 타입 ----------
 type CalendarDay = {
@@ -39,6 +41,7 @@ function ymd(d: Date): string {
 export default function MyPage() {
   const router = useRouter();
   const { id: userId } = useParams(); // /mypage/[id]
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   // 1) 유저 정보 (납작 구조)
   const { data: userData } = useGets<GetUserInfoResponseDTO>(
@@ -46,9 +49,8 @@ export default function MyPage() {
     `/users/${userId}`,
     !!userId
   );
-  // userData: { id, userId, name, role }
 
-  // ✅ 납작 구조 기반 파생 값
+  //  납작 구조 기반 파생 값
   const username = userData?.userId; // 분석/캘린더 API에 사용할 외부 식별자
   const displayName = userData?.name ?? '사용자'; // 화면표시용 이름
 
@@ -168,6 +170,10 @@ export default function MyPage() {
     return map;
   }, [selectedSolves]);
 
+  const { data: session } = useSession();
+  console.log('UserData:', userData);
+  console.log('Session:', session);
+
   return (
     <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
       <div className="mx-auto w-full max-w-xl px-4 py-6">
@@ -176,7 +182,6 @@ export default function MyPage() {
             {displayName}의 마이페이지
           </h1>
         </div>
-
         {(!username || isLoading) && (
           <div className="mt-4 text-center">불러오는 중…</div>
         )}
@@ -185,13 +190,19 @@ export default function MyPage() {
             에러: {error?.message}
           </div>
         )}
-
         {/* 성과 그래프 */}
+
         <div
           className="mx-auto mt-4 w-full max-w-xl outline-none focus:outline-none"
           onMouseDown={(e) => e.preventDefault()}
         >
-          <PerformanceChart data={radarData} />
+          {calendarResp?.days?.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              아직 문제를 푼 적이 없습니다.
+            </div>
+          ) : (
+            <PerformanceChart data={radarData} />
+          )}
         </div>
 
         {/* 캘린더 */}
@@ -203,7 +214,34 @@ export default function MyPage() {
             resultsMap={resultsMap ?? {}}
           />
         </div>
+        {session?.user.userId === userData?.userId && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setIsAccountOpen(true)}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white shadow hover:brightness-110 active:scale-[.99]"
+            >
+              아이디/비밀번호 변경
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* ★ 추가: 계정 설정 모달 */}
+      {isAccountOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsAccountOpen(false)}
+          />
+          <div className="relative mx-auto w-full max-w-lg">
+            <AccountSettingsCard
+              internalId={userData?.id ?? ''}
+              currentUserId={userData?.userId ?? ''}
+              onClose={() => setIsAccountOpen(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* 모달 */}
       {isModalOpen && (

@@ -9,4 +9,7 @@ export interface IUserRepository {
     name: string;
     role: string;
   }): Promise<User>;
+
+  updateUserId(id: string, newUserId: string): Promise<User>;
+  updatePasswordHash(id: string, passwordHash: string): Promise<void>;
 }

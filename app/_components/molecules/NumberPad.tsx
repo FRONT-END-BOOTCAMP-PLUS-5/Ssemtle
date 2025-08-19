@@ -23,7 +23,7 @@ function KeypadButton({
   disabled = false,
 }: KeypadButtonProps) {
   const baseClasses =
-    'flex min-h-12 min-w-12 items-center justify-center rounded-xl text-xl font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
+    'flex min-h-8 min-w-8 items-center justify-center rounded-xl text-xl font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
 
   const variantClasses = {
     number: 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm',
@@ -54,7 +54,7 @@ export default function NumberPad({
   const variables = ['x', 'y', 'π'];
 
   return (
-    <div className="mx-auto w-full max-w-sm">
+    <div className="mx-auto w-full">
       <div className="grid grid-cols-4 gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg">
         {/* Row 1: Numbers 1-3 + Clear */}
         {numbers.slice(0, 3).map((number) => (

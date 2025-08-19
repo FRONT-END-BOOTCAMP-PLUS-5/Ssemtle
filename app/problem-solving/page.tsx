@@ -241,7 +241,7 @@ export default function ProblemSolvingPage() {
   // Check authentication and loading state
   if (status === 'loading') {
     return (
-      <div className="mx-auto min-h-screen">
+      <div className="mx-auto">
         <div className="flex h-96 items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
             <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
@@ -254,7 +254,7 @@ export default function ProblemSolvingPage() {
 
   if (!session?.user?.id) {
     return (
-      <div className="mx-auto min-h-screen">
+      <div className="mx-auto">
         <div className="flex h-96 items-center justify-center">
           <div className="text-gray-600">로그인이 필요합니다</div>
         </div>

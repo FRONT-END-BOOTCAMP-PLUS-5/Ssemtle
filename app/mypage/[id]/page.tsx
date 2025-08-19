@@ -211,63 +211,68 @@ export default function MyPage() {
         </div>
 
         {/* 캘린더 + (데스크톱) 우측 패널 */}
-        <div className="mt-6 flex grid-cols-1 justify-center gap-4 md:grid-cols-[1fr_480px] md:gap-6">
-          {/* 캘린더 */}
-          <div className="flex justify-center">
-            <CalendarComponent
-              onChange={handleDayClick}
-              onMonthChange={handleMonthChange}
-              attendanceMap={attendanceMap ?? {}}
-              resultsMap={resultsMap ?? {}}
-            />
-          </div>
 
-          {/* 데스크톱 우측 패널: 항상 보이게 */}
-          <aside className="hidden md:block">
-            <div className="sticky top-16">
-              <div className="max-h-[calc(100vh-21rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
-                    {selectedDate ?? '날짜를 선택하세요'}
+        <div className="mt-6 flex justify-center">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[480px_480px] md:gap-6">
+            {/* 캘린더 */}
+            <div className="flex shrink-0 justify-center">
+              <CalendarComponent
+                onChange={handleDayClick}
+                onMonthChange={handleMonthChange}
+                attendanceMap={attendanceMap ?? {}}
+                resultsMap={resultsMap ?? {}}
+              />
+            </div>
+
+            {/* 데스크톱 우측 패널: 항상 보이게 */}
+            <aside className="hidden w-[480px] shrink-0 md:block">
+              <div className="sticky top-16">
+                <div className="max-h-[calc(100vh-21rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                      {selectedDate ?? '날짜를 선택하세요'}
+                    </div>
+                    {selectedDate && (
+                      <button
+                        onClick={() => setSelectedDate(null)}
+                        className="text-xs text-gray-500 hover:underline"
+                      >
+                        선택 해제
+                      </button>
+                    )}
                   </div>
-                  {selectedDate && (
-                    <button
-                      onClick={() => setSelectedDate(null)}
-                      className="text-xs text-gray-500 hover:underline"
-                    >
-                      선택 해제
-                    </button>
+
+                  {selectedDate &&
+                    Object.keys(solvesByCategory).length === 0 && (
+                      <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
+                        해당 날짜에는 풀이 기록이 없습니다.
+                      </div>
+                    )}
+
+                  {selectedDate &&
+                    Object.entries(solvesByCategory).map(
+                      ([category, solves]) => (
+                        <div
+                          key={category}
+                          role="button"
+                          onClick={() => goSolvePage(category)}
+                          className="mx-auto mb-3 flex w-full cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
+                        >
+                          <TestCard solves={solves} category={category} />
+                        </div>
+                      )
+                    )}
+
+                  {!selectedDate && (
+                    <div className="text-sm text-gray-500">
+                      캘린더에서 날짜를 선택하면 이곳에 카드가 표시됩니다.
+                    </div>
                   )}
                 </div>
-
-                {selectedDate && Object.keys(solvesByCategory).length === 0 && (
-                  <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
-                    해당 날짜에는 풀이 기록이 없습니다.
-                  </div>
-                )}
-
-                {selectedDate &&
-                  Object.entries(solvesByCategory).map(([category, solves]) => (
-                    <div
-                      key={category}
-                      role="button"
-                      onClick={() => goSolvePage(category)}
-                      className="mx-auto mb-3 flex w-full cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
-                    >
-                      <TestCard solves={solves} category={category} />
-                    </div>
-                  ))}
-
-                {!selectedDate && (
-                  <div className="text-sm text-gray-500">
-                    캘린더에서 날짜를 선택하면 이곳에 카드가 표시됩니다.
-                  </div>
-                )}
               </div>
-            </div>
-          </aside>
+            </aside>
+          </div>
         </div>
-
         {/* 본인 계정일 때만 계정 설정 버튼 */}
         {session?.user.userId === userData?.userId && (
           <div className="mt-6 flex justify-center">

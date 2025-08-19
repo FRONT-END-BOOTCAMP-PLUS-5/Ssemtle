@@ -50,7 +50,7 @@ export default function BarChartComponent({
 }) {
   return (
     <div className={`w-full max-w-xl ${className}`}>
-      <div className="h-[280px] p-4 backdrop-blur sm:h-[340px] sm:p-6">
+      <div className="h-[280px] p-4 sm:h-[340px] sm:p-6">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
@@ -60,7 +60,7 @@ export default function BarChartComponent({
             <XAxis dataKey="subject" tick={{ fontSize: 12 }} />
             <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" fill="rgb(14, 165, 233)" />{' '}
+            <Bar dataKey="value" fill="rgb(124, 58, 237)" />{' '}
             {/* tailwind sky-500 */}
           </BarChart>
         </ResponsiveContainer>

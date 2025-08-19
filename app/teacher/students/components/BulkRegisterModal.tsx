@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePosts } from '@/hooks/usePosts';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
@@ -24,6 +24,12 @@ export default function BulkRegisterModal({
   const { data: session } = useSession();
   const [studentNames, setStudentNames] = useState<string>('');
 
+  useEffect(() => {
+    if (isOpen) {
+      setStudentNames('');
+    }
+  }, [isOpen]);
+
   const { mutate: bulkRegister, isPending } = usePosts<
     BulkRegisterRequest,
     StudentDto
@@ -41,7 +47,6 @@ export default function BulkRegisterModal({
     },
   });
 
-  // ABOUTME: 일괄 등록 실행
   const handleSubmit = () => {
     if (!session?.user?.id) {
       alert('로그인이 필요합니다.');
@@ -74,6 +79,11 @@ export default function BulkRegisterModal({
         <div className="flex flex-col items-start justify-start gap-4 self-stretch px-2">
           <div className="flex flex-col items-start justify-start gap-2 self-stretch">
             <div className="flex flex-col items-start justify-start gap-2 self-stretch rounded-md">
+              <div className="mb-3 flex self-stretch rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <span className="flex text-sm font-semibold text-blue-800">
+                  모든 학생의 초기 비밀번호: 1234
+                </span>
+              </div>
               <div className="bg-Component---Fill outline-Component---Border inline-flex h-12 items-center justify-start gap-2 self-stretch overflow-hidden rounded-lg px-3 py-2.5 outline outline-1 outline-offset-[-1px]">
                 <input
                   type="text"

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGets } from '@/hooks/useGets';
 import { useSession } from 'next-auth/react';
+import { usePagination } from '@/hooks/usePagination';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import BulkRegisterModal from './components/BulkRegisterModal';
 import RegisterModal from './components/RegisterModal';
@@ -17,8 +18,6 @@ interface StudentsResponse {
   students: StudentDto[];
   total: number;
 }
-
-const ITEMS_PER_PAGE = 7;
 
 function useStudentData(sessionId: string | undefined) {
   return useGets<StudentsResponse>(
@@ -48,7 +47,6 @@ export default function StudentManagementPage() {
 
   const [isBulkRegisterOpen, setIsBulkRegisterOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
   const {
@@ -71,16 +69,10 @@ export default function StudentManagementPage() {
         student.userId.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
-
-  const paginatedStudents = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredStudents.slice(startIndex, endIndex);
-  }, [filteredStudents, currentPage]);
-
-  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
-
-  const handlePageChange = (page: number) => setCurrentPage(page);
+  const { currentPage, totalPages, currentData, goToPage } = usePagination({
+    data: filteredStudents,
+    itemsPerPage: 7,
+  });
 
   const handleBulkRegister = () => setIsBulkRegisterOpen(true);
   const handleBulkRegisterSuccess = () => refetch();
@@ -98,7 +90,7 @@ export default function StudentManagementPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1);
+    goToPage(1);
   };
 
   if (status === 'loading') {
@@ -128,16 +120,12 @@ export default function StudentManagementPage() {
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[1200px] lg:px-8 lg:py-16">
         <div className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight text-neutral-500">
-            학생관리
+            학생 관리
           </h1>
         </div>
 
         <div className="mb-8 flex flex-col gap-4 md:flex-col md:items-center md:items-end md:justify-between md:justify-end lg:flex-row lg:justify-between">
-          <SearchInput
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="학생 이름을 검색하세요"
-          />
+          <SearchInput value={searchTerm} onChange={handleSearchChange} />
           <ActionButtons
             onBulkRegister={handleBulkRegister}
             onRegister={handleRegister}
@@ -148,7 +136,7 @@ export default function StudentManagementPage() {
           <div className="hidden lg:block">
             <TableHeader />
             <StudentTable
-              students={paginatedStudents}
+              students={currentData}
               onRefetch={refetch}
               onViewAnalysis={handleViewAnalysis}
               onViewWorkbook={handleViewWorkbook}
@@ -159,7 +147,7 @@ export default function StudentManagementPage() {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={handlePageChange}
+                  onPageChange={goToPage}
                   className="mt-4"
                 />
               </div>
@@ -168,7 +156,7 @@ export default function StudentManagementPage() {
 
           <div className="lg:hidden">
             <StudentTable
-              students={paginatedStudents}
+              students={currentData}
               onRefetch={refetch}
               onViewAnalysis={handleViewAnalysis}
               onViewWorkbook={handleViewWorkbook}
@@ -179,8 +167,10 @@ export default function StudentManagementPage() {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={handlePageChange}
+                  onPageChange={goToPage}
                   className="mt-4"
+                  maxVisiblePages={4}
+                  showFirstLast={true}
                 />
               </div>
             )}

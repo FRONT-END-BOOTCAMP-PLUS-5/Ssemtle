@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePuts } from '@/hooks/usePuts';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
@@ -23,6 +23,12 @@ export default function RegisterModal({
 }: RegisterModalProps) {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setUserId('');
+    }
+  }, [isOpen]);
 
   const { mutate: registerStudent, isPending } = usePuts<
     RegisterRequest,

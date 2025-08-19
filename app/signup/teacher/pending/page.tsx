@@ -2,10 +2,7 @@ import Link from 'next/link';
 
 export default function TeacherPendingPage() {
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: 'rgb(254,247,255)' }}
-    >
+    <div style={{ backgroundColor: 'rgb(254,247,255)' }}>
       <div className="flex min-h-[calc(100vh-3rem)] flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="rounded-2xl bg-white/90 px-8 py-12 text-center shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">

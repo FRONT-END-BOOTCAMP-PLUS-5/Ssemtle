@@ -4,6 +4,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { TeacherAuthListResponseDto } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import TeacherAuthCard from './components/TeacherAuthCard';
 import Pagination from '@/app/_components/pagination/Pagination';
+import DataStateHandler from '@/app/_components/admin-loading/DataStateHandler';
 
 export default function ApprovalListPage() {
   const {
@@ -36,28 +37,15 @@ export default function ApprovalListPage() {
       <div className="w-full max-w-[430px] md:max-w-[820px] lg:max-w-[1440px]">
         <div className="flex">
           <div className="flex-1">
-            {isLoading ? (
-              <div className="flex h-full flex-col items-center justify-center">
-                <div className="text-lg font-semibold text-gray-600">
-                  선생님 승인 목록을 불러오는 중...
-                </div>
-              </div>
-            ) : isError ? (
-              <div className="flex h-full flex-col items-center justify-center">
-                <div className="mb-4 text-lg font-semibold text-red-600 lg:mb-4">
-                  데이터를 불러오는데 실패했습니다
-                </div>
-                <div className="mb-4 text-sm text-gray-600">
-                  {error?.message || '서버 오류가 발생했습니다.'}
-                </div>
-              </div>
-            ) : allTeacherAuths.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center">
-                <div className="text-lg font-semibold text-gray-600">
-                  승인 대기 중인 선생님이 없습니다
-                </div>
-              </div>
-            ) : (
+            <DataStateHandler
+              isLoading={isLoading}
+              isError={isError}
+              error={error}
+              isEmpty={allTeacherAuths.length === 0}
+              loadingMessage="선생님 승인 목록을 불러오는 중..."
+              errorMessage="데이터를 불러오는데 실패했습니다"
+              emptyMessage="승인 대기 중인 선생님이 없습니다"
+            >
               <div className="flex flex-col items-center">
                 <div className="mb-4 w-full md:mt-16 lg:pl-3 xl:ml-16">
                   <div className="mb-8 text-center text-4xl text-[32px] font-semibold tracking-tight text-neutral-500 md:text-[36px] lg:pl-3 xl:ml-8 xl:text-left xl:text-[32px]">
@@ -93,7 +81,7 @@ export default function ApprovalListPage() {
                   </div>
                 )}
               </div>
-            )}
+            </DataStateHandler>
           </div>
         </div>
       </div>

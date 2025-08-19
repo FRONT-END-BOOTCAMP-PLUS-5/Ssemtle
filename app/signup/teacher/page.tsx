@@ -2,10 +2,7 @@ import TeacherSignUpForm from '@/app/_components/auth/TeacherSignUpForm';
 
 export default function TeacherSignUpPage() {
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: 'rgb(254,247,255)' }}
-    >
+    <div className="mx-auto flex min-h-screen">
       <div className="flex min-h-[calc(100vh-3rem)] flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <div className="mb-8 text-center">

@@ -23,7 +23,7 @@ function KeypadButton({
   disabled = false,
 }: KeypadButtonProps) {
   const baseClasses =
-    'flex min-h-12 min-w-12 items-center justify-center rounded-xl text-xl font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
+    'flex min-h-8 min-w-8 items-center justify-center rounded-xl text-xl font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
 
   const variantClasses = {
     number: 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm',

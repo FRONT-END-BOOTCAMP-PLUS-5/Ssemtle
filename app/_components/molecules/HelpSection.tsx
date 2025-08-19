@@ -72,14 +72,6 @@ export default function HelpSection({
           </div>
         </div>
       )}
-
-      {/* Progress Indicator */}
-      <div className="mt-4 w-full rounded-xl bg-surface p-4 text-center transition-colors">
-        <p className="text-md font-extrabold text-gray-600">도움말</p>
-        <div className="mt-2 flex items-center justify-center space-x-2">
-          <span className="text-sm text-gray-500">분수 표기법 → 1/3 →¼</span>
-        </div>
-      </div>
     </div>
   );
 }

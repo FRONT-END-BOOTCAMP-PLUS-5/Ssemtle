@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import PracticePageContent from '@/app/_components/practice/PracticePageContent';
+import PracticePageContent from '@/app/_components/templates/PracticePageContent';
 
 function PracticePageFallback() {
   return (

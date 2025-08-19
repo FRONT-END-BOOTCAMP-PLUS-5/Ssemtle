@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IoChevronBack } from 'react-icons/io5';
 import PracticeInterface from '@/app/_components/organisms/PracticeInterface';
 import { useGets } from '@/hooks/useGets';
 import { SolveResponseDto } from '@/backend/solves/dtos/SolveDto';
@@ -198,7 +197,7 @@ export default function PracticePageContent() {
   // Check authentication and loading state
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="flex items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -209,7 +208,7 @@ export default function PracticePageContent() {
 
   if (!session?.user?.id) {
     return (
-      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="mb-4 text-gray-600">로그인이 필요합니다</p>
           <button
@@ -226,7 +225,7 @@ export default function PracticePageContent() {
   // Show loading state
   if (unitsLoading) {
     return (
-      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -238,7 +237,7 @@ export default function PracticePageContent() {
   // Handle missing or invalid unit parameter
   if (!unitId || isNaN(unitId) || (!unitsLoading && !currentUnit)) {
     return (
-      <div className="mx-auto flex min-h-screen items-center justify-center bg-[var(--color-background)]">
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
             {!unitId || isNaN(unitId)
@@ -257,24 +256,8 @@ export default function PracticePageContent() {
   }
 
   return (
-    <div className="mx-auto min-h-screen w-full">
+    <div className="mx-auto w-full">
       <div className="container mx-auto px-4 tablet:px-24 tablet:py-6">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-200"
-          >
-            <IoChevronBack className="h-6 w-6 text-gray-700" />
-          </button>
-
-          <h1 className="text-lg font-bold text-gray-800">문제 연습</h1>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-            <div className="h-6 w-6 rounded-full bg-purple-300"></div>
-          </div>
-        </div>
-
         {/* Practice Interface */}
         <PracticeInterface
           userName={session.user.name || ''}

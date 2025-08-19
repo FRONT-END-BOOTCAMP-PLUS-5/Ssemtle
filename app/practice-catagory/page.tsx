@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import CategoryCard from './components/categoryCard';
 import ProgressBar from './components/ProgressBar';
 import SearchInput from './components/SearchInput';
@@ -15,6 +15,44 @@ const CATEGORY_GROUPS = [
 const PracticeCategoryPage = () => {
   const [searchInput, setSearchInput] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
+  const [attendance, setAttendance] = useState<{
+    remainingCount: number;
+    solvedCount: number;
+    targetCount: number;
+    progressPercent: number;
+  } | null>(null);
+  const [attendanceError, setAttendanceError] = useState<string | null>(null);
+
+  // 오늘 출석 데이터 로드
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/attendances/today', {
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          throw new Error('출석 정보를 불러오지 못했습니다.');
+        }
+        const data = await res.json();
+        if (isMounted) {
+          setAttendance({
+            remainingCount: data.remainingCount,
+            solvedCount: data.solvedCount,
+            targetCount: data.targetCount,
+            progressPercent: data.progressPercent,
+          });
+        }
+      } catch (e) {
+        console.error(e);
+        if (isMounted)
+          setAttendanceError('출석 정보를 불러오는 중 오류가 발생했습니다.');
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredNames = useMemo(() => {
     const q = submittedQuery.trim();
@@ -35,11 +73,25 @@ const PracticeCategoryPage = () => {
       {/* 학습 진도 그래프 section */}
       <div className="mb-5 flex flex-col">
         <div className="flex justify-between max-[680px]:flex-col">
-          <div className="text-xl">출석까지 4문제 남았어요!</div>
-          <div className="text-xl">6/10 문제</div>
+          {attendance ? (
+            <>
+              <div className="text-xl">
+                출석까지 {attendance.remainingCount}문제 남았어요!
+              </div>
+              <div className="text-xl">
+                {attendance.solvedCount}/{attendance.targetCount} 문제
+              </div>
+            </>
+          ) : attendanceError ? (
+            <div className="text-sm text-red-500">{attendanceError}</div>
+          ) : (
+            <div className="text-sm text-gray-500">
+              출석 정보를 불러오는 중...
+            </div>
+          )}
         </div>
         <div className="mt-2">
-          <ProgressBar progress={60} />
+          <ProgressBar progress={attendance ? attendance.progressPercent : 0} />
         </div>
       </div>
       {/* 학습 카테고리 section */}

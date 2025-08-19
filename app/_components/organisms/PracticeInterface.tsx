@@ -125,7 +125,7 @@ export default function PracticeInterface({
   }
 
   return (
-    <div className="mx-auto flex w-full flex-col space-y-6 tablet:flex-row tablet:justify-center-safe tablet:gap-12">
+    <div className="mx-auto flex w-full flex-col space-y-6 tablet:flex-row tablet:justify-end tablet:gap-12">
       <div className="flex w-full flex-col space-y-6 tablet:w-auto">
         {/* Problem Display */}
         <ProblemDisplay

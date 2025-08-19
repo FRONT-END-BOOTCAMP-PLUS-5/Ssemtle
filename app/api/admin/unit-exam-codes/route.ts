@@ -29,6 +29,7 @@ export async function GET() {
       code: string;
       createdAt: Date;
       categories: string[];
+      problemCount: number;
     }>;
     for (const e of exams) {
       const code = e.code;
@@ -51,7 +52,13 @@ export async function GET() {
       }
 
       const categories = names.map((n) => n.name).filter(Boolean);
-      unitExams.push({ code, createdAt: e.createdAt, categories });
+      const problemCount = qRows.length;
+      unitExams.push({
+        code,
+        createdAt: e.createdAt,
+        categories,
+        problemCount,
+      });
     }
 
     return NextResponse.json({

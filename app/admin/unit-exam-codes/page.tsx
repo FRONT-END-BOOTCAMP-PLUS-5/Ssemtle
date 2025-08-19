@@ -5,13 +5,19 @@ import Pagination from '@/app/_components/pagination/Pagination';
 import SearchInput from '@/app/teacher/student/components/SearchInput';
 import TableHeader from './components/TableHeader';
 import UnitExamCodeTable from './components/UnitExamCodeTable';
+import ProblemsModal from '@/app/admin/unit-exam-codes/components/ProblemsModal';
 import CreateUnitExamModal from './components/CreateUnitExamModal';
 import { useGets } from '@/hooks/useGets';
 
 interface UnitExamListResponse {
   success: boolean;
   data: {
-    unitExams: Array<{ code: string; categories: string[]; createdAt: string }>;
+    unitExams: Array<{
+      code: string;
+      categories: string[];
+      createdAt: string;
+      problemCount: number;
+    }>;
     total: number;
   };
 }
@@ -19,6 +25,8 @@ interface UnitExamListResponse {
 export default function UnitExamCodesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isProblemsOpen, setIsProblemsOpen] = useState(false);
+  const [problemsForCode, setProblemsForCode] = useState<string>('');
 
   const { data, isLoading, isError, refetch } = useGets<UnitExamListResponse>(
     ['admin-unit-exam-codes'],
@@ -35,6 +43,7 @@ export default function UnitExamCodesPage() {
       id: String(idx + 1),
       code: r.code,
       category: r.categories.join(', '),
+      problemCount: r.problemCount,
       createdAt:
         r.createdAt?.toString()?.slice(0, 10)?.replace(/-/g, '.') ?? '',
     }));
@@ -111,6 +120,10 @@ export default function UnitExamCodesPage() {
               <UnitExamCodeTable
                 items={currentData}
                 onDelete={(id: string) => alert('삭제 준비 중: ' + id)}
+                onOpenProblems={(code: string) => {
+                  setProblemsForCode(code);
+                  setIsProblemsOpen(true);
+                }}
               />
             )}
 
@@ -162,6 +175,11 @@ export default function UnitExamCodesPage() {
         isOpen={isCreateOpen}
         onClose={handleCloseCreate}
         onCreate={handleCreate}
+      />
+      <ProblemsModal
+        isOpen={isProblemsOpen}
+        code={problemsForCode}
+        onClose={() => setIsProblemsOpen(false)}
       />
     </div>
   );

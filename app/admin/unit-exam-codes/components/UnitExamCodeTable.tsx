@@ -4,17 +4,20 @@ interface UnitExamCodeDto {
   id: string; // UI용 row id (index 기반)
   code: string; // 실제 삭제 등 키로 사용
   category: string;
+  problemCount: number;
   createdAt: string;
 }
 
 interface UnitExamCodeTableProps {
   items: UnitExamCodeDto[];
   onDelete: (code: string) => void;
+  onOpenProblems?: (code: string) => void;
 }
 
 export default function UnitExamCodeTable({
   items,
   onDelete,
+  onOpenProblems,
 }: UnitExamCodeTableProps) {
   // 항목이 없을 경우 표준 빈 상태 표시
   if (items.length === 0) {
@@ -31,11 +34,16 @@ export default function UnitExamCodeTable({
         {items.map((item) => (
           <div
             key={item.id}
-            className="grid grid-cols-4 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
+            className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
           >
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
                 {item.code}
+              </span>
+            </div>
+            <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
+              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+                {item.problemCount}
               </span>
             </div>
             <div className="flex items-start px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
@@ -44,11 +52,21 @@ export default function UnitExamCodeTable({
               </span>
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
+              <button
+                className="rounded-md border border-neutral-300 px-2 py-1 text-[10px] font-semibold text-neutral-700 hover:bg-neutral-50 md:text-xs"
+                onClick={() => onOpenProblems?.(item.code)}
+                aria-label="문제 보기"
+              >
+                문제 보기
+              </button>
+            </div>
+            <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
                 {item.createdAt}
               </span>
             </div>
-            <div className="flex items-center justify-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
+            {/* 삭제 버튼 영역 제거 또는 우측 정렬로 이동 필요 시 재도입 */}
+            {/* <div className="flex items-center justify-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <button
                 onClick={() => onDelete(item.code)}
                 className="flex h-4 w-4 items-center justify-center text-rose-500 transition-colors hover:text-rose-600 sm:h-5 sm:w-5 md:h-6 md:w-6"
@@ -68,7 +86,7 @@ export default function UnitExamCodeTable({
                   />
                 </svg>
               </button>
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
@@ -80,8 +98,20 @@ export default function UnitExamCodeTable({
               <div className="text-sm font-bold text-neutral-700">
                 {item.code}
               </div>
+              <div className="mt-1 text-xs text-neutral-700">
+                문항 수: {item.problemCount}
+              </div>
               <div className="text-xs break-words whitespace-pre-wrap text-neutral-500">
                 {item.category}
+              </div>
+              <div className="mt-2">
+                <button
+                  className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
+                  onClick={() => onOpenProblems?.(item.code)}
+                  aria-label="문제 보기"
+                >
+                  문제 보기
+                </button>
               </div>
               <div className="text-xs text-neutral-500">{item.createdAt}</div>
             </div>

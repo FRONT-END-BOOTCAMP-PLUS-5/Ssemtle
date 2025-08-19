@@ -52,3 +52,54 @@ export async function DELETE(
     );
   }
 }
+
+// GET /api/admin/unit-exam-codes/[code]
+// - 단원평가 코드의 문제/정답 목록 조회 (관리자/해당 교사만)
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ code: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const { code } = await ctx.params;
+    const unitCode = code?.toString().trim().toUpperCase();
+    if (!unitCode || unitCode.length !== 6) {
+      return NextResponse.json(
+        { success: false, error: '유효한 코드가 아닙니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 소유권 검증
+    const exam = await prisma.unitExam.findUnique({
+      where: { code: unitCode },
+    });
+    if (!exam || exam.teacherId !== session.user.id) {
+      return NextResponse.json(
+        { success: false, error: '조회 권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
+    const rows = await prisma.unitQuestion.findMany({
+      where: { unitCode: unitCode },
+      select: { id: true, question: true, answer: true, helpText: true },
+      orderBy: { id: 'asc' },
+    });
+
+    return NextResponse.json({ success: true, data: { problems: rows } });
+  } catch (e) {
+    console.error('[GET /api/admin/unit-exam-codes/[code]] error:', e);
+    return NextResponse.json(
+      { success: false, error: '문제 조회 중 오류가 발생했습니다.' },
+      { status: 500 }
+    );
+  }
+}

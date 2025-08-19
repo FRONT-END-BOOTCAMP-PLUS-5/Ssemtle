@@ -182,8 +182,6 @@ export default function MyPage() {
 
   const { data: session } = useSession();
 
-  const isCalEmpty = !calendarResp || calendarResp.days.length === 0;
-
   return (
     <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
       <div className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -209,19 +207,11 @@ export default function MyPage() {
           className="mx-auto mt-4 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none"
           onMouseDown={(e) => e.preventDefault()}
         >
-          {calendarResp?.days?.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              아직 문제를 푼 적이 없습니다.
-            </div>
-          ) : (
-            <PerformanceChart data={radarData} />
-          )}
+          <PerformanceChart data={radarData} />
         </div>
 
         {/* 캘린더 + (데스크톱) 우측 패널 */}
-        <div
-          className={`mt-6 grid gap-4 md:gap-6 ${isCalEmpty ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-[1fr_400px]'} `}
-        >
+        <div className="mt-6 flex grid-cols-1 justify-center gap-4 md:grid-cols-[1fr_480px] md:gap-6">
           {/* 캘린더 */}
           <div className="flex justify-center">
             <CalendarComponent
@@ -233,54 +223,49 @@ export default function MyPage() {
           </div>
 
           {/* 데스크톱 우측 패널: 항상 보이게 */}
-          {!isCalEmpty && (
-            <aside className="hidden h-95 overflow-y-scroll md:block">
-              <div className="sticky top-16">
-                <div className="rounded-2xl bg-white p-4 shadow-sm">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      {selectedDate ?? '날짜를 선택하세요'}
-                    </div>
-                    {selectedDate && (
-                      <button
-                        onClick={() => setSelectedDate(null)}
-                        className="text-xs text-gray-500 hover:underline"
-                      >
-                        선택 해제
-                      </button>
-                    )}
+          <aside className="hidden md:block">
+            <div className="sticky top-16">
+              <div className="max-h-[calc(100vh-21rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    {selectedDate ?? '날짜를 선택하세요'}
                   </div>
-
-                  {selectedDate &&
-                    Object.keys(solvesByCategory).length === 0 && (
-                      <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
-                        해당 날짜에는 풀이 기록이 없습니다.
-                      </div>
-                    )}
-
-                  {selectedDate &&
-                    Object.entries(solvesByCategory).map(
-                      ([category, solves]) => (
-                        <div
-                          key={category}
-                          role="button"
-                          onClick={() => goSolvePage(category)}
-                          className="mx-auto mb-3 flex w-full cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
-                        >
-                          <TestCard solves={solves} category={category} />
-                        </div>
-                      )
-                    )}
-
-                  {!selectedDate && (
-                    <div className="text-sm text-gray-500">
-                      캘린더에서 날짜를 선택하면 이곳에 카드가 표시됩니다.
-                    </div>
+                  {selectedDate && (
+                    <button
+                      onClick={() => setSelectedDate(null)}
+                      className="text-xs text-gray-500 hover:underline"
+                    >
+                      선택 해제
+                    </button>
                   )}
                 </div>
+
+                {selectedDate && Object.keys(solvesByCategory).length === 0 && (
+                  <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
+                    해당 날짜에는 풀이 기록이 없습니다.
+                  </div>
+                )}
+
+                {selectedDate &&
+                  Object.entries(solvesByCategory).map(([category, solves]) => (
+                    <div
+                      key={category}
+                      role="button"
+                      onClick={() => goSolvePage(category)}
+                      className="mx-auto mb-3 flex w-full cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
+                    >
+                      <TestCard solves={solves} category={category} />
+                    </div>
+                  ))}
+
+                {!selectedDate && (
+                  <div className="text-sm text-gray-500">
+                    캘린더에서 날짜를 선택하면 이곳에 카드가 표시됩니다.
+                  </div>
+                )}
               </div>
-            </aside>
-          )}
+            </div>
+          </aside>
         </div>
 
         {/* 본인 계정일 때만 계정 설정 버튼 */}

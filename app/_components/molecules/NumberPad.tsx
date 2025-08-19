@@ -54,7 +54,7 @@ export default function NumberPad({
   const variables = ['x', 'y', 'π'];
 
   return (
-    <div className="mx-auto w-full max-w-sm">
+    <div className="mx-auto w-full">
       <div className="grid grid-cols-4 gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-lg">
         {/* Row 1: Numbers 1-3 + Clear */}
         {numbers.slice(0, 3).map((number) => (

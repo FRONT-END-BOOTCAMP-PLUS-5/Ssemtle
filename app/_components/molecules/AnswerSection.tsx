@@ -101,7 +101,7 @@ export default function AnswerSection({
         onClose={() => setIsHelpModalOpen(false)}
       />
 
-      <div className="mx-auto w-full max-w-md">
+      <div className="mx-auto w-full">
         <div className="space-y-4">
           {/* Math Input with integrated buttons */}
           <MathInput

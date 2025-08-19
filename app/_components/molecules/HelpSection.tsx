@@ -19,7 +19,7 @@ export default function HelpSection({
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="mx-auto w-full tablet:min-w-sm">
       {/* Help Text Section - only show after answer submission */}
       {helpText && submitState !== 'initial' && (
         <div className="mb-4">

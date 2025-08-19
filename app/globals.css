@@ -23,8 +23,10 @@ body {
   --color-primary-dark: #4a5d3a;
   --color-secondary: #9bb89a;
   --color-background: #f8f5ff;
+  --color-surface: white;
   --color-text-primary: black;
   --color-text-secondary: white;
+  --color-text-placeholder: #9ca3af;
   --color-error: #e87a74;
   --color-disabled: #a0aec0;
   --color-sidebar: rgb(254,247,255);
@@ -47,9 +49,7 @@ body {
   /* Breakpoint Variant Tokens */
   --breakpoint-tablet: 1180px;
   --breakpoint-desktop: 1440px;
-}
 
-:root {
   /* Button Variant Tokens */
   /* Primary */
   --button-variant-primary-bg: var(--color-primary);
@@ -77,23 +77,23 @@ body {
 
   /* Input Variant Tokens */
   /* Primary */
-  --input-variant-primary-background: var(--color-background);
+  --input-variant-primary-background: var(--color-surface);
   --input-variant-primary-color: var(--color-text-primary);
   --input-variant-primary-border: 1px solid var(--color-primary);
-  --input-variant-primary-placeholder: var(--color-text-secondary);
+  --input-variant-primary-placeholder: var(--color-text-placeholder);
   --input-variant-primary-focus-border: 1.5px solid var(--color-primary-dark);
   --input-variant-primary-focus-box-shadow: 0 0 0 2px var(--color-primary-light);
 
   /* Secondary */
-  --input-variant-secondary-background: var(--color-background);
+  --input-variant-secondary-background: var(--color-surface);
   --input-variant-secondary-color: var(--color-text-secondary);
   --input-variant-secondary-border: 1px solid var(--color-secondary);
-  --input-variant-secondary-placeholder: var(--color-text-secondary);
+  --input-variant-secondary-placeholder: var(--color-text-placeholder);
   --input-variant-secondary-focus-border: 1.5px solid var(--color-secondary);
   --input-variant-secondary-focus-box-shadow: 0 0 0 2px var(--color-secondary);
 
   /* Danger */
-  --input-variant-danger-background: var(--color-background);
+  --input-variant-danger-background: var(--color-surface);
   --input-variant-danger-color: var(--color-error);
   --input-variant-danger-border: 1px solid var(--color-error);
   --input-variant-danger-placeholder: var(--color-error);
@@ -101,17 +101,17 @@ body {
   --input-variant-danger-focus-box-shadow: 0 0 0 2px var(--color-error);
 
   /* Outline */
-  --input-variant-outline-background: var(--color-background);
+  --input-variant-outline-background: var(--color-surface);
   --input-variant-outline-color: var(--color-text-primary);
   --input-variant-outline-border: 2px solid var(--color-primary);
   --input-variant-outline-border-radius: 5px;
-  --input-variant-outline-placeholder: var(--color-text-secondary);
+  --input-variant-outline-placeholder: var(--color-text-placeholder);
   --input-variant-outline-focus-border: 1.5px solid var(--color-primary);
   --input-variant-outline-focus-box-shadow: 0 0 0 2px var(--color-primary-light);
 
   /* Disabled */
-  --input-variant-disabled-background: var(--color-background);
+  --input-variant-disabled-background: var(--color-surface);
   --input-variant-disabled-color: var(--color-text-secondary);
   --input-variant-disabled-border: 1px solid var(--color-text-secondary);
-  --input-variant-disabled-placeholder: var(--color-text-secondary);
+  --input-variant-disabled-placeholder: var(--color-text-placeholder);
 }

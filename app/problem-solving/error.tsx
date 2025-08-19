@@ -18,7 +18,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="mx-auto min-h-screen bg-gray-100">
       <div className="container mx-auto max-w-screen-sm px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <button

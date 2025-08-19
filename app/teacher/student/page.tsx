@@ -13,6 +13,7 @@ import SearchInput from './components/SearchInput';
 import TableHeader from './components/TableHeader';
 import StudentTable from './components/StudentTable';
 import Pagination from '@/app/_components/pagination/Pagination';
+import DataStateHandler from '@/app/_components/admin-loading/DataStateHandler';
 
 interface StudentsResponse {
   students: StudentDto[];
@@ -33,14 +34,6 @@ function useStudentData(sessionId: string | undefined) {
   );
 }
 
-function LoadingState({ message }: { message: string }) {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
-      <div className="text-lg font-semibold text-gray-600">{message}</div>
-    </div>
-  );
-}
-
 export default function StudentManagementPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -53,6 +46,7 @@ export default function StudentManagementPage() {
     data: response,
     isLoading,
     isError,
+    error,
     refetch,
   } = useStudentData(session?.user?.id);
 
@@ -69,6 +63,7 @@ export default function StudentManagementPage() {
         student.userId.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
+
   const { currentPage, totalPages, currentData, goToPage } = usePagination({
     data: filteredStudents,
     itemsPerPage: 7,
@@ -94,22 +89,20 @@ export default function StudentManagementPage() {
   };
 
   if (status === 'loading') {
-    return <LoadingState message="로그인 정보를 확인하는 중..." />;
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
+        <div className="text-lg font-semibold text-gray-600">
+          로그인 정보를 확인하는 중...
+        </div>
+      </div>
+    );
   }
 
   if (status === 'unauthenticated' || !session?.user?.id) {
-    return <LoadingState message="로그인이 필요합니다." />;
-  }
-
-  if (isLoading) {
-    return <LoadingState message="학생 목록을 불러오는 중..." />;
-  }
-
-  if (isError) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F5FF]">
-        <div className="text-lg font-semibold text-red-600">
-          학생 목록을 불러오는데 실패했습니다.
+        <div className="text-lg font-semibold text-gray-600">
+          로그인이 필요합니다.
         </div>
       </div>
     );
@@ -132,50 +125,60 @@ export default function StudentManagementPage() {
           />
         </div>
 
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-          <div className="hidden lg:block">
-            <TableHeader />
-            <StudentTable
-              students={currentData}
-              onRefetch={refetch}
-              onViewAnalysis={handleViewAnalysis}
-              onViewWorkbook={handleViewWorkbook}
-            />
+        <DataStateHandler
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          isEmpty={students.length === 0}
+          loadingMessage="학생 목록을 불러오는 중..."
+          errorMessage="학생 목록을 불러오는데 실패했습니다"
+          emptyMessage="등록된 학생이 없습니다"
+        >
+          <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+            <div className="hidden lg:block">
+              <TableHeader />
+              <StudentTable
+                students={currentData}
+                onRefetch={refetch}
+                onViewAnalysis={handleViewAnalysis}
+                onViewWorkbook={handleViewWorkbook}
+              />
 
-            {totalPages > 1 && (
-              <div className="py-4">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                  className="mt-4"
-                />
-              </div>
-            )}
+              {totalPages > 1 && (
+                <div className="py-4">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    className="mt-4"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="lg:hidden">
+              <StudentTable
+                students={currentData}
+                onRefetch={refetch}
+                onViewAnalysis={handleViewAnalysis}
+                onViewWorkbook={handleViewWorkbook}
+              />
+
+              {totalPages > 1 && (
+                <div className="py-4">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    className="mt-4"
+                    maxVisiblePages={4}
+                    showFirstLast={true}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-
-          <div className="lg:hidden">
-            <StudentTable
-              students={currentData}
-              onRefetch={refetch}
-              onViewAnalysis={handleViewAnalysis}
-              onViewWorkbook={handleViewWorkbook}
-            />
-
-            {totalPages > 1 && (
-              <div className="py-4">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
-                  className="mt-4"
-                  maxVisiblePages={4}
-                  showFirstLast={true}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+        </DataStateHandler>
       </div>
 
       <BulkRegisterModal

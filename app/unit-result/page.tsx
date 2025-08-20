@@ -15,7 +15,9 @@ type UnitSolveItem = {
 };
 
 // 사용자 단원평가 결과 조회 함수 (React Query용)
-async function fetchMyUnitSolves(code?: string): Promise<UnitSolveItem[]> {
+async function fetchMyUnitSolves(
+  code?: string
+): Promise<{ items: UnitSolveItem[]; codeExists: boolean }> {
   const qs = code ? `?code=${encodeURIComponent(code)}` : '';
   const res = await fetch(`/api/unit-exam/solves${qs}`, { cache: 'no-store' });
   if (!res.ok) {
@@ -31,7 +33,7 @@ async function fetchMyUnitSolves(code?: string): Promise<UnitSolveItem[]> {
     isCorrect: boolean;
     createdAt: string | number | Date;
   }> = Array.isArray(data?.solves) ? data.solves : [];
-  return list.map((s) => ({
+  const items = list.map((s) => ({
     id: s.id,
     question: s.question,
     answer: s.answer,
@@ -40,6 +42,7 @@ async function fetchMyUnitSolves(code?: string): Promise<UnitSolveItem[]> {
     isCorrect: Boolean(s.isCorrect),
     createdAt: new Date(s.createdAt).toISOString(),
   }));
+  return { items, codeExists: Boolean(data?.codeExists) };
 }
 
 // 정답률 및 요약 계산
@@ -77,15 +80,16 @@ const UnitResultPage = () => {
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
   const [code, setCode] = useState<string>('');
   const [codeInput, setCodeInput] = useState<string>('');
+  const [codeExists, setCodeExists] = useState<boolean | null>(null);
 
   const summary = useSummary(items);
   const attemptDate = useAttemptDate(items);
 
-  // URL 파라미터에서 code를 읽어옴 (?code=ABCDEF)
+  // URL 파라미터에서 code를 읽어옴 (?code=ABCDEF-01)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const u = new URL(window.location.href);
-    const c = u.searchParams.get('code') || '';
+    const c = (u.searchParams.get('code') || '').toUpperCase();
     setCode(c);
     setCodeInput(c);
   }, []);
@@ -97,7 +101,10 @@ const UnitResultPage = () => {
   });
 
   useEffect(() => {
-    if (query.isSuccess) setItems(query.data);
+    if (query.isSuccess) {
+      setItems(query.data.items);
+      setCodeExists(query.data.codeExists);
+    }
     if (query.isError) setError('결과를 불러오는 중 오류가 발생했습니다.');
   }, [query.isSuccess, query.isError, query.data]);
 
@@ -163,10 +170,10 @@ const UnitResultPage = () => {
     return <div>불러오는 중...</div>;
   }
 
-  // 코드가 있으나 결과가 비어 있으면: 올바른 코드 입력 유도
+  // 코드가 있으나 결과가 비어 있는 경우: 코드 존재 여부에 따라 분기
   if (code && query.isSuccess && items.length === 0) {
     const retry = () => {
-      const normalized = codeInput.trim();
+      const normalized = codeInput.trim().toUpperCase();
       if (!normalized) {
         setError('코드를 입력해주세요.');
         return;
@@ -180,21 +187,53 @@ const UnitResultPage = () => {
       }
     };
 
+    // 코드가 존재하지 않음
+    if (codeExists === false) {
+      return (
+        <div className="mx-auto w-full max-w-2xl p-6">
+          <div className="rounded-xl border bg-white p-6">
+            <div className="text-lg font-semibold">
+              올바른 코드를 입력해주세요
+            </div>
+            <p className="mt-2 text-sm text-gray-600">
+              입력한 코드에 대한 결과가 없습니다. 코드를 다시 확인해 주세요.
+            </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && retry()}
+                placeholder="예: ABCDEF-01"
+                className="flex-1 rounded border p-3 font-mono"
+              />
+              <button
+                onClick={retry}
+                className="rounded bg-emerald-600 px-5 py-3 text-white hover:bg-emerald-700"
+              >
+                확인
+              </button>
+            </div>
+            {error && <div className="mt-2 text-sm text-rose-600">{error}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    // 코드가 존재하지만, 현재 계정의 제출 내역이 없는 경우
     return (
       <div className="mx-auto w-full max-w-2xl p-6">
         <div className="rounded-xl border bg-white p-6">
-          <div className="text-lg font-semibold">
-            올바른 코드를 입력해주세요
-          </div>
+          <div className="text-lg font-semibold">제출 내역이 없습니다</div>
           <p className="mt-2 text-sm text-gray-600">
-            입력한 코드에 대한 결과가 없습니다. 코드를 다시 확인해 주세요.
+            코드가 존재하지만, 현재 계정으로 제출한 결과가 없습니다. 제출 후
+            다시 확인해 주세요.
           </p>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <input
               value={codeInput}
               onChange={(e) => setCodeInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && retry()}
-              placeholder="예: 단원평가 코드"
+              placeholder="예: ABCDEF-01"
               className="flex-1 rounded border p-3 font-mono"
             />
             <button

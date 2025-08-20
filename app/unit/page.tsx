@@ -74,7 +74,7 @@ const UnitPage = () => {
       // 입력값 검증: 대문자 6글자 또는 ABCDEF-01~60 형식
       const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
       if (!code || !codePattern.test(code)) {
-        alert('코드를 입력해주세요. 예) ABCDEF 또는 ABCDEF-05 (01~60)');
+        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
 
@@ -120,8 +120,10 @@ const UnitPage = () => {
     try {
       const raw = unitCode?.trim();
       const code = raw?.toUpperCase();
-      if (!code || !/^[A-Z]{6}$/.test(code)) {
-        alert('코드를 입력해주세요. 코드는 영어 대문자 6글자입니다.');
+      // 결과 조회 코드는 반드시 ABCDEF-01~60 형식(총 9글자)
+      const resultCodePattern = /^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/;
+      if (!code || !resultCodePattern.test(code)) {
+        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
       router.push(`/unit-result?code=${encodeURIComponent(code)}`);

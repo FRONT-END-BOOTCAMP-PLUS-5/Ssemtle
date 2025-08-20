@@ -227,7 +227,7 @@ export default function MyPage() {
             {/* 데스크톱 우측 패널: 항상 보이게 */}
             <aside className="hidden w-[480px] shrink-0 md:block">
               <div className="sticky top-16">
-                <div className="max-h-[calc(100vh-35rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
+                <div className="h-[360px] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
                       {selectedDate ?? '날짜를 선택하세요'}

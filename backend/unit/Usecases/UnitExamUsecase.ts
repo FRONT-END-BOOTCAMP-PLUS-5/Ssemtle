@@ -627,13 +627,17 @@ export class GetUserUnitSolvesUseCase {
     this.unitSolveRepository = unitSolveRepository;
   }
 
-  async execute(userId: string): Promise<
+  async execute(
+    userId: string,
+    code?: string
+  ): Promise<
     | {
         success: true;
         solves: Array<{
           id: number;
           question: string;
           answer: string;
+          helpText?: string;
           userInput: string;
           isCorrect: boolean;
           createdAt: Date;
@@ -645,12 +649,19 @@ export class GetUserUnitSolvesUseCase {
       if (!userId) {
         return { success: false, error: '유효하지 않은 사용자입니다.' };
       }
-      const rows =
-        await this.unitSolveRepository.findByUserIdWithQuestion(userId);
+      const rows = code
+        ? await this.unitSolveRepository.findByUserIdAndCodeWithQuestion(
+            userId,
+            code
+          )
+        : await this.unitSolveRepository.findByUserIdWithQuestion(userId);
       const solves = rows.map((r) => ({
         id: r.id,
         question: r.question.question,
         answer: r.question.answer,
+        // helpText는 결과 화면에서만 노출
+        helpText: (r as unknown as { question: { helpText?: string } }).question
+          .helpText,
         userInput: r.userInput,
         isCorrect: r.isCorrect,
         createdAt: r.createdAt,

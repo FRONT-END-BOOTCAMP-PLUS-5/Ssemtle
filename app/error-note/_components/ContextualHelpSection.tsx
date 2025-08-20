@@ -11,6 +11,8 @@ interface ErrorNoteProblem {
   correctAnswer: string;
   helpText: string;
   instruction?: string;
+  unitName?: string;
+  videoUrl?: string;
 }
 
 interface ContextualHelpSectionProps {
@@ -36,6 +38,7 @@ export default function ContextualHelpSection({
       return {
         title: '오답노트',
         content: '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.',
+        videoUrl: undefined,
         showContent: false,
       };
     }
@@ -45,6 +48,7 @@ export default function ContextualHelpSection({
         return {
           title: '문제 분석',
           content: `문제: ${currentProblem.question}\n\n이 문제는 ${currentProblem.instruction || '수학 문제'}입니다.\n\n정답: ${currentProblem.correctAnswer}\n당신의 답: ${currentProblem.userAnswer}`,
+          videoUrl: currentProblem.videoUrl,
           showContent: true,
         };
       case 'answer':
@@ -52,12 +56,14 @@ export default function ContextualHelpSection({
           title: '풀이 도움말',
           content:
             currentProblem.helpText || '이 문제에 대한 자세한 설명이 없습니다.',
+          videoUrl: currentProblem.videoUrl,
           showContent: true,
         };
       default:
         return {
           title: '오답노트',
           content: '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.',
+          videoUrl: undefined,
           showContent: false,
         };
     }
@@ -259,6 +265,34 @@ export default function ContextualHelpSection({
           </div>
         )}
       </div>
+
+      {/* Video Section */}
+      {helpContent.videoUrl && helpContent.showContent && (
+        <div className="mb-4">
+          <div className="overflow-hidden rounded-xl bg-gray-800">
+            <div className="bg-gray-700 p-4">
+              <p className="text-sm font-medium text-white">
+                {currentProblem?.unitName
+                  ? `${currentProblem.unitName}에 도움이 되는 링크를 첨부합니다.`
+                  : '도움이 되는 링크를 첨부합니다.'}
+              </p>
+            </div>
+
+            <div className="relative flex aspect-video items-center justify-center bg-gray-900">
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube-nocookie.com/embed/${helpContent.videoUrl}`}
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                style={{ border: 0 }}
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

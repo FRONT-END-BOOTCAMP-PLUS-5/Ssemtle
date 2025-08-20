@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
+import { useGets } from '@/hooks/useGets';
 import ErrorNoteCard from './ErrorNoteCard';
 import VirtualKeyboard from './VirtualKeyboard';
 import ContextualHelpSection from './ContextualHelpSection';
@@ -15,6 +16,7 @@ interface ErrorNoteProblem {
   helpText: string;
   instruction?: string;
   unitName?: string;
+  videoUrl?: string;
 }
 
 interface ErrorNoteInterfaceProps {
@@ -32,6 +34,13 @@ interface SolveItem {
   unitId: number;
   userId: string;
   category: string;
+}
+
+interface UnitVideoResponse {
+  data: {
+    id: number;
+    vidUrl: string;
+  };
 }
 
 export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
@@ -65,6 +74,18 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     }
   );
 
+  // Get the focused problem's unit ID for video loading
+  const focusedProblem = focusedProblemId
+    ? wrongSolves.find((solve) => solve.id.toString() === focusedProblemId)
+    : null;
+
+  // Fetch video URL for the focused problem's unit
+  const { data: videoData } = useGets<UnitVideoResponse>(
+    ['unitVideo', focusedProblem?.unitId],
+    `/unitvidurl/${focusedProblem?.unitId}`,
+    !!focusedProblem?.unitId
+  );
+
   // Transform API data to match our interface
   const wrongProblems: ErrorNoteProblem[] = wrongSolves.map((solve) => ({
     id: solve.id.toString(),
@@ -74,6 +95,10 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     helpText: solve.helpText || 'No help text available',
     instruction: undefined, // Not available in the API response
     unitName: solve.category, // Using category as unit name for now
+    videoUrl:
+      focusedProblemId === solve.id.toString() && videoData?.data?.vidUrl
+        ? videoData.data.vidUrl
+        : undefined,
   }));
 
   // Intersection observer for infinite scroll - using the better pattern

@@ -46,6 +46,17 @@ export async function DELETE(
       );
     }
 
+    // 응시 시도 내역이 존재하면 삭제 불가
+    const attemptsCount = await prisma.unitExamAttempt.count({
+      where: { unitExamId: exam.id },
+    });
+    if (attemptsCount > 0) {
+      return NextResponse.json(
+        { success: false, error: '응시 내역이 있어 삭제할 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
     // 이미 응시(UnitSolve)가 존재하면 삭제 불가
     const baseForCheck = unitCode.slice(0, 6);
     const solvesCount = await prisma.unitSolve.count({

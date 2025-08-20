@@ -19,6 +19,7 @@ interface UnitExamListResponse {
       categories: string[];
       createdAt: string;
       problemCount: number;
+      timerMinutes?: number | null;
     }>;
     total: number;
   };
@@ -46,6 +47,7 @@ export default function UnitExamCodesPage() {
       code: r.code,
       category: r.categories.join(', '),
       problemCount: r.problemCount,
+      timerMinutes: r.timerMinutes ?? null,
       createdAt:
         r.createdAt?.toString()?.slice(0, 10)?.replace(/-/g, '.') ?? '',
     }));

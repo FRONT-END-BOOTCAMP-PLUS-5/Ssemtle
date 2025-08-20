@@ -6,6 +6,8 @@ export interface GenerateUnitExamRequestDto {
   selectedUnits: Array<{ unitId: number; unitName: string }>;
   questionCount: number;
   teacherId?: string; // 선택적으로 교사 ID 포함
+  // 시험 제한 시간(분). 1~60 사이. 제공되면 생성되는 코드 뒤에 -01~-60 형태로 부여
+  timerMinutes?: number;
   // 하위 호환을 위해 기존 categories를 남겨두되 사용하지 않음
   categories?: string[];
 }

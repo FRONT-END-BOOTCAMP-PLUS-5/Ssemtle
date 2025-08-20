@@ -41,6 +41,7 @@ export default function CreateUnitExamModal({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [questionCount, setQuestionCount] = useState<number>(5);
+  const [timerMinutes, setTimerMinutes] = useState<number>(1);
   // 생성 요청 상태는 react-query 훅에서 관리
   const isQuestionCountInvalid = questionCount < selected.size;
 
@@ -48,6 +49,7 @@ export default function CreateUnitExamModal({
   type CreateUnitExamRequest = {
     selectedUnits: { unitId: number; unitName: string }[];
     questionCount: number;
+    timerMinutes?: number;
   };
   type CreateUnitExamResponse = {
     success: boolean;
@@ -135,6 +137,7 @@ export default function CreateUnitExamModal({
         unitName: u.name,
       })),
       questionCount,
+      timerMinutes,
     };
 
     await createUnitExam({ path: '/unit-exam/generate', postData: payload });
@@ -251,7 +254,7 @@ export default function CreateUnitExamModal({
             })}
         </div>
 
-        {/* 문제 개수 설정 */}
+        {/* 문제 개수 / 타이머 설정 */}
         <div className="mt-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
           <label
             htmlFor="question-count"
@@ -259,7 +262,7 @@ export default function CreateUnitExamModal({
           >
             문제 개수
           </label>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <input
               id="question-count"
               type="number"
@@ -278,6 +281,34 @@ export default function CreateUnitExamModal({
                 선택한 카테고리 수({selected.size}) 이상으로 입력하세요
               </span>
             )}
+
+            {/* 구분선 */}
+            <span className="mx-2 hidden h-6 w-px bg-neutral-300 sm:inline-block" />
+
+            {/* 타이머 설정 */}
+            <label
+              htmlFor="timer-minutes"
+              className="text-sm font-medium text-neutral-700"
+            >
+              타이머
+            </label>
+            <select
+              id="timer-minutes"
+              value={timerMinutes}
+              onChange={(e) =>
+                setTimerMinutes(
+                  Math.min(60, Math.max(1, Number(e.target.value) || 1))
+                )
+              }
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-200 focus:outline-none"
+            >
+              {Array.from({ length: 60 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <span className="text-sm text-neutral-500">분</span>
           </div>
         </div>
 

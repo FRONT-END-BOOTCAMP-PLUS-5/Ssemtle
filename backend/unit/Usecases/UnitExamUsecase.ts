@@ -79,8 +79,9 @@ export class GenerateUnitExamUseCase {
         };
       }
 
-      // 랜덤 코드 생성 (영어 대문자 6글자)
-      const code = this.generateRandomCode();
+      // 랜덤 코드 생성 (영어 대문자 6글자) + 선택적 타이머 suffix
+      const baseCode = this.generateRandomCode();
+      const code = `${baseCode}${this.formatTimerSuffix(request.timerMinutes)}`;
 
       // 코드 중복 체크
       const isDuplicate = await this.unitExamRepository.existsByCode(code);
@@ -91,11 +92,6 @@ export class GenerateUnitExamUseCase {
 
       // AI를 사용하여 문제 생성: 요청 수를 여유분(+5) 포함하여 요청
       const overRequest = request.questionCount + 5;
-      console.log('[UnitExam] 검증 준비 시작', {
-        requested: request.questionCount,
-        overRequest,
-        selectedUnits: request.selectedUnits.map((u) => u.unitName),
-      });
       const aiResult = await this.generateQuestionsWithAI(
         request.selectedUnits,
         overRequest
@@ -118,17 +114,6 @@ export class GenerateUnitExamUseCase {
         aiResult.questions,
         request.selectedUnits
       );
-      console.log('[UnitExam] 1차 검증 샘플', {
-        sample: validated.slice(0, 1).map((q) => ({
-          unitId: q.unitId,
-          question: q.question,
-          answer: q.answer,
-        })),
-      });
-      console.log('[UnitExam] 1차 검증 통과 수', {
-        validated: validated.length,
-        totalFetched: aiResult.questions.length,
-      });
 
       // 부족하면 재시도 한 번 더 수행 (부족한 수 + 5개 재요청)
       if (validated.length < request.questionCount) {
@@ -143,11 +128,6 @@ export class GenerateUnitExamUseCase {
             retry.questions,
             request.selectedUnits
           );
-          console.log('[UnitExam] 재요청 및 검증 결과', {
-            retryRequested: retryCount,
-            retryFetched: retry.questions.length,
-            retryValidated: moreValidated.length,
-          });
           validated.push(
             ...moreValidated.filter(
               (q) => !validated.some((v) => v.question === q.question)
@@ -157,10 +137,6 @@ export class GenerateUnitExamUseCase {
       }
 
       if (validated.length < request.questionCount) {
-        console.warn('[UnitExam] 유효 문제 부족', {
-          need: request.questionCount,
-          have: validated.length,
-        });
         return {
           success: false,
           error: '유효한 문제 수가 부족합니다. 다시 시도해주세요.',
@@ -176,10 +152,6 @@ export class GenerateUnitExamUseCase {
         teacherId,
       });
 
-      // 검증 통과한 문제 중 요청 개수만큼 저장
-      console.log('[UnitExam] 저장 진행', {
-        saveCount: request.questionCount,
-      });
       await this.saveGeneratedQuestions(
         validated.slice(0, request.questionCount),
         code,
@@ -213,6 +185,16 @@ export class GenerateUnitExamUseCase {
     return result;
   }
 
+  // 타이머 접미사 생성: -MM (01~60), 유효하지 않으면 빈 문자열 반환
+  private formatTimerSuffix(timer?: number): string {
+    if (typeof timer !== 'number') return '';
+    const normalized = Math.floor(timer);
+    if (Number.isNaN(normalized) || normalized < 1 || normalized > 60)
+      return '';
+    const mm = normalized < 10 ? `0${normalized}` : String(normalized);
+    return `-${mm}`;
+  }
+
   // 일차방정식 검증 적용: 단원명이 일치하는 경우에만 validator 실행, 그 외 단원은 통과
   private filterValidatedQuestions(
     questions: AIGeneratedQuestion[],
@@ -226,18 +208,8 @@ export class GenerateUnitExamUseCase {
       const name = unitIdToName.get(q.unitId) || '';
       const isLinear = /일차방정식|1차방정식/.test(name);
       if (isLinear && this.linearEquationValidator) {
-        // 디버깅: AI 원본과 기대 정답 출력
-        console.log('[UnitExam][Validate] AI 원본', {
-          unitName: name,
-          question: q.question,
-          expected: q.answer,
-        });
         const res = this.linearEquationValidator.validate(q, name);
-        // 디버깅: 검증 결과와 사유 출력
-        console.log('[UnitExam][Validate] 결과', {
-          isValid: res.isValid,
-          reason: res.reason,
-        });
+
         return res.isValid;
       }
       // 다른 단원은 현재 검증 미적용 → 통과

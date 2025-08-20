@@ -17,7 +17,24 @@ export interface IUnitSolveRepository {
       userInput: string;
       isCorrect: boolean;
       createdAt: Date;
-      question: { question: string; answer: string };
+      question: { question: string; answer: string; helpText?: string };
+    }>
+  >;
+
+  /**
+   * 사용자 + 단원평가 코드로 풀이를 조회합니다.
+   */
+  findByUserIdAndCodeWithQuestion(
+    userId: string,
+    code: string
+  ): Promise<
+    Array<{
+      id: number;
+      questionId: number;
+      userInput: string;
+      isCorrect: boolean;
+      createdAt: Date;
+      question: { question: string; answer: string; helpText?: string };
     }>
   >;
 

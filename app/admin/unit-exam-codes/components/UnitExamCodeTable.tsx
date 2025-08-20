@@ -5,6 +5,7 @@ interface UnitExamCodeDto {
   code: string; // 실제 삭제 등 키로 사용
   category: string;
   problemCount: number;
+  timerMinutes?: number | null;
   createdAt: string;
 }
 
@@ -34,7 +35,7 @@ export default function UnitExamCodeTable({
         {items.map((item) => (
           <div
             key={item.id}
-            className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
+            className="grid grid-cols-6 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
           >
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
@@ -49,6 +50,11 @@ export default function UnitExamCodeTable({
             <div className="flex items-start px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <span className="text-[8px] font-bold break-words whitespace-pre-wrap text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
                 {item.category}
+              </span>
+            </div>
+            <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
+              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+                {item.timerMinutes ? `${item.timerMinutes}분` : '-'}
               </span>
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">

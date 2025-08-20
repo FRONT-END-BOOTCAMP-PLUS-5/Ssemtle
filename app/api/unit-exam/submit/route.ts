@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
       ? body.answers
       : [];
 
-    if (!code || code.length !== 6) {
+    const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+    if (!code || !codePattern.test(code)) {
       return NextResponse.json(
         { success: false, error: '유효한 코드가 아닙니다.' },
         { status: 400 }

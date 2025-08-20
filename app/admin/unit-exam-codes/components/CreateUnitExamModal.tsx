@@ -276,11 +276,6 @@ export default function CreateUnitExamModal({
               className="w-24 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-200 focus:outline-none"
             />
             <span className="text-sm text-neutral-500">개</span>
-            {isQuestionCountInvalid && (
-              <span className="ml-2 text-xs font-medium text-rose-500">
-                선택한 카테고리 수({selected.size}) 이상으로 입력하세요
-              </span>
-            )}
 
             {/* 구분선 */}
             <span className="mx-2 hidden h-6 w-px bg-neutral-300 sm:inline-block" />
@@ -310,6 +305,11 @@ export default function CreateUnitExamModal({
             </select>
             <span className="text-sm text-neutral-500">분</span>
           </div>
+          {isQuestionCountInvalid && (
+            <div className="mt-2 text-xs font-medium break-words whitespace-normal text-rose-500">
+              선택한 카테고리 수({selected.size}) 이상으로 입력하세요
+            </div>
+          )}
         </div>
 
         {/* Footer */}

@@ -19,18 +19,26 @@ export async function DELETE(
 
     const { code } = await ctx.params;
     const unitCode = code?.toString().trim().toUpperCase();
-    if (!unitCode || unitCode.length !== 6) {
+    const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+    if (!unitCode || !codePattern.test(unitCode)) {
       return NextResponse.json(
         { success: false, error: '유효한 코드가 아닙니다.' },
         { status: 400 }
       );
     }
 
-    // 소유권 확인: 해당 교사의 코드인지 검증
-    const exam = await prisma.unitExam.findUnique({
+    // 소유권 확인: 해당 교사의 코드인지 검증 (접미사 포함/미포함 모두 허용)
+    let exam = await prisma.unitExam.findUnique({
       where: { code: unitCode },
-      select: { teacherId: true },
+      select: { id: true, code: true, teacherId: true },
     });
+    if (!exam && unitCode.includes('-')) {
+      const base = unitCode.slice(0, 6);
+      exam = await prisma.unitExam.findUnique({
+        where: { code: base },
+        select: { id: true, code: true, teacherId: true },
+      });
+    }
     if (!exam || exam.teacherId !== session.user.id) {
       return NextResponse.json(
         { success: false, error: '삭제 권한이 없습니다.' },
@@ -39,8 +47,9 @@ export async function DELETE(
     }
 
     // 이미 응시(UnitSolve)가 존재하면 삭제 불가
+    const baseForCheck = unitCode.slice(0, 6);
     const solvesCount = await prisma.unitSolve.count({
-      where: { question: { unitCode: unitCode } },
+      where: { question: { unitCode: { in: [exam.code, baseForCheck] } } },
     });
     if (solvesCount > 0) {
       return NextResponse.json(
@@ -54,11 +63,13 @@ export async function DELETE(
     }
 
     await prisma.$transaction([
-      prisma.unitQuestion.deleteMany({ where: { unitCode: unitCode } }),
-      prisma.unitExam.delete({ where: { code: unitCode } }),
+      prisma.unitQuestion.deleteMany({
+        where: { unitCode: { in: [exam.code, baseForCheck] } },
+      }),
+      prisma.unitExam.delete({ where: { code: exam.code } }),
     ]);
 
-    return NextResponse.json({ success: true, code: unitCode });
+    return NextResponse.json({ success: true, code: exam.code });
   } catch (error) {
     console.error('[DELETE /api/admin/unit-exam-codes/[code]] error:', error);
     return NextResponse.json(
@@ -85,7 +96,8 @@ export async function GET(
 
     const { code } = await ctx.params;
     const unitCode = code?.toString().trim().toUpperCase();
-    if (!unitCode || unitCode.length !== 6) {
+    const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+    if (!unitCode || !codePattern.test(unitCode)) {
       return NextResponse.json(
         { success: false, error: '유효한 코드가 아닙니다.' },
         { status: 400 }
@@ -103,11 +115,20 @@ export async function GET(
       );
     }
 
-    const rows = await prisma.unitQuestion.findMany({
+    // 전체 코드 우선 조회, 없으면 6자리 기본 코드로 조회
+    let rows = await prisma.unitQuestion.findMany({
       where: { unitCode: unitCode },
       select: { id: true, question: true, answer: true, helpText: true },
       orderBy: { id: 'asc' },
     });
+    if (!rows || rows.length === 0) {
+      const base = unitCode.slice(0, 6);
+      rows = await prisma.unitQuestion.findMany({
+        where: { unitCode: base },
+        select: { id: true, question: true, answer: true, helpText: true },
+        orderBy: { id: 'asc' },
+      });
+    }
 
     return NextResponse.json({ success: true, data: { problems: rows } });
   } catch (e) {

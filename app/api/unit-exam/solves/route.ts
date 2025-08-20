@@ -1,11 +1,11 @@
 // ABOUTME: 현재 로그인한 사용자가 푼 단원평가 문제 조회 API
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/libs/prisma';
 import { PrUnitSolveRepository } from '@/backend/common/infrastructures/repositories/PrUnitSolveRepository';
 import { GetUserUnitSolvesUseCase } from '@/backend/unit/Usecases/UnitExamUsecase';
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -17,7 +17,9 @@ export async function GET(): Promise<NextResponse> {
 
     const unitSolveRepository = new PrUnitSolveRepository(prisma);
     const usecase = new GetUserUnitSolvesUseCase(unitSolveRepository);
-    const result = await usecase.execute(session.user.id);
+    const { searchParams } = new URL(req.url);
+    const code = searchParams.get('code') || undefined;
+    const result = await usecase.execute(session.user.id, code);
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },

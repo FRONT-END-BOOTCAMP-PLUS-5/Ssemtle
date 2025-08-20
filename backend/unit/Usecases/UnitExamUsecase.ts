@@ -66,6 +66,19 @@ export class GenerateUnitExamUseCase {
         };
       }
 
+      // 카테고리 수 이하의 문제 개수 불가: 각 카테고리 최소 1문제 배분 전제
+      if (
+        Array.isArray(request.selectedUnits) &&
+        request.selectedUnits.length > 0 &&
+        request.questionCount < request.selectedUnits.length
+      ) {
+        return {
+          success: false,
+          error:
+            '문제 개수는 선택한 카테고리 수 이상이어야 합니다. 문제 개수를 늘려주세요.',
+        };
+      }
+
       // 랜덤 코드 생성 (영어 대문자 6글자)
       const code = this.generateRandomCode();
 

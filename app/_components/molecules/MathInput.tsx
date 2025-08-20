@@ -100,6 +100,7 @@ export default function MathInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
+            readOnly
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
           />
           {value && (

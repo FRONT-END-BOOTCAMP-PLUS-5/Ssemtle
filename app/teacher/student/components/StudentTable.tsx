@@ -46,7 +46,7 @@ export default function StudentTable({
 
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <button
-                onClick={() => onViewAnalysis(student.id)}
+                onClick={() => onViewAnalysis(student.userId)}
                 className="flex h-2 w-8 items-center justify-center rounded bg-slate-500 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-slate-600 sm:h-[16px] sm:w-[68px] sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
               >
                 <span className="hidden sm:inline lg:inline">평가분석</span>
@@ -93,7 +93,7 @@ export default function StudentTable({
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => onViewAnalysis(student.id)}
+                onClick={() => onViewAnalysis(student.userId)}
                 className="flex-1 rounded bg-slate-500 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600"
               >
                 평가분석

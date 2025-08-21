@@ -10,7 +10,7 @@ export type SubmitState = 'initial' | 'correct' | 'incorrect' | 'next';
 interface AnswerSectionProps {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   onNext: () => void;
   submitState: SubmitState;
   wasAnswerCorrect?: boolean;
@@ -88,7 +88,7 @@ export default function AnswerSection({
   const handleButtonClick = () => {
     if (submitState === 'next') {
       onNext();
-    } else if (submitState === 'initial') {
+    } else if (submitState === 'initial' && onSubmit) {
       onSubmit();
     }
   };
@@ -109,7 +109,7 @@ export default function AnswerSection({
             onChange={onChange}
             placeholder={placeholder}
             disabled={disabled || loading}
-            onSubmit={handleButtonClick}
+            onSubmit={onSubmit ? handleButtonClick : undefined}
             onHelp={() => setIsHelpModalOpen(true)}
             submitDisabled={isDisabled}
             submitLoading={loading}

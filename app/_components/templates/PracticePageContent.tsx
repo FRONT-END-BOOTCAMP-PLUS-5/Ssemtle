@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PracticeInterface from '@/app/_components/organisms/PracticeInterface';
 import { useGets } from '@/hooks/useGets';
-import { SolveResponseDto } from '@/backend/solves/dtos/SolveDto';
+import type { SolveResponseDto } from '@/backend/solves/dtos/SolveDto';
 
 interface Problem {
   id: string;

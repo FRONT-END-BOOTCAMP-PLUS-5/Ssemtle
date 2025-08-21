@@ -13,8 +13,12 @@ const SidebarAdmin = () => {
   const pathname = usePathname();
 
   const NAV = [
-    { label: '사용자 추가', href: '/admin/user/add', icon: LuUserRoundPlus },
-    { label: '대시보드', href: '/admin/dashboard', icon: BsFillGridFill },
+    {
+      label: '선생님 허가',
+      href: '/admin/teacher-approval',
+      icon: LuUserRoundPlus,
+    },
+    { label: '카테고리 생성', href: '/admin/unit', icon: BsFillGridFill },
     { label: '로그아웃', href: '/logout', icon: LuLogOut },
   ];
 
@@ -26,7 +30,7 @@ const SidebarAdmin = () => {
   return (
     <>
       <div
-        className="sticky top-[var(--header-h,0px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
+        className="top-[var(--header-h,0px)] flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
         style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
       >
         <HeaderSizeObserver />

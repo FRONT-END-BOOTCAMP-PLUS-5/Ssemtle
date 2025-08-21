@@ -10,15 +10,21 @@ import { FaCircleUser } from 'react-icons/fa6';
 import Icon from './Icons';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 const SidebarUser = () => {
   const pathname = usePathname();
-
+  const { data: session } = useSession();
+  console.log(session?.user.userId);
   const NAV = [
-    { label: '글', href: '/write', icon: FaPen },
-    { label: '책장', href: '/bookshelf', icon: GiBookshelf },
-    { label: '시험', href: '/exam', icon: PiExamLight },
-    { label: '마이페이지', href: `/mypage/dong3`, icon: FaCircleUser },
+    { label: '문제풀기', href: '/write', icon: FaPen },
+    { label: '문제집', href: '/bookshelf', icon: GiBookshelf },
+    { label: '단원평가', href: '/unit', icon: PiExamLight },
+    {
+      label: '마이페이지',
+      href: `/mypage/${session?.user.userId}`,
+      icon: FaCircleUser,
+    },
     { label: '로그아웃', href: '/logout', icon: LuLogOut },
   ];
 

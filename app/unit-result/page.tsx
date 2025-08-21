@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -75,7 +75,8 @@ function useAttemptDate(items: UnitSolveItem[]) {
   }, [items]);
 }
 
-const UnitResultPage = () => {
+// 실제 페이지 내용을 렌더링하는 클라이언트 컴포넌트
+const UnitResultContent = () => {
   const [items, setItems] = useState<UnitSolveItem[]>([]);
   const [error, setError] = useState<string>('');
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
@@ -364,6 +365,15 @@ const UnitResultPage = () => {
         })}
       </div>
     </div>
+  );
+};
+
+// Suspense 경계로 감싸기 위한 상위 컴포넌트
+const UnitResultPage = () => {
+  return (
+    <Suspense fallback={<div>불러오는 중...</div>}>
+      <UnitResultContent />
+    </Suspense>
   );
 };
 

@@ -4,12 +4,29 @@ import CategoryCard from './components/categoryCard';
 import ProgressBar from './components/ProgressBar';
 import SearchInput from './components/SearchInput';
 
-const CATEGORY_GROUPS = [
+type CategoryItem = { name: string; unitId: number };
+type CategoryGroup = { title: string; items: CategoryItem[] };
+
+const CATEGORY_GROUPS: CategoryGroup[] = [
   {
     title: '수와 연산',
-    items: ['소인수 분해', '정수와 유리수', '무리수의 사칙계산'],
+    items: [
+      { name: '소인수분해', unitId: 1 },
+      { name: '정수와유리수의 사칙계산', unitId: 2 },
+    ],
   },
-  { title: '문자와 식', items: ['일차방정식', '지수법칙'] },
+  {
+    title: '문자와 식',
+    items: [
+      { name: '일차식의 덧셈과 뺄셈', unitId: 3 },
+      { name: '일차식의 곱셈과 나눗셈', unitId: 4 },
+      { name: '일차방정식', unitId: 5 },
+      { name: '지수법칙', unitId: 6 },
+      { name: '다항식의 덧셈과 곱셈', unitId: 7 },
+      { name: '인수분해', unitId: 8 },
+      { name: '이차방정식', unitId: 9 },
+    ],
+  },
 ];
 
 const PracticeCategoryPage = () => {
@@ -54,11 +71,11 @@ const PracticeCategoryPage = () => {
     };
   }, []);
 
-  const filteredNames = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const q = submittedQuery.trim();
-    if (!q) return [] as string[];
-    return CATEGORY_GROUPS.flatMap((g) => g.items).filter((name) =>
-      name.includes(q)
+    if (!q) return [] as CategoryItem[];
+    return CATEGORY_GROUPS.flatMap((g) => g.items).filter((item) =>
+      item.name.includes(q)
     );
   }, [submittedQuery]);
 
@@ -96,7 +113,7 @@ const PracticeCategoryPage = () => {
       </div>
       {/* 학습 카테고리 section */}
       <div className="mt-10 flex h-full w-full flex-col gap-10">
-        <div className="flex justify-between text-2xl max-[680px]:flex-col">
+        <div className="flex gap-5 text-2xl max-[680px]:flex-col">
           <div>학습 카테고리</div>
           <SearchInput
             value={searchInput}
@@ -108,10 +125,14 @@ const PracticeCategoryPage = () => {
         {submittedQuery ? (
           <div className="mt-2">
             <div className="text-lg">검색 결과</div>
-            <div className="flex flex-wrap justify-between gap-15 p-10">
-              {filteredNames.length > 0 ? (
-                filteredNames.map((name) => (
-                  <CategoryCard key={`search-${name}`} name={name} />
+            <div className="flex flex-wrap gap-15 p-10">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
+                  <CategoryCard
+                    key={`search-${item.unitId}`}
+                    name={item.name}
+                    unitId={item.unitId}
+                  />
                 ))
               ) : (
                 <div className="text-sm text-gray-500">
@@ -122,23 +143,20 @@ const PracticeCategoryPage = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col">
-              <div className="text-lg">수와 연산</div>
-              <div className="flex flex-wrap justify-between gap-15 p-10">
-                <CategoryCard name="소인수 분해" />
-                <CategoryCard name="정수와 유리수" />
-                <CategoryCard name="무리수의 사칙계산" />
+            {CATEGORY_GROUPS.map((group) => (
+              <div key={group.title} className="flex flex-col">
+                <div className="text-lg">{group.title}</div>
+                <div className="flex flex-wrap gap-15 p-10">
+                  {group.items.map((item) => (
+                    <CategoryCard
+                      key={item.unitId}
+                      name={item.name}
+                      unitId={item.unitId}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-lg">문자와 식</div>
-              <div className="flex flex-wrap justify-between gap-15 p-10">
-                <CategoryCard name="일차방정식" />
-                <CategoryCard name="지수법칙" />
-                <CategoryCard name="지수법칙" />
-                <CategoryCard name="지수법칙" />
-              </div>
-            </div>
+            ))}
           </>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // 단원평가 결과 아이템 타입
 type UnitSolveItem = {
@@ -82,17 +83,19 @@ const UnitResultPage = () => {
   const [codeInput, setCodeInput] = useState<string>('');
   const [codeExists, setCodeExists] = useState<boolean | null>(null);
 
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
   const summary = useSummary(items);
   const attemptDate = useAttemptDate(items);
 
   // URL 파라미터에서 code를 읽어옴 (?code=ABCDEF-01)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const u = new URL(window.location.href);
-    const c = (u.searchParams.get('code') || '').toUpperCase();
+    const c = (searchParams.get('code') || '').toUpperCase();
     setCode(c);
     setCodeInput(c);
-  }, []);
+  }, [searchParams]);
 
   const query = useQuery({
     queryKey: ['unit-result', code],
@@ -131,11 +134,9 @@ const UnitResultPage = () => {
       }
       setError('');
       setCode(normalized);
-      if (typeof window !== 'undefined') {
-        const u = new URL(window.location.href);
-        u.searchParams.set('code', normalized);
-        window.history.replaceState({}, '', u.toString());
-      }
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('code', normalized);
+      router.replace(`${pathname}?${params.toString()}`);
     };
 
     return (
@@ -180,11 +181,9 @@ const UnitResultPage = () => {
       }
       setError('');
       setCode(normalized);
-      if (typeof window !== 'undefined') {
-        const u = new URL(window.location.href);
-        u.searchParams.set('code', normalized);
-        window.history.replaceState({}, '', u.toString());
-      }
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('code', normalized);
+      router.replace(`${pathname}?${params.toString()}`);
     };
 
     // 코드가 존재하지 않음

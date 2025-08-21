@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     // 요청 본문에서 데이터 추출
     const body = await request.json();
-    const { selectedUnits, questionCount } = body;
+    const { selectedUnits, questionCount, timerMinutes } = body;
 
     // 세션에서 교사 ID 추출
     const session = await auth();
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     const result = await generateUnitExamUseCase.execute({
       selectedUnits,
       questionCount,
+      timerMinutes,
       teacherId: session.user.id,
     });
 

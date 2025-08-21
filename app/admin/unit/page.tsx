@@ -13,6 +13,7 @@ import { useDeletes } from '@/hooks/useDeletes';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Pagination from '@/app/_components/pagination/Pagination';
 import { usePagination } from '@/hooks/usePagination';
+import DataStateHandler from '@/app/_components/admin-loading/DataStateHandler';
 
 interface DeleteUnitResponse {
   message: string;
@@ -114,28 +115,15 @@ export default function UnitManagementPage() {
           </button>
         </div>
 
-        {isLoading ? (
-          <div className="flex min-h-[400px] items-center justify-center">
-            <div className="text-lg font-semibold text-gray-600">
-              과목 목록을 불러오는 중...
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center">
-            <div className="mb-4 text-lg font-semibold text-red-600">
-              데이터를 불러오는데 실패했습니다
-            </div>
-            <div className="mb-4 text-sm text-gray-600">
-              {error?.message || '서버 오류가 발생했습니다.'}
-            </div>
-          </div>
-        ) : units.length === 0 ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center">
-            <div className="mb-4 text-lg font-semibold text-gray-600">
-              등록된 과목이 없습니다
-            </div>
-          </div>
-        ) : (
+        <DataStateHandler
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          isEmpty={units.length === 0}
+          loadingMessage="과목 목록을 불러오는 중..."
+          errorMessage="데이터를 불러오는데 실패했습니다"
+          emptyMessage="등록된 과목이 없습니다"
+        >
           <>
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
               {currentData.map((unit) => (
@@ -158,7 +146,7 @@ export default function UnitManagementPage() {
               />
             </div>
           </>
-        )}
+        </DataStateHandler>
       </div>
 
       <CreateUnitModal

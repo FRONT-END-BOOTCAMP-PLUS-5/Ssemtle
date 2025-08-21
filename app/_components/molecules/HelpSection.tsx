@@ -1,24 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { SubmitState } from './AnswerSection';
 
 interface HelpSectionProps {
   helpText: string;
   videoUrl?: string;
   unitName?: string;
+  submitState?: SubmitState;
 }
 
 export default function HelpSection({
   helpText,
   videoUrl,
   unitName,
+  submitState = 'initial',
 }: HelpSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
-    <div className="mx-auto mt-6 w-full max-w-md">
-      {/* Help Text Section */}
-      {helpText && (
+    <div className="mx-auto w-full tablet:min-w-sm">
+      {/* Help Text Section - only show after answer submission */}
+      {helpText && submitState !== 'initial' && (
         <div className="mb-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -69,14 +72,6 @@ export default function HelpSection({
           </div>
         </div>
       )}
-
-      {/* Progress Indicator */}
-      <div className="mt-4 w-full rounded-xl bg-surface p-4 text-center transition-colors">
-        <p className="text-md font-extrabold text-gray-600">도움말</p>
-        <div className="mt-2 flex items-center justify-center space-x-2">
-          <span className="text-sm text-gray-500">분수 표기법 → 1/3 →¼</span>
-        </div>
-      </div>
     </div>
   );
 }

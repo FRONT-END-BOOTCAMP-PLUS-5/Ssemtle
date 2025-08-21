@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 // 단원평가 시작 페이지 컴포넌트
 // - 코드 입력값 유효성 검사 후, TanStack Query(POST 훅)로 검증/문제 조회 진행
 const UnitPage = () => {
   const [unitCode, setUnitCode] = useState('');
+  const router = useRouter();
 
   // 입력창 변경 핸들러: 사용자가 단원평가 코드를 입력할 때 상태 업데이트
   const onChangeUnitCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 입력값을 즉시 대문자 6글자 영문으로 정규화
+    // 입력값을 즉시 대문자/숫자/하이픈만 허용하고 길이 9로 제한 (예: ABCDEF-05)
     const next = e.target.value
       .toUpperCase()
-      .replace(/[^A-Z]/g, '')
-      .slice(0, 6);
+      .replace(/[^A-Z0-9-]/g, '')
+      .slice(0, 9);
     setUnitCode(next);
   };
 
@@ -69,9 +71,10 @@ const UnitPage = () => {
       const raw = unitCode?.trim();
       const code = raw?.toUpperCase();
 
-      // 입력값 검증: 공백 또는 6글자 대문자 아님
-      if (!code || !/^[A-Z]{6}$/.test(code)) {
-        alert('코드를 입력해주세요. 코드는 영어 대문자 6글자입니다.');
+      // 입력값 검증: 대문자 6글자 또는 ABCDEF-01~60 형식
+      const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+      if (!code || !codePattern.test(code)) {
+        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
 
@@ -111,17 +114,42 @@ const UnitPage = () => {
     }
   };
 
+  // 단원평가 결과 조회 버튼 클릭 핸들러
+  // - 입력한 코드 유효성 검사 후 결과 페이지로 이동
+  const onClickViewResults = () => {
+    try {
+      const raw = unitCode?.trim();
+      const code = raw?.toUpperCase();
+      // 결과 조회 코드는 반드시 ABCDEF-01~60 형식(총 9글자)
+      const resultCodePattern = /^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/;
+      if (!code || !resultCodePattern.test(code)) {
+        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
+        return;
+      }
+      router.push(`/unit-result?code=${encodeURIComponent(code)}`);
+    } catch (error) {
+      console.error('단원평가 결과 조회 이동 중 오류:', error);
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  };
+
   return (
     <div className="border-black-100 flex w-screen flex-col">
       <span className="flex w-full p-8 text-2xl font-bold">단원 평가</span>
       <div className="flex h-full w-full flex-1 justify-center pt-10">
         <div className="flex h-100 w-200 flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] max-[431px]:w-[80%] max-[431px]:origin-top">
-          <div>
+          <div className="flex gap-4">
             <button
               className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
               onClick={onClickUnitExam}
             >
               단원평가 시작
+            </button>
+            <button
+              className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
+              onClick={onClickViewResults}
+            >
+              단원평가 결과 조회
             </button>
           </div>
           <div>
@@ -130,7 +158,7 @@ const UnitPage = () => {
               value={unitCode}
               onChange={onChangeUnitCode}
               placeholder="단원 평가 코드를 입력해주세요."
-              maxLength={6}
+              maxLength={9}
               className="mt-15 h-15 w-100 rounded-2xl border-1 border-[var(--color-sidebar-icon)] text-center max-[431px]:w-70"
             ></input>
           </div>

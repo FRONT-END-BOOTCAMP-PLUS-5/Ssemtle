@@ -66,8 +66,22 @@ export class GenerateUnitExamUseCase {
         };
       }
 
-      // 랜덤 코드 생성 (영어 대문자 6글자)
-      const code = this.generateRandomCode();
+      // 카테고리 수 이하의 문제 개수 불가: 각 카테고리 최소 1문제 배분 전제
+      if (
+        Array.isArray(request.selectedUnits) &&
+        request.selectedUnits.length > 0 &&
+        request.questionCount < request.selectedUnits.length
+      ) {
+        return {
+          success: false,
+          error:
+            '문제 개수는 선택한 카테고리 수 이상이어야 합니다. 문제 개수를 늘려주세요.',
+        };
+      }
+
+      // 랜덤 코드 생성 (영어 대문자 6글자) + 선택적 타이머 suffix
+      const baseCode = this.generateRandomCode();
+      const code = `${baseCode}${this.formatTimerSuffix(request.timerMinutes)}`;
 
       // 코드 중복 체크
       const isDuplicate = await this.unitExamRepository.existsByCode(code);
@@ -78,11 +92,6 @@ export class GenerateUnitExamUseCase {
 
       // AI를 사용하여 문제 생성: 요청 수를 여유분(+5) 포함하여 요청
       const overRequest = request.questionCount + 5;
-      console.log('[UnitExam] 검증 준비 시작', {
-        requested: request.questionCount,
-        overRequest,
-        selectedUnits: request.selectedUnits.map((u) => u.unitName),
-      });
       const aiResult = await this.generateQuestionsWithAI(
         request.selectedUnits,
         overRequest
@@ -105,17 +114,6 @@ export class GenerateUnitExamUseCase {
         aiResult.questions,
         request.selectedUnits
       );
-      console.log('[UnitExam] 1차 검증 샘플', {
-        sample: validated.slice(0, 1).map((q) => ({
-          unitId: q.unitId,
-          question: q.question,
-          answer: q.answer,
-        })),
-      });
-      console.log('[UnitExam] 1차 검증 통과 수', {
-        validated: validated.length,
-        totalFetched: aiResult.questions.length,
-      });
 
       // 부족하면 재시도 한 번 더 수행 (부족한 수 + 5개 재요청)
       if (validated.length < request.questionCount) {
@@ -130,11 +128,6 @@ export class GenerateUnitExamUseCase {
             retry.questions,
             request.selectedUnits
           );
-          console.log('[UnitExam] 재요청 및 검증 결과', {
-            retryRequested: retryCount,
-            retryFetched: retry.questions.length,
-            retryValidated: moreValidated.length,
-          });
           validated.push(
             ...moreValidated.filter(
               (q) => !validated.some((v) => v.question === q.question)
@@ -144,10 +137,6 @@ export class GenerateUnitExamUseCase {
       }
 
       if (validated.length < request.questionCount) {
-        console.warn('[UnitExam] 유효 문제 부족', {
-          need: request.questionCount,
-          have: validated.length,
-        });
         return {
           success: false,
           error: '유효한 문제 수가 부족합니다. 다시 시도해주세요.',
@@ -163,15 +152,36 @@ export class GenerateUnitExamUseCase {
         teacherId,
       });
 
-      // 검증 통과한 문제 중 요청 개수만큼 저장
-      console.log('[UnitExam] 저장 진행', {
-        saveCount: request.questionCount,
-      });
-      await this.saveGeneratedQuestions(
-        validated.slice(0, request.questionCount),
-        code,
-        teacherId
+      // 단원 분포 보장: 각 선택 단원 최소 1문항 포함, 나머지는 균등 분배
+      const distributed = await this.selectQuestionsWithDistribution(
+        validated,
+        request.selectedUnits.map((u) => u.unitId),
+        request.questionCount,
+        async (missingUnitIds) => {
+          const retryCount = Math.max(missingUnitIds.length * 3, 3);
+          const retryUnits = request.selectedUnits.filter((u) =>
+            missingUnitIds.includes(u.unitId)
+          );
+          const retry = await this.generateQuestionsWithAI(
+            retryUnits,
+            retryCount
+          );
+          if (retry.success && retry.questions) {
+            return this.filterValidatedQuestions(retry.questions, retryUnits);
+          }
+          return [] as AIGeneratedQuestion[];
+        }
       );
+
+      if (!distributed || distributed.length !== request.questionCount) {
+        return {
+          success: false,
+          error:
+            '선택한 모든 단원을 포함하도록 문제를 구성하지 못했습니다. 다시 시도해주세요.',
+        };
+      }
+
+      await this.saveGeneratedQuestions(distributed, code, teacherId);
 
       return {
         success: true,
@@ -200,6 +210,16 @@ export class GenerateUnitExamUseCase {
     return result;
   }
 
+  // 타이머 접미사 생성: -MM (01~60), 유효하지 않으면 빈 문자열 반환
+  private formatTimerSuffix(timer?: number): string {
+    if (typeof timer !== 'number') return '';
+    const normalized = Math.floor(timer);
+    if (Number.isNaN(normalized) || normalized < 1 || normalized > 60)
+      return '';
+    const mm = normalized < 10 ? `0${normalized}` : String(normalized);
+    return `-${mm}`;
+  }
+
   // 일차방정식 검증 적용: 단원명이 일치하는 경우에만 validator 실행, 그 외 단원은 통과
   private filterValidatedQuestions(
     questions: AIGeneratedQuestion[],
@@ -213,18 +233,8 @@ export class GenerateUnitExamUseCase {
       const name = unitIdToName.get(q.unitId) || '';
       const isLinear = /일차방정식|1차방정식/.test(name);
       if (isLinear && this.linearEquationValidator) {
-        // 디버깅: AI 원본과 기대 정답 출력
-        console.log('[UnitExam][Validate] AI 원본', {
-          unitName: name,
-          question: q.question,
-          expected: q.answer,
-        });
         const res = this.linearEquationValidator.validate(q, name);
-        // 디버깅: 검증 결과와 사유 출력
-        console.log('[UnitExam][Validate] 결과', {
-          isValid: res.isValid,
-          reason: res.reason,
-        });
+
         return res.isValid;
       }
       // 다른 단원은 현재 검증 미적용 → 통과
@@ -269,7 +279,9 @@ export class GenerateUnitExamUseCase {
 
     return `기초학력을 위한 수학 문제를 생성하라. 해설은 학생이 이해하기 쉽게 자세히 작성한다.
 단원 목록(단원명과 저장용 식별자 포함)은 다음과 같다: ${unitsJson}
-총 문제 수는 ${questionCount}개이며, 단원별 문제 비율은 가능한 비슷하게 분배한다.
+총 문제 수는 ${questionCount}개이며, 아래 조건을 반드시 지킨다.
+1) 각 선택된 단원(unitId)에서 최소 1문제 이상 포함할 것
+2) 가능한 한 단원별 문제 수가 고르게 분배되도록 생성할 것 (라운드로빈 분배 가능)
 오직 JSON 배열로만 응답하라. 각 항목은 아래 형식을 따른다.
 {
   "unitId": number,
@@ -358,6 +370,72 @@ export class GenerateUnitExamUseCase {
       throw new Error('생성된 문제 저장에 실패했습니다.');
     }
   }
+
+  // 분포 보장 선택 로직: 각 단원 최소 1문항 + 라운드로빈으로 채우기
+  private async selectQuestionsWithDistribution(
+    pool: AIGeneratedQuestion[],
+    requiredUnitIds: number[],
+    questionCount: number,
+    fetchMissingForUnits: (
+      missingUnitIds: number[]
+    ) => Promise<AIGeneratedQuestion[]>
+  ): Promise<AIGeneratedQuestion[] | null> {
+    const byUnit = new Map<number, AIGeneratedQuestion[]>();
+    for (const q of pool) {
+      const arr = byUnit.get(q.unitId) ?? [];
+      arr.push(q);
+      byUnit.set(q.unitId, arr);
+    }
+
+    const chosen: AIGeneratedQuestion[] = [];
+    const missing: number[] = [];
+    for (const unitId of requiredUnitIds) {
+      const list = byUnit.get(unitId) ?? [];
+      if (list.length === 0) {
+        missing.push(unitId);
+      } else {
+        chosen.push(list.shift()!);
+        byUnit.set(unitId, list);
+      }
+    }
+
+    if (missing.length > 0) {
+      const extra = await fetchMissingForUnits(missing);
+      for (const q of extra) {
+        const arr = byUnit.get(q.unitId) ?? [];
+        arr.push(q);
+        byUnit.set(q.unitId, arr);
+      }
+      for (const unitId of [...missing]) {
+        const list = byUnit.get(unitId) ?? [];
+        if (list.length > 0) {
+          chosen.push(list.shift()!);
+          byUnit.set(unitId, list);
+        }
+      }
+      const stillMissing = requiredUnitIds.some(
+        (unitId) => !chosen.some((c) => c.unitId === unitId)
+      );
+      if (stillMissing) return null;
+    }
+
+    while (chosen.length < questionCount) {
+      let added = 0;
+      for (const unitId of requiredUnitIds) {
+        if (chosen.length >= questionCount) break;
+        const list = byUnit.get(unitId) ?? [];
+        if (list.length > 0) {
+          chosen.push(list.shift()!);
+          byUnit.set(unitId, list);
+          added++;
+        }
+      }
+      if (added === 0) break;
+    }
+
+    if (chosen.length !== questionCount) return null;
+    return chosen;
+  }
 }
 
 export class VerifyUnitExamUseCase {
@@ -383,24 +461,21 @@ export class VerifyUnitExamUseCase {
   ): Promise<UnitExamVerificationResult> {
     try {
       // 입력 데이터 유효성 검증
-      if (!request.code || request.code.trim().length !== 6) {
+      if (
+        !request.code ||
+        !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(request.code.trim())
+      ) {
         return {
           success: false,
-          error: '코드는 6글자 영어 대문자여야 합니다.',
+          error: '코드는 ABCDEF-01~60 형식이어야 합니다.',
         };
       }
 
-      // 코드 형식 검증 (영어 대문자만 허용)
-      const codePattern = /^[A-Z]{6}$/;
-      if (!codePattern.test(request.code)) {
-        return {
-          success: false,
-          error: '코드는 영어 대문자 6글자만 허용됩니다.',
-        };
-      }
+      // 코드 형식은 위 정규식으로 검증 완료
 
-      // 데이터베이스에서 코드 검증
-      const unitExam = await this.unitExamRepository.findByCode(request.code);
+      // 데이터베이스에서 코드 검증 (접미사 포함 전체 코드 기준)
+      const full = request.code.trim();
+      const unitExam = await this.unitExamRepository.findByCode(full);
 
       if (unitExam) {
         // 이미 응시했는지 확인
@@ -421,11 +496,7 @@ export class VerifyUnitExamUseCase {
         }
 
         // 유효한 코드이면서 응시 이력이 없으면, 시도 기록 생성
-        await this.createExamAttempt(
-          request.code,
-          unitExam.id,
-          request.studentId
-        );
+        await this.createExamAttempt(full, unitExam.id, request.studentId);
 
         return {
           success: true,
@@ -492,10 +563,13 @@ export class CreateExamAttemptUseCase {
   ): Promise<ExamAttemptResult> {
     try {
       // 코드 유효성 검증
-      if (!request.code || request.code.trim().length !== 6) {
+      if (
+        !request.code ||
+        !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(request.code.trim())
+      ) {
         return {
           success: false,
-          error: '코드는 6글자 영어 대문자여야 합니다.',
+          error: '코드는 ABCDEF-01~60 형식이어야 합니다.',
         };
       }
 
@@ -540,12 +614,12 @@ export class GetQuestionsUseCase {
 
   async execute(request: GetQuestionsRequestDto): Promise<GetQuestionsResult> {
     try {
-      if (!request.code || request.code.trim().length !== 6) {
+      const code = request.code?.trim();
+      if (!code || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(code)) {
         return { success: false, error: '유효한 코드가 아닙니다.' };
       }
-      const list = await this.unitQuestionRepository.findByUnitCode(
-        request.code
-      );
+      // 전체 코드로만 조회 (하위호환 제거)
+      const list = await this.unitQuestionRepository.findByUnitCode(code);
       return {
         success: true,
         questions: list.map((q) => ({
@@ -577,16 +651,16 @@ export class SubmitAnswersUseCase {
     request: SubmitAnswersRequestDto
   ): Promise<SubmitAnswersResult> {
     try {
-      if (!request.code || request.code.trim().length !== 6) {
+      const code = request.code?.trim();
+      if (!code || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(code)) {
         return { success: false, error: '유효한 코드가 아닙니다.' };
       }
       if (!request.answers || request.answers.length === 0) {
         return { success: false, error: '제출할 답안이 없습니다.' };
       }
 
-      const questions = await this.unitQuestionRepository.findByUnitCode(
-        request.code
-      );
+      // 전체 코드로만 조회 (하위호환 제거)
+      const questions = await this.unitQuestionRepository.findByUnitCode(code);
       const idToAnswer = new Map(questions.map((q) => [q.id, q.answer]));
 
       const createData = request.answers.map((a) => ({
@@ -614,13 +688,17 @@ export class GetUserUnitSolvesUseCase {
     this.unitSolveRepository = unitSolveRepository;
   }
 
-  async execute(userId: string): Promise<
+  async execute(
+    userId: string,
+    code?: string
+  ): Promise<
     | {
         success: true;
         solves: Array<{
           id: number;
           question: string;
           answer: string;
+          helpText?: string;
           userInput: string;
           isCorrect: boolean;
           createdAt: Date;
@@ -632,12 +710,19 @@ export class GetUserUnitSolvesUseCase {
       if (!userId) {
         return { success: false, error: '유효하지 않은 사용자입니다.' };
       }
-      const rows =
-        await this.unitSolveRepository.findByUserIdWithQuestion(userId);
+      const rows = code
+        ? await this.unitSolveRepository.findByUserIdAndCodeWithQuestion(
+            userId,
+            code
+          )
+        : await this.unitSolveRepository.findByUserIdWithQuestion(userId);
       const solves = rows.map((r) => ({
         id: r.id,
         question: r.question.question,
         answer: r.question.answer,
+        // helpText는 결과 화면에서만 노출
+        helpText: (r as unknown as { question: { helpText?: string } }).question
+          .helpText,
         userInput: r.userInput,
         isCorrect: r.isCorrect,
         createdAt: r.createdAt,

@@ -10,7 +10,7 @@ export default function ProblemDisplay({
   equation,
 }: ProblemDisplayProps) {
   return (
-    <div className="mx-auto w-full max-w-md">
+    <div className="mx-auto w-full">
       <div className="space-y-4 rounded-3xl bg-white p-6 shadow-lg">
         {/* Problem Title */}
         <div className="text-center">

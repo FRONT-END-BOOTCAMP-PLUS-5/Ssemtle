@@ -44,6 +44,22 @@ interface SubmitExamResponse {
   error?: string;
 }
 
+interface VerifyExamRequest {
+  code: string;
+}
+
+interface VerifyExamResponse {
+  success: boolean;
+  valid?: boolean;
+  examData?: {
+    id: number;
+    teacherId: string;
+    createdAt: Date;
+  };
+  error?: string;
+  alreadyAttempted?: boolean;
+}
+
 // Unit exam specific interfaces will be handled inline
 
 export default function UnitExamPageContent() {
@@ -77,8 +93,35 @@ export default function UnitExamPageContent() {
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
 
   // Setup usePosts hooks
+  const verifyExamMutation = usePosts<VerifyExamRequest, VerifyExamResponse>({
+    onSuccess: (data) => {
+      setVerificationAttempted(true); // Mark verification as attempted regardless of result
+
+      if (data.success && data.valid) {
+        setIsVerified(true);
+        // After successful verification, fetch questions
+        fetchExamQuestions();
+      } else if (data.alreadyAttempted) {
+        console.error('Student has already attempted this exam');
+        alert('이미 응시한 시험입니다.');
+        router.push('/');
+      } else {
+        console.error('Exam verification failed:', data.error);
+        setIsVerified(false);
+      }
+    },
+    onError: (error) => {
+      setVerificationAttempted(true); // Mark verification as attempted even on error
+      console.error('Error verifying exam code:', error);
+      setIsVerified(false);
+      alert('시험 코드 검증 중 오류가 발생했습니다.');
+    },
+  });
+
   const fetchQuestionsMutation = usePosts<
     FetchQuestionsRequest,
     FetchQuestionsResponse
@@ -148,6 +191,15 @@ export default function UnitExamPageContent() {
     },
     [examQuestions, convertExamQuestionToProblem]
   );
+
+  const verifyExamCode = useCallback(() => {
+    if (!examCode || !baseCode) return;
+
+    verifyExamMutation.mutate({
+      postData: { code: examCode },
+      path: '/unit-exam/verify',
+    });
+  }, [examCode, baseCode, verifyExamMutation]);
 
   const fetchExamQuestions = useCallback(() => {
     if (!examCode || !baseCode) return;
@@ -227,23 +279,29 @@ export default function UnitExamPageContent() {
     handleSubmitExam(true); // Pass true to force submit behavior
   }, [handleSubmitExam]);
 
-  // Fetch exam questions when component mounts
+  // Verify exam code first, then fetch questions
   useEffect(() => {
     if (
       examCode &&
-      !currentProblem &&
-      !fetchQuestionsMutation.isPending &&
-      examQuestions.length === 0
+      !verificationAttempted &&
+      !verifyExamMutation.isPending &&
+      !fetchQuestionsMutation.isPending
     ) {
-      fetchExamQuestions();
+      verifyExamCode();
     }
   }, [
     examCode,
-    currentProblem,
+    verificationAttempted,
+    verifyExamMutation.isPending,
     fetchQuestionsMutation.isPending,
-    examQuestions.length,
-    fetchExamQuestions,
+    verifyExamCode,
   ]);
+
+  // Reset verification states when exam code changes
+  useEffect(() => {
+    setVerificationAttempted(false);
+    setIsVerified(false);
+  }, [examCode]);
 
   // Check authentication and loading state
   if (status === 'loading') {
@@ -273,13 +331,49 @@ export default function UnitExamPageContent() {
     );
   }
 
-  // Show loading state
+  // Show loading state for verification and questions
+  if (verifyExamMutation.isPending) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">시험 코드를 확인하는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (fetchQuestionsMutation.isPending) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
           <p className="text-gray-600">문제를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle verification failure - if verification was attempted but failed
+  if (
+    examCode &&
+    baseCode &&
+    !verifyExamMutation.isPending &&
+    !isVerified &&
+    !fetchQuestionsMutation.isPending
+  ) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="text-center">
+          <p className="mb-4 text-gray-600">
+            유효하지 않은 시험 코드이거나 접근할 수 없는 시험입니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="rounded-lg bg-violet-500 px-4 py-2 text-white transition-colors hover:bg-violet-600"
+          >
+            돌아가기
+          </button>
         </div>
       </div>
     );
@@ -301,6 +395,18 @@ export default function UnitExamPageContent() {
           >
             돌아가기
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show exam interface if verification is complete and successful
+  if (!isVerified) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">시험을 준비하는 중...</p>
         </div>
       </div>
     );

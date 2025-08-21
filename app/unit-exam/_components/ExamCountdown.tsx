@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCountdown } from '@/hooks/useCountdown';
 import { formatDuration } from '@/libs/formatDuration';
 
@@ -16,13 +16,20 @@ export default function ExamCountdown({
   disabled = false,
 }: ExamCountdownProps) {
   const timeLeftMs = useCountdown(timeMinutes * 60); // Convert minutes to seconds
+  const hasCalledRef = useRef(false);
 
-  // Call onTimeUp when countdown reaches 0
+  // Call onTimeUp when countdown reaches 0 (only once)
   useEffect(() => {
-    if (timeLeftMs === 0 && !disabled) {
+    if (timeLeftMs === 0 && !disabled && !hasCalledRef.current) {
+      hasCalledRef.current = true; // Synchronously prevent duplicate calls
       onTimeUp();
     }
   }, [timeLeftMs, onTimeUp, disabled]);
+
+  // Reset the call flag when timer restarts (new exam)
+  useEffect(() => {
+    hasCalledRef.current = false;
+  }, [timeMinutes]);
 
   const getCountdownStyle = () => {
     const timeLeftMinutes = timeLeftMs / (1000 * 60);

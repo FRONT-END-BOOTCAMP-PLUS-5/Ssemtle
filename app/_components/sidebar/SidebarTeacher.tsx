@@ -1,11 +1,11 @@
 'use client';
 
 import HeaderSizeObserver from './HeaderSizeObserver';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { FaUserGear } from 'react-icons/fa6';
+import { TbPencilPlus } from 'react-icons/tb';
 import { LuLogOut } from 'react-icons/lu';
 import Icons from './Icons';
 
@@ -17,6 +17,12 @@ export default function SidebarTeacher() {
       label: '학생관리',
       href: '/teacher/student',
       icon: FaUserGear,
+      type: 'link' as const,
+    },
+    {
+      label: '단원평가',
+      href: '/admin/unit-exam-code',
+      icon: TbPencilPlus,
       type: 'link' as const,
     },
     { label: '로그아웃', icon: LuLogOut, type: 'logout' as const }, // href 제거
@@ -33,13 +39,6 @@ export default function SidebarTeacher() {
       style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
     >
       <HeaderSizeObserver />
-      <Image
-        className="mt-10"
-        src="/logos/Ssemtle_logo.png"
-        alt="Ssemtle 로고"
-        width={110}
-        height={110}
-      />
 
       {NAV.map((item) =>
         item.type === 'link' ? (
@@ -48,12 +47,13 @@ export default function SidebarTeacher() {
             href={item.href}
             aria-label={item.label}
             prefetch
-            className={`rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+            className={`justify-center rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
               isActive(item.href) ? 'text-indigo-600' : 'text-gray-700'
             }`}
             title={item.label}
           >
             <Icons Icon={item.icon} />
+            <div>{item.label}</div>
           </Link>
         ) : (
           <button
@@ -65,6 +65,7 @@ export default function SidebarTeacher() {
             className="rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <Icons Icon={item.icon} />
+            <div>{item.label}</div>
           </button>
         )
       )}

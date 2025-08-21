@@ -1,7 +1,6 @@
 'use client';
 
 import HeaderSizeObserver from './HeaderSizeObserver';
-import Image from 'next/image';
 import Icons from './Icons';
 import { LuUserRoundPlus } from 'react-icons/lu';
 import { BsFillGridFill } from 'react-icons/bs';
@@ -14,12 +13,12 @@ const SidebarAdmin = () => {
 
   const NAV = [
     {
-      label: '선생님 허가',
+      label: '선생님등록',
       href: '/admin/teacher-approval',
       icon: LuUserRoundPlus,
     },
-    { label: '카테고리 생성', href: '/admin/unit', icon: BsFillGridFill },
-    { label: '로그아웃', href: '/logout', icon: LuLogOut },
+    { label: '단원생성', href: '/admin/unit', icon: BsFillGridFill },
+    { label: '로그아웃', href: '/', icon: LuLogOut },
   ];
 
   const isActive = (href: string) =>
@@ -30,17 +29,10 @@ const SidebarAdmin = () => {
   return (
     <>
       <div
-        className="top-[var(--header-h,0px)] flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
+        className="flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)] pt-10"
         style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
       >
         <HeaderSizeObserver />
-        <Image
-          className="mt-10"
-          src="/logos/Ssemtle_logo.png"
-          alt="Ssemtle 로고"
-          width={110}
-          height={110}
-        />
         {NAV.map(({ label, href, icon: I }) => (
           <Link
             key={label}
@@ -51,6 +43,7 @@ const SidebarAdmin = () => {
             title={label}
           >
             <Icons Icon={I} />
+            <div>{label}</div>
           </Link>
         ))}
       </div>

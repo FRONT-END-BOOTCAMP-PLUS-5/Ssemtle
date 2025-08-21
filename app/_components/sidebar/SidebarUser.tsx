@@ -1,7 +1,6 @@
 'use client';
 
 import HeaderSizeObserver from './HeaderSizeObserver';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -37,7 +36,7 @@ export default function SidebarUser() {
       type: 'link' as const,
     },
     {
-      label: '마이페이지',
+      label: '내 정보',
       href: `/mypage/${userId}`,
       icon: FaCircleUser,
       type: 'link' as const,
@@ -54,13 +53,6 @@ export default function SidebarUser() {
       style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
     >
       <HeaderSizeObserver />
-      <Image
-        className="mt-10"
-        src="/logos/Ssemtle_logo.png"
-        alt="Ssemtle 로고"
-        width={110}
-        height={110}
-      />
 
       {NAV.map((item) =>
         item.type === 'link' ? (
@@ -75,6 +67,7 @@ export default function SidebarUser() {
             title={item.label}
           >
             <Icon Icon={item.icon} />
+            <div>{item.label}</div>
           </Link>
         ) : (
           <button
@@ -86,6 +79,7 @@ export default function SidebarUser() {
             className="rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <Icon Icon={item.icon} />
+            <div>{item.label}</div>
           </button>
         )
       )}

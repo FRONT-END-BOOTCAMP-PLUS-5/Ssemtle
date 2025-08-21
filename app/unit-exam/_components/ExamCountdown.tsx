@@ -55,7 +55,7 @@ export default function ExamCountdown({
 
   return (
     <div
-      className={`flex items-center space-x-2 rounded-lg border px-3 py-2 font-mono text-sm font-semibold ${getCountdownStyle()}`}
+      className={`flex items-center space-x-2 rounded-lg border px-3 py-2 text-sm font-semibold ${getCountdownStyle()}`}
     >
       <span className="text-base">{getIcon()}</span>
       <span>남은 시간: {formatDuration(timeLeftMs)}</span>

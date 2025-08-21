@@ -8,7 +8,7 @@ type CategoryCardProps = {
 };
 
 const CategoryCard = ({ name, unitId }: CategoryCardProps) => {
-  // 카드 클릭 시 연습 페이지로 이동하며 unitId 쿼리 전달 (PracticePageContent 스펙 준수)
+  // 카드 클릭 시 문제풀기 페이지로 이동하며 unitId 쿼리 전달 (PracticePageContent 스펙 준수)
   const router = useRouter();
   const onClickCategoryCard = () => {
     try {

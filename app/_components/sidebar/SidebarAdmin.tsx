@@ -13,11 +13,11 @@ const SidebarAdmin = () => {
 
   const NAV = [
     {
-      label: '선생님등록',
+      label: '선생 승인',
       href: '/admin/teacher-approval',
       icon: LuUserRoundPlus,
     },
-    { label: '단원생성', href: '/admin/unit', icon: BsFillGridFill },
+    { label: '단원 생성', href: '/admin/unit', icon: BsFillGridFill },
     { label: '로그아웃', href: '/', icon: LuLogOut },
   ];
 
@@ -42,8 +42,10 @@ const SidebarAdmin = () => {
             className={`rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${isActive(href) ? 'text-indigo-600' : 'text-gray-700'}`}
             title={label}
           >
-            <Icons Icon={I} />
-            <div>{label}</div>
+            <div className="mx-auto flex flex-col items-center justify-center text-center">
+              <Icons Icon={I} />
+              <div>{label}</div>
+            </div>
           </Link>
         ))}
       </div>

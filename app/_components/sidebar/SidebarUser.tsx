@@ -78,8 +78,10 @@ export default function SidebarUser() {
             onClick={() => signOut({ callbackUrl: '/' })} // ✅ 로그아웃 후 루트로 이동
             className="rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
-            <Icon Icon={item.icon} />
-            <div>{item.label}</div>
+            <div className="mx-auto flex flex-col items-center justify-center text-center">
+              <Icon Icon={item.icon} />
+              <div>{item.label}</div>
+            </div>
           </button>
         )
       )}

@@ -18,15 +18,51 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const unitSolveRepository = new PrUnitSolveRepository(prisma);
     const usecase = new GetUserUnitSolvesUseCase(unitSolveRepository);
     const { searchParams } = new URL(req.url);
-    const code = searchParams.get('code') || undefined;
+    const raw = searchParams.get('code');
+    const code = raw ? raw.toString().trim().toUpperCase() : undefined;
+    const base = code?.slice(0, 6);
+
     const result = await usecase.execute(session.user.id, code);
+
+    const [codeExistsExact, codeExistsBase] = await Promise.all([
+      code
+        ? prisma.unitExam.count({ where: { code } }).then((n) => n > 0)
+        : Promise.resolve(false),
+      base
+        ? prisma.unitExam.count({ where: { code: base } }).then((n) => n > 0)
+        : Promise.resolve(false),
+      code
+        ? prisma.unitQuestion.count({ where: { unitCode: code } })
+        : Promise.resolve(0),
+      base
+        ? prisma.unitQuestion.count({ where: { unitCode: base } })
+        : Promise.resolve(0),
+      code
+        ? prisma.unitSolve.count({
+            where: { userId: session.user.id, question: { unitCode: code } },
+          })
+        : Promise.resolve(0),
+      base
+        ? prisma.unitSolve.count({
+            where: { userId: session.user.id, question: { unitCode: base } },
+          })
+        : Promise.resolve(0),
+    ]);
+
+    // debug logs removed
+
+    const codeExists = Boolean(codeExistsExact || codeExistsBase);
     if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
         { status: 400 }
       );
     }
-    return NextResponse.json({ success: true, solves: result.solves });
+    return NextResponse.json({
+      success: true,
+      solves: result.solves,
+      codeExists,
+    });
   } catch (error) {
     console.error('풀이 조회 API 오류:', error);
     return NextResponse.json(

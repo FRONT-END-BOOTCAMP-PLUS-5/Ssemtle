@@ -34,9 +34,9 @@ export default function ExamCountdown({
   const getCountdownStyle = () => {
     const timeLeftMinutes = timeLeftMs / (1000 * 60);
 
-    if (timeLeftMinutes < 5) {
+    if (timeLeftMinutes < 1) {
       return 'text-red-600 bg-red-50 border-red-200';
-    } else if (timeLeftMinutes < 10) {
+    } else if (timeLeftMinutes < 5) {
       return 'text-yellow-600 bg-yellow-50 border-yellow-200';
     }
     return 'text-green-600 bg-green-50 border-green-200';
@@ -45,9 +45,9 @@ export default function ExamCountdown({
   const getIcon = () => {
     const timeLeftMinutes = timeLeftMs / (1000 * 60);
 
-    if (timeLeftMinutes < 5) {
+    if (timeLeftMinutes < 1) {
       return '⚠️';
-    } else if (timeLeftMinutes < 10) {
+    } else if (timeLeftMinutes < 5) {
       return '⏰';
     }
     return '🕐';

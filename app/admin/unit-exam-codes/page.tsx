@@ -8,6 +8,8 @@ import UnitExamCodeTable from './components/UnitExamCodeTable';
 import ProblemsModal from '@/app/admin/unit-exam-codes/components/ProblemsModal';
 import CreateUnitExamModal from './components/CreateUnitExamModal';
 import { useGets } from '@/hooks/useGets';
+import { useDeletes } from '@/hooks/useDeletes';
+import { AxiosError } from 'axios';
 
 interface UnitExamListResponse {
   success: boolean;
@@ -17,6 +19,7 @@ interface UnitExamListResponse {
       categories: string[];
       createdAt: string;
       problemCount: number;
+      timerMinutes?: number | null;
     }>;
     total: number;
   };
@@ -44,6 +47,7 @@ export default function UnitExamCodesPage() {
       code: r.code,
       category: r.categories.join(', '),
       problemCount: r.problemCount,
+      timerMinutes: r.timerMinutes ?? null,
       createdAt:
         r.createdAt?.toString()?.slice(0, 10)?.replace(/-/g, '.') ?? '',
     }));
@@ -76,6 +80,44 @@ export default function UnitExamCodesPage() {
     setIsCreateOpen(false);
     refetch();
   };
+
+  // 삭제 훅 설정
+  type DeleteResponse = { success: boolean; error?: string };
+  const { mutateAsync: deleteCode } = useDeletes<unknown, DeleteResponse>({
+    onSuccess: (resp) => {
+      if (!resp?.success) {
+        alert(resp?.error || '삭제에 실패했습니다.');
+        return;
+      }
+      refetch();
+    },
+    onError: (e) => {
+      console.error('[delete unit-exam-code] error:', e);
+      const err = e as AxiosError<DeleteResponse>;
+      const status = err.response?.status;
+      const message = err.response?.data?.error;
+
+      if (
+        status === 400 &&
+        message &&
+        (message.includes('이미 응시') || message.includes('응시 기록'))
+      ) {
+        alert(
+          '이미 응시한 시험지는 삭제할 수 없습니다. 배부된 시험지는 삭제가 불가능합니다.'
+        );
+        return;
+      }
+      if (status === 403) {
+        alert('삭제 권한이 없습니다.');
+        return;
+      }
+      if (status === 401) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      alert(message || '삭제가 불가능합니다. 잠시 후 다시 시도해주세요.');
+    },
+  });
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -124,21 +166,7 @@ export default function UnitExamCodesPage() {
                     '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
                   );
                   if (!ok) return;
-                  try {
-                    const res = await fetch(
-                      `/api/admin/unit-exam-codes/${code}`,
-                      { method: 'DELETE' }
-                    );
-                    const json = await res.json();
-                    if (!res.ok || !json?.success) {
-                      alert(json?.error || '삭제에 실패했습니다.');
-                      return;
-                    }
-                    refetch();
-                  } catch (e) {
-                    console.error('[delete unit-exam-code] error:', e);
-                    alert('삭제 중 오류가 발생했습니다.');
-                  }
+                  await deleteCode({ path: `/admin/unit-exam-codes/${code}` });
                 }}
                 onOpenProblems={(code: string) => {
                   setProblemsForCode(code);
@@ -176,21 +204,7 @@ export default function UnitExamCodesPage() {
                     '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
                   );
                   if (!ok) return;
-                  try {
-                    const res = await fetch(
-                      `/api/admin/unit-exam-codes/${code}`,
-                      { method: 'DELETE' }
-                    );
-                    const json = await res.json();
-                    if (!res.ok || !json?.success) {
-                      alert(json?.error || '삭제에 실패했습니다.');
-                      return;
-                    }
-                    refetch();
-                  } catch (e) {
-                    console.error('[delete unit-exam-code] error:', e);
-                    alert('삭제 중 오류가 발생했습니다.');
-                  }
+                  await deleteCode({ path: `/admin/unit-exam-codes/${code}` });
                 }}
               />
             )}

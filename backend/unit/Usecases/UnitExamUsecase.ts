@@ -463,7 +463,7 @@ export class VerifyUnitExamUseCase {
       // 입력 데이터 유효성 검증
       if (
         !request.code ||
-        !/^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/.test(request.code.trim())
+        !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(request.code.trim())
       ) {
         return {
           success: false,
@@ -563,10 +563,13 @@ export class CreateExamAttemptUseCase {
   ): Promise<ExamAttemptResult> {
     try {
       // 코드 유효성 검증
-      if (!request.code || request.code.trim().length !== 6) {
+      if (
+        !request.code ||
+        !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(request.code.trim())
+      ) {
         return {
           success: false,
-          error: '코드는 ABCDEF-01~60 형식이어야합니다..',
+          error: '코드는 ABCDEF-01~60 형식이어야 합니다.',
         };
       }
 
@@ -612,15 +615,11 @@ export class GetQuestionsUseCase {
   async execute(request: GetQuestionsRequestDto): Promise<GetQuestionsResult> {
     try {
       const code = request.code?.trim();
-      if (!code || !/^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/.test(code)) {
+      if (!code || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(code)) {
         return { success: false, error: '유효한 코드가 아닙니다.' };
       }
-      // 우선 전체 코드로 조회하고, 없으면 하위호환을 위해 6자리 기본 코드로 재조회
-      let list = await this.unitQuestionRepository.findByUnitCode(code);
-      if (!list || list.length === 0) {
-        const base = code.slice(0, 6);
-        list = await this.unitQuestionRepository.findByUnitCode(base);
-      }
+      // 전체 코드로만 조회 (하위호환 제거)
+      const list = await this.unitQuestionRepository.findByUnitCode(code);
       return {
         success: true,
         questions: list.map((q) => ({
@@ -653,19 +652,15 @@ export class SubmitAnswersUseCase {
   ): Promise<SubmitAnswersResult> {
     try {
       const code = request.code?.trim();
-      if (!code || !/^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/.test(code)) {
+      if (!code || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(code)) {
         return { success: false, error: '유효한 코드가 아닙니다.' };
       }
       if (!request.answers || request.answers.length === 0) {
         return { success: false, error: '제출할 답안이 없습니다.' };
       }
 
-      // 전체 코드 우선, 없으면 6자리 기본 코드로 조회
-      let questions = await this.unitQuestionRepository.findByUnitCode(code);
-      if (!questions || questions.length === 0) {
-        const base = code.slice(0, 6);
-        questions = await this.unitQuestionRepository.findByUnitCode(base);
-      }
+      // 전체 코드로만 조회 (하위호환 제거)
+      const questions = await this.unitQuestionRepository.findByUnitCode(code);
       const idToAnswer = new Map(questions.map((q) => [q.id, q.answer]));
 
       const createData = request.answers.map((a) => ({

@@ -77,7 +77,6 @@ export default function UnitExamPageContent() {
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
-  const [hasTimeExpired, setHasTimeExpired] = useState(false);
 
   // Setup usePosts hooks
   const fetchQuestionsMutation = usePosts<
@@ -108,15 +107,8 @@ export default function UnitExamPageContent() {
   });
 
   const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
-    onSuccess: (result) => {
-      if (result.success) {
-        alert(
-          `시험이 성공적으로 제출되었습니다. ${result.saved || userAnswers.size}개의 답안이 저장되었습니다.`
-        );
-        router.push('/'); // Redirect to home or results page
-      } else {
-        throw new Error(result.error || 'Submission failed');
-      }
+    onSuccess: () => {
+      router.push('/'); // Redirect to home or results page
     },
     onError: (error) => {
       console.error('Error submitting exam:', error);
@@ -198,24 +190,20 @@ export default function UnitExamPageContent() {
         })
       );
 
-      const isTimeExpired = forceSubmit || hasTimeExpired;
-
-      if (isTimeExpired && answers.length === 0) {
+      if (forceSubmit && answers.length === 0) {
         router.push('/');
         return;
       }
 
-      if (!isTimeExpired && answers.length === 0) {
+      if (!forceSubmit && answers.length === 0) {
         alert('제출할 답안이 없습니다.');
         return;
       }
 
       // Confirm submission
       if (
-        !isTimeExpired &&
-        !confirm(
-          `${answers.length}개의 답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
-        )
+        !forceSubmit &&
+        !confirm(`답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`)
       ) {
         return;
       }
@@ -228,27 +216,16 @@ export default function UnitExamPageContent() {
         path: '/unit-exam/submit',
       });
     },
-    [
-      examCode,
-      session?.user?.id,
-      userAnswers,
-      hasTimeExpired,
-      submitExamMutation,
-      router,
-    ]
+    [examCode, session?.user?.id, userAnswers, submitExamMutation, router]
   );
 
   // Handle time expiry with auto-submit
   const handleTimeUp = useCallback(() => {
-    if (hasTimeExpired || submitExamMutation.isPending) return;
-
-    setHasTimeExpired(true);
-
     // Show warning and auto-submit
     alert('시험 시간이 만료되었습니다. 자동으로 답안을 제출합니다.');
 
     handleSubmitExam(true); // Pass true to force submit behavior
-  }, [hasTimeExpired, submitExamMutation.isPending, handleSubmitExam]);
+  }, [handleSubmitExam]);
 
   // Fetch exam questions when component mounts
   useEffect(() => {
@@ -354,9 +331,6 @@ export default function UnitExamPageContent() {
                       <ExamCountdown
                         timeMinutes={timeMinutes}
                         onTimeUp={handleTimeUp}
-                        disabled={
-                          hasTimeExpired || submitExamMutation.isPending
-                        }
                       />
                     )}
                   </div>
@@ -397,14 +371,14 @@ export default function UnitExamPageContent() {
                   submitState="initial"
                   wasAnswerCorrect={undefined}
                   loading={false}
-                  disabled={fetchQuestionsMutation.isPending || hasTimeExpired}
+                  disabled={fetchQuestionsMutation.isPending}
                 />
 
                 {/* Exam Navigation */}
                 <div className="flex justify-between space-x-4">
                   <button
                     onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0 || hasTimeExpired}
+                    disabled={currentQuestionIndex === 0}
                     className="rounded-lg bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
                     이전 문제
@@ -414,7 +388,7 @@ export default function UnitExamPageContent() {
                     {currentQuestionIndex < examQuestions.length - 1 ? (
                       <button
                         onClick={handleNext}
-                        disabled={hasTimeExpired}
+                        disabled={submitExamMutation.isPending}
                         className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         다음 문제
@@ -422,9 +396,7 @@ export default function UnitExamPageContent() {
                     ) : (
                       <button
                         onClick={() => handleSubmitExam()}
-                        disabled={
-                          submitExamMutation.isPending || hasTimeExpired
-                        }
+                        disabled={submitExamMutation.isPending}
                         className="rounded-lg bg-green-500 px-6 py-2 text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         {submitExamMutation.isPending
@@ -463,7 +435,7 @@ export default function UnitExamPageContent() {
                   setUserAnswers((prev) => new Map(prev).set(questionId, ''));
                 }
               }}
-              disabled={fetchQuestionsMutation.isPending || hasTimeExpired}
+              disabled={fetchQuestionsMutation.isPending}
             />
           </div>
         </div>

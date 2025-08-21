@@ -30,6 +30,7 @@ export async function GET() {
       createdAt: Date;
       categories: string[];
       problemCount: number;
+      timerMinutes?: number | null;
     }>;
     for (const e of exams) {
       const code = e.code;
@@ -53,11 +54,14 @@ export async function GET() {
 
       const categories = names.map((n) => n.name).filter(Boolean);
       const problemCount = qRows.length;
+      const timerMatch = code.match(/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/);
+      const timerMinutes = timerMatch ? Number(timerMatch[1]) : null;
       unitExams.push({
         code,
         createdAt: e.createdAt,
         categories,
         problemCount,
+        timerMinutes,
       });
     }
 

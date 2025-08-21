@@ -10,11 +10,11 @@ const UnitPage = () => {
 
   // 입력창 변경 핸들러: 사용자가 단원평가 코드를 입력할 때 상태 업데이트
   const onChangeUnitCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 입력값을 즉시 대문자 6글자 영문으로 정규화
+    // 입력값을 즉시 대문자/숫자/하이픈만 허용하고 길이 9로 제한 (예: ABCDEF-05)
     const next = e.target.value
       .toUpperCase()
-      .replace(/[^A-Z]/g, '')
-      .slice(0, 6);
+      .replace(/[^A-Z0-9-]/g, '')
+      .slice(0, 9);
     setUnitCode(next);
   };
 
@@ -69,9 +69,10 @@ const UnitPage = () => {
       const raw = unitCode?.trim();
       const code = raw?.toUpperCase();
 
-      // 입력값 검증: 공백 또는 6글자 대문자 아님
-      if (!code || !/^[A-Z]{6}$/.test(code)) {
-        alert('코드를 입력해주세요. 코드는 영어 대문자 6글자입니다.');
+      // 입력값 검증: 대문자 6글자 또는 ABCDEF-01~60 형식
+      const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+      if (!code || !codePattern.test(code)) {
+        alert('코드를 입력해주세요. 예) ABCDEF 또는 ABCDEF-05 (01~60)');
         return;
       }
 
@@ -130,7 +131,7 @@ const UnitPage = () => {
               value={unitCode}
               onChange={onChangeUnitCode}
               placeholder="단원 평가 코드를 입력해주세요."
-              maxLength={6}
+              maxLength={9}
               className="mt-15 h-15 w-100 rounded-2xl border-1 border-[var(--color-sidebar-icon)] text-center max-[431px]:w-70"
             ></input>
           </div>

@@ -354,31 +354,6 @@ export default function UnitExamPageContent() {
     );
   }
 
-  // Handle verification failure - if verification was attempted but failed
-  if (
-    examCode &&
-    baseCode &&
-    !verifyExamMutation.isPending &&
-    !isVerified &&
-    !fetchQuestionsMutation.isPending
-  ) {
-    return (
-      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
-        <div className="text-center">
-          <p className="mb-4 text-gray-600">
-            유효하지 않은 시험 코드이거나 접근할 수 없는 시험입니다.
-          </p>
-          <button
-            onClick={() => router.back()}
-            className="rounded-lg bg-violet-500 px-4 py-2 text-white transition-colors hover:bg-violet-600"
-          >
-            돌아가기
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Handle missing or invalid exam code
   if (!examCode || !baseCode) {
     return (
@@ -424,20 +399,20 @@ export default function UnitExamPageContent() {
               <div className="space-y-4 rounded-3xl bg-white p-6 shadow-lg">
                 {/* Problem Title with Progress */}
                 <div className="text-center">
-                  <h1 className="font-['Inter'] text-2xl font-bold text-gray-800">
-                    {session.user.name} - 단원평가 {examCode}
-                  </h1>
-                  <div className="mt-2 flex flex-col items-center space-y-2">
-                    {examQuestions.length > 0 && (
-                      <p className="text-sm text-gray-600">
-                        문제 {currentQuestionIndex + 1} / {examQuestions.length}
-                      </p>
-                    )}
+                  <div className="flex justify-between text-2xl font-bold text-gray-800">
+                    <div className="pl-2">단원평가</div>
                     {timeMinutes && (
                       <ExamCountdown
                         timeMinutes={timeMinutes}
                         onTimeUp={handleTimeUp}
                       />
+                    )}
+                  </div>
+                  <div className="mt-2 flex flex-col items-center space-y-2">
+                    {examQuestions.length > 0 && (
+                      <p className="text-sm text-gray-600">
+                        문제 {currentQuestionIndex + 1} / {examQuestions.length}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -446,7 +421,7 @@ export default function UnitExamPageContent() {
                 {currentProblem && (
                   <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-violet-100 p-6 shadow-sm">
                     <div className="text-center">
-                      <p className="font-['Inter'] text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-gray-800">
                         {currentProblem.question}
                       </p>
                     </div>

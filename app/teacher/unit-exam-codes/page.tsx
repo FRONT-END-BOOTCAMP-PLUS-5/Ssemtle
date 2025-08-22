@@ -5,7 +5,7 @@ import Pagination from '@/app/_components/pagination/Pagination';
 import SearchInput from '@/app/teacher/student/components/SearchInput';
 import TableHeader from './components/TableHeader';
 import UnitExamCodeTable from './components/UnitExamCodeTable';
-import ProblemsModal from '@/app/admin/unit-exam-codes/components/ProblemsModal';
+import ProblemsModal from '@/app/teacher/unit-exam-codes/components/ProblemsModal';
 import CreateUnitExamModal from './components/CreateUnitExamModal';
 import { useGets } from '@/hooks/useGets';
 import { useDeletes } from '@/hooks/useDeletes';

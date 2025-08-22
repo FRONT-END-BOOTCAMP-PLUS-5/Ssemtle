@@ -21,7 +21,7 @@ export default function SidebarTeacher() {
     },
     {
       label: '단원평가',
-      href: '/admin/unit-exam-code',
+      href: '/teacher/unit-exam-codes',
       icon: TbPencilPlus,
       type: 'link' as const,
     },

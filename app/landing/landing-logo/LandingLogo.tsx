@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { IoChevronDown } from 'react-icons/io5'; // 아이콘 import 추가
+import { IoChevronDown } from 'react-icons/io5';
 
 const logos = [
   { src: '/logos/logo-Sr.svg', alt: 'Sr' },

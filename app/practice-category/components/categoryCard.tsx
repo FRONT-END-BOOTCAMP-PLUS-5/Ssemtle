@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 type CategoryCardProps = {
   name: string;
@@ -15,7 +16,7 @@ const CategoryCard = ({ name, unitId }: CategoryCardProps) => {
       router.push(`/practice?unitId=${encodeURIComponent(unitId)}`);
     } catch (error) {
       console.error(error);
-      alert('이동 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      toast.error('이동 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 

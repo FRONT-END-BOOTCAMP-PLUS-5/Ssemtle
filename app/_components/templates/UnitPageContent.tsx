@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePosts } from '@/hooks/usePosts';
 import AnswerSection from '@/app/_components/molecules/AnswerSection';
 import NumberPad from '@/app/_components/molecules/NumberPad';
 
@@ -30,9 +31,7 @@ export default function UnitExamPageContent() {
     new Map()
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questionsLoading, setQuestionsLoading] = useState(false);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // No need for unit or video data in exam mode
 
@@ -65,44 +64,49 @@ export default function UnitExamPageContent() {
     [examQuestions, convertExamQuestionToProblem]
   );
 
-  const fetchExamQuestions = useCallback(async () => {
-    if (!examCode || !/^[A-Z]{6}$/.test(examCode)) return;
-
-    setQuestionsLoading(true);
-    try {
-      const response = await fetch('/api/unit-exam/questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: examCode }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch exam questions');
-      }
-
-      const data = await response.json();
-
+  // Hook for fetching exam questions
+  const { mutateAsync: fetchQuestions, isPending: questionsLoading } = usePosts<
+    { code: string },
+    {
+      success: boolean;
+      questions?: Array<{ id: number; question: string; helpText: string }>;
+    }
+  >({
+    onSuccess: (data) => {
       if (data.success && data.questions && data.questions.length > 0) {
         setExamQuestions(data.questions);
         setCurrentQuestionIndex(0);
-
         // Show the first question
         const firstProblem = convertExamQuestionToProblem(data.questions[0]);
         setCurrentProblem(firstProblem);
       } else {
-        throw new Error('No exam questions found');
+        console.error('No exam questions found');
+        setCurrentProblem(null);
+        setExamQuestions([]);
+        setCurrentQuestionIndex(0);
       }
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error fetching exam questions:', error);
       setCurrentProblem(null);
       setExamQuestions([]);
       setCurrentQuestionIndex(0);
-    } finally {
-      setQuestionsLoading(false);
+    },
+  });
+
+  const fetchExamQuestions = useCallback(async () => {
+    if (!examCode || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(examCode))
+      return;
+
+    try {
+      await fetchQuestions({
+        path: '/unit-exam/questions',
+        postData: { code: examCode },
+      });
+    } catch {
+      // Error is already handled in onError callback
     }
-  }, [examCode, convertExamQuestionToProblem]);
+  }, [examCode, fetchQuestions]);
 
   // No need for handleSaveAnswer - answers are saved directly via UI interaction
 
@@ -120,6 +124,30 @@ export default function UnitExamPageContent() {
       showQuestionAtIndex(prevIndex);
     }
   }, [currentQuestionIndex, showQuestionAtIndex]);
+
+  // Hook for submitting exam answers
+  const { mutateAsync: submitAnswers, isPending: isSubmitting } = usePosts<
+    { code: string; answers: Array<{ questionId: number; userInput: string }> },
+    { success: boolean; saved?: number; error?: string }
+  >({
+    onSuccess: (result) => {
+      if (result.success) {
+        const answers = Array.from(userAnswers.entries());
+        alert(
+          `시험이 성공적으로 제출되었습니다. ${result.saved || answers.length}개의 답안이 저장되었습니다.`
+        );
+        router.push('/'); // Redirect to home or results page
+      } else {
+        alert(`제출 실패: ${result.error || 'Submission failed'}`);
+      }
+    },
+    onError: (error) => {
+      console.error('Error submitting exam:', error);
+      alert(
+        `시험 제출 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
+    },
+  });
 
   // Submit all exam answers
   const handleSubmitExam = useCallback(async () => {
@@ -149,43 +177,18 @@ export default function UnitExamPageContent() {
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const response = await fetch('/api/unit-exam/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      await submitAnswers({
+        path: '/unit-exam/submit',
+        postData: {
           code: examCode,
           answers: answers,
-        }),
+        },
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to submit exam');
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(
-          `시험이 성공적으로 제출되었습니다. ${result.saved || answers.length}개의 답안이 저장되었습니다.`
-        );
-        router.push('/'); // Redirect to home or results page
-      } else {
-        throw new Error(result.error || 'Submission failed');
-      }
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      alert(
-        `시험 제출 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-      );
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      // Error is already handled in onError callback
     }
-  }, [examCode, session?.user?.id, userAnswers, router]);
+  }, [examCode, session?.user?.id, userAnswers, submitAnswers]);
 
   // Fetch exam questions when component mounts
   useEffect(() => {
@@ -246,7 +249,7 @@ export default function UnitExamPageContent() {
   }
 
   // Handle missing or invalid exam code
-  if (!examCode || !/^[A-Z]{6}$/.test(examCode)) {
+  if (!examCode || !/^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/.test(examCode)) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">

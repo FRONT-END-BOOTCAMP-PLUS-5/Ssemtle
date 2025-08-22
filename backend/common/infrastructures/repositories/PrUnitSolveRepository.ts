@@ -36,7 +36,12 @@ export class PrUnitSolveRepository implements IUnitSolveRepository {
           isCorrect: true,
           createdAt: true,
           question: {
-            select: { question: true, answer: true, helpText: true },
+            select: {
+              question: true,
+              answer: true,
+              helpText: true,
+              unitCode: true,
+            },
           },
         },
       });
@@ -62,7 +67,12 @@ export class PrUnitSolveRepository implements IUnitSolveRepository {
           isCorrect: true,
           createdAt: true,
           question: {
-            select: { question: true, answer: true, helpText: true },
+            select: {
+              question: true,
+              answer: true,
+              helpText: true,
+              unitCode: true,
+            },
           },
         },
       });

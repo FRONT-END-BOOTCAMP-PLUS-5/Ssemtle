@@ -31,7 +31,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const pct = p.total > 0 ? Math.round((p.correct / p.total) * 100) : 0;
 
   return (
-    <div className="rounded-md bg-white/95 px-3 py-2 text-sm shadow">
+    <div className="rounded-md bg-white/95 px-3 py-2 text-sm">
       <div className="mb-1 font-medium">{p.subject}</div>
       <div>
         <span className="font-bold text-green-600">{p.correct}</span>/{p.total}{' '}

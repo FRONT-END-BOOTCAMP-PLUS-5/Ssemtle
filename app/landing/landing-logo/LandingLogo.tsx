@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { IoChevronDown } from 'react-icons/io5'; // 아이콘 import 추가
 
 const logos = [
   { src: '/logos/logo-Sr.svg', alt: 'Sr' },
@@ -15,7 +16,7 @@ const logos = [
 ];
 
 const getLinearPosition = (index: number, total: number) => {
-  const spacing = 100;
+  const spacing = 120;
   const totalWidth = (total - 1) * spacing;
   const startX = -totalWidth / 2;
   return { x: startX + index * spacing, y: 0 };
@@ -25,9 +26,10 @@ export default function LandingLogo() {
   const [animationPhase, setAnimationPhase] = useState<'falling' | 'complete'>(
     'falling'
   );
-  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     const timer = setTimeout(() => {
       setAnimationPhase('complete');
     }, 1000);
@@ -37,10 +39,20 @@ export default function LandingLogo() {
     };
   }, []);
 
-  const handleImageError = (index: number) => {
-    console.log(`[v0] Image error for logo ${index}: ${logos[index].src}`);
-    setImageErrors((prev) => ({ ...prev, [index]: true }));
-  };
+  if (!isClient) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center opacity-0">
+          {' '}
+          {/* opacity-0으로 숨김 */}
+          <h1 className="mb-2 text-4xl font-bold text-gray-800">
+            기초학력의 시작
+          </h1>
+          <h2 className="text-6xl font-extrabold">SSemtle</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -57,44 +69,77 @@ export default function LandingLogo() {
                 x: Math.random() * 200 - 100,
                 rotate: Math.random() * 360,
               }}
-              animate={{
-                x: linearPos.x,
-                y: linearPos.y,
-                rotate: 0,
-                transition: {
-                  duration: 2,
-                  delay: index * 0.3,
-                  ease: [0.25, 0.46, 0.45, 0.94],
-                  y: {
-                    type: 'spring',
-                    damping: 6,
-                    stiffness: 80,
-                    restDelta: 0.001,
-                    bounce: 0.6,
-                  },
-                },
-              }}
+              animate={
+                animationPhase === 'complete'
+                  ? {
+                      x: linearPos.x,
+                      y: [
+                        linearPos.y,
+                        linearPos.y - 15,
+                        linearPos.y + 5,
+                        linearPos.y,
+                      ],
+                      scale: [1, 1.1, 0.95, 1],
+                      rotate: [0, 5, -5, 0],
+                      transition: {
+                        x: { duration: 0 },
+                        y: {
+                          duration: 4,
+                          delay: 5 + index * 0.3,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: 'easeInOut',
+                        },
+                        scale: {
+                          duration: 4,
+                          delay: 5 + index * 0.3,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: 'easeInOut',
+                        },
+                        rotate: {
+                          duration: 4,
+                          delay: 5 + index * 0.3,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: 'easeInOut',
+                        },
+                      },
+                    }
+                  : {
+                      x: linearPos.x,
+                      y: linearPos.y,
+                      rotate: 0,
+                      transition: {
+                        duration: 2,
+                        delay: index * 0.3,
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                        y: {
+                          type: 'spring',
+                          damping: 6,
+                          stiffness: 80,
+                          restDelta: 0.001,
+                          bounce: 0.6,
+                        },
+                        rotate: {
+                          duration: 1.5,
+                          delay: index * 0.3 + 0.5,
+                          ease: 'easeOut',
+                        },
+                      },
+                    }
+              }
               whileHover={{
                 scale: 1.2,
-                y: -10,
+                y: -15,
                 transition: { duration: 0.2 },
               }}
             >
-              {imageErrors[index] ? (
-                <div className="flex h-[80px] w-[80px] items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 text-lg font-bold text-white drop-shadow-lg">
-                  {logo.alt}
-                </div>
-              ) : (
-                <Image
-                  src={logo.src || '/placeholder.svg'}
-                  alt={logo.alt}
-                  width={80}
-                  height={80}
-                  className="drop-shadow-lg"
-                  onError={() => handleImageError(index)}
-                  priority={index < 3}
-                />
-              )}
+              <Image
+                src={logo.src}
+                alt={logo.alt}
+                width={100}
+                height={100}
+                className="drop-shadow-lg"
+                priority={index < 3}
+              />
             </motion.div>
           );
         })}
@@ -115,7 +160,7 @@ export default function LandingLogo() {
         className="text-center"
       >
         <motion.h1
-          className="mb-2 text-4xl font-bold text-gray-800"
+          className="text-4xl font-bold text-gray-800"
           style={{
             backgroundImage: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
             backgroundClip: 'text',
@@ -127,7 +172,7 @@ export default function LandingLogo() {
           }
           transition={{ duration: 1, delay: 1 }}
         >
-          기초학력의 시작
+          기초학력 수학
         </motion.h1>
 
         <motion.h2
@@ -155,27 +200,40 @@ export default function LandingLogo() {
         </motion.h2>
       </motion.div>
 
-      <div className="pointer-events-none absolute inset-0">
-        {[...Array(20)].map((_, i) => (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={
+          animationPhase === 'complete'
+            ? { opacity: 1, y: 0 }
+            : { opacity: 0, y: 20 }
+        }
+        transition={{
+          duration: 0.8,
+          delay: 2,
+          ease: 'easeOut',
+        }}
+        className="flex flex-col items-center pt-3"
+      >
+        {[0, 1, 2].map((index) => (
           <motion.div
-            key={i}
-            className="absolute h-2 w-2 rounded-full bg-blue-300 opacity-30"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
+            key={index}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0.3, 0.7, 0.3],
+              y: [0, 10, 0],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: 1.5,
+              delay: index * 0.2,
               repeat: Number.POSITIVE_INFINITY,
-              delay: Math.random() * 2,
+              ease: 'easeInOut',
             }}
-          />
+          >
+            <IoChevronDown
+              className="text-4xl text-indigo-600 opacity-80"
+              size={48}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

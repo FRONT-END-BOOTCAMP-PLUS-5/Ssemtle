@@ -48,7 +48,7 @@ export default function LandingLogo() {
           <h1 className="mb-2 text-4xl font-bold text-gray-800">
             기초학력의 시작
           </h1>
-          <h2 className="text-6xl font-extrabold">SSemtle</h2>
+          <h2 className="text-6xl font-extrabold">Ssemtle</h2>
         </div>
       </div>
     );
@@ -162,7 +162,7 @@ export default function LandingLogo() {
         <motion.h1
           className="text-4xl font-bold text-gray-800"
           style={{
-            backgroundImage: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: 'linear-gradient(45deg, #667eea 0%)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             color: 'transparent',
@@ -178,7 +178,7 @@ export default function LandingLogo() {
         <motion.h2
           className="text-6xl font-extrabold"
           style={{
-            backgroundImage: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+            backgroundImage: 'linear-gradient(45deg, #667eea 0%)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             color: 'transparent',

@@ -20,22 +20,30 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(req.url);
     const raw = searchParams.get('code');
     const code = raw ? raw.toString().trim().toUpperCase() : undefined;
-    const externalStudentId = searchParams.get('student_id') || undefined; // users.user_id
     const base = code?.slice(0, 6);
 
-    // student_id가 전달되면 users.user_id -> users.id 로 매핑
-    let targetUserId: string = session.user.id;
-    if (externalStudentId) {
-      const user = await prisma.user.findUnique({
-        where: { userId: externalStudentId },
+    // Get studentId from query params (human-readable userId) or use session user id
+    const studentIdParam = searchParams.get('studentId');
+    let targetUserId = session.user.id;
+
+    if (studentIdParam) {
+      // Convert human-readable userId to UUID
+      const studentUser = await prisma.user.findUnique({
+        where: { userId: studentIdParam.toString().trim() },
+        select: { id: true },
       });
-      if (!user) {
+
+      if (!studentUser) {
         return NextResponse.json(
-          { success: false, error: '해당 학생을 찾을 수 없습니다.' },
+          {
+            success: false,
+            error: `학생 ID '${studentIdParam}'를 찾을 수 없습니다.`,
+          },
           { status: 404 }
         );
       }
-      targetUserId = user.id;
+
+      targetUserId = studentUser.id;
     }
 
     const result = await usecase.execute(targetUserId, code);

@@ -3,6 +3,8 @@ import './globals.css';
 import Providers from '@/libs/providers';
 import RoleBasedSidebar from './_components/sidebar/RoleBasedSidebar';
 import LayoutClient from './_components/layoutclient/LayoutClient';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'Ssemtle',
@@ -37,6 +39,13 @@ export default async function RootLayout({
                 <RoleBasedSidebar />
               </div>
               {/* 메인 콘텐츠 영역 */}
+              <ToastContainer
+                position="top-center"
+                limit={1}
+                closeButton={true}
+                autoClose={2500}
+                hideProgressBar={false}
+              />
               {children}
             </div>
           </LayoutClient>

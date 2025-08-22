@@ -5,6 +5,7 @@ import { useGets } from '@/hooks/useGets';
 import { usePosts } from '@/hooks/usePosts';
 import type { UnitListResponseDto } from '@/backend/admin/units/dtos/UnitDto';
 import SearchInput from '@/app/teacher/student/components/SearchInput';
+import { toast } from 'react-toastify';
 
 interface CreateUnitExamModalProps {
   isOpen: boolean;
@@ -65,17 +66,16 @@ export default function CreateUnitExamModal({
     // 성공 시 알림 및 상위 목록 갱신 트리거
     onSuccess: (resp) => {
       if (!resp?.success) {
-        alert(resp?.error || '단원평가 생성에 실패했습니다.');
+        toast.error(resp?.error || '단원평가 생성에 실패했습니다.');
         return;
       }
-      alert(`단원평가 코드가 생성되었습니다: ${resp.code}`);
+      toast.success(`단원평가 코드가 생성되었습니다: ${resp.code}`);
       onCreate?.(Array.from(selected));
       onClose();
     },
     // 오류 시 로깅 및 사용자 안내
-    onError: (e) => {
-      console.error('[CreateUnitExamModal] create error:', e);
-      alert('생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    onError: () => {
+      toast.error('생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     },
   });
 
@@ -101,11 +101,11 @@ export default function CreateUnitExamModal({
    */
   const handleCreate = async () => {
     if (selected.size === 0) {
-      alert('최소 1개 이상의 카테고리를 선택해주세요.');
+      toast.warn('최소 1개 이상의 카테고리를 선택해주세요.');
       return;
     }
     if (!questionCount || questionCount <= 0) {
-      alert('문제 개수는 1개 이상이어야 합니다.');
+      toast.warn('문제 개수는 1개 이상이어야 합니다.');
       return;
     }
     // 문제 개수는 선택한 카테고리 수 이상이어야 함(각 카테고리 최소 1문제 배분)
@@ -125,7 +125,7 @@ export default function CreateUnitExamModal({
     // id 누락 방지
     const invalid = selectedUnits.find((u) => typeof u.id !== 'number');
     if (invalid) {
-      alert(
+      toast.error(
         '선택한 카테고리의 식별자(id)를 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.'
       );
       return;

@@ -204,7 +204,7 @@ export default function MyPage() {
 
         {/* 성과 그래프 */}
         <div
-          className="mx-auto mt-4 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none"
+          className="mx-auto mt-4 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 outline-none focus:outline-none"
           onMouseDown={(e) => e.preventDefault()}
         >
           <PerformanceChart data={radarData} />
@@ -212,10 +212,10 @@ export default function MyPage() {
 
         {/* 캘린더 + (데스크톱) 우측 패널 */}
 
-        <div className="mt-6 flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-[450px_450px]">
+        <div className="mx-auto mt-6 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none">
+          <div className="flex w-full flex-row gap-6">
             {/* 캘린더 */}
-            <div className="flex shrink-0 justify-center">
+            <div className="flex min-w-0 flex-1 basis-0 justify-center">
               <CalendarComponent
                 onChange={handleDayClick}
                 onMonthChange={handleMonthChange}
@@ -224,9 +224,9 @@ export default function MyPage() {
               />
             </div>
 
-            {/* 데스크톱 우측 패널: 항상 보이게 */}
-            <aside className="hidden w-[480px] shrink-0 md:block">
-              <div className="sticky top-16">
+            {/* 데스크톱 우측 패널 */}
+            <aside className="hidden min-w-0 flex-1 basis-0 md:flex">
+              <div className="sticky top-16 w-full">
                 <div className="h-[360px] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
@@ -273,12 +273,13 @@ export default function MyPage() {
             </aside>
           </div>
         </div>
+
         {/* 본인 계정일 때만 계정 설정 버튼 */}
         {session?.user.userId === userData?.userId && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={() => setIsAccountOpen(true)}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-white shadow hover:brightness-110 active:scale-[.99]"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:brightness-110 active:scale-[.99]"
             >
               아이디/비밀번호 변경
             </button>
@@ -311,7 +312,7 @@ export default function MyPage() {
             onClick={closeModal}
           />
           <div className="relative mx-auto w-full max-w-lg">
-            <div className="flex max-h-[min(88vh,720px)] flex-col overflow-hidden rounded-2xl bg-white shadow-lg outline outline-gray-200">
+            <div className="flex max-h-[min(88vh,720px)] flex-col overflow-hidden rounded-2xl bg-white outline outline-gray-200">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div className="text-sm text-gray-500">선택한 날짜</div>
                 <button

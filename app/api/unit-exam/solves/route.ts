@@ -20,9 +20,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(req.url);
     const raw = searchParams.get('code');
     const code = raw ? raw.toString().trim().toUpperCase() : undefined;
+    const externalStudentId = searchParams.get('student_id') || undefined; // users.user_id
     const base = code?.slice(0, 6);
 
-    const result = await usecase.execute(session.user.id, code);
+    // student_id가 전달되면 users.user_id -> users.id 로 매핑
+    let targetUserId: string = session.user.id;
+    if (externalStudentId) {
+      const user = await prisma.user.findUnique({
+        where: { userId: externalStudentId },
+      });
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: '해당 학생을 찾을 수 없습니다.' },
+          { status: 404 }
+        );
+      }
+      targetUserId = user.id;
+    }
+
+    const result = await usecase.execute(targetUserId, code);
 
     const [codeExistsExact, codeExistsBase] = await Promise.all([
       code
@@ -39,12 +55,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         : Promise.resolve(0),
       code
         ? prisma.unitSolve.count({
-            where: { userId: session.user.id, question: { unitCode: code } },
+            where: { userId: targetUserId, question: { unitCode: code } },
           })
         : Promise.resolve(0),
       base
         ? prisma.unitSolve.count({
-            where: { userId: session.user.id, question: { unitCode: base } },
+            where: { userId: targetUserId, question: { unitCode: base } },
           })
         : Promise.resolve(0),
     ]);

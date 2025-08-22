@@ -1,6 +1,8 @@
 'use client';
 
-import Button, { ButtonVariant } from '../atoms/Button';
+import { useState } from 'react';
+import { ButtonVariant } from '../atoms/Button';
+import HelpModal from './HelpModal';
 import MathInput from './MathInput';
 
 export type SubmitState = 'initial' | 'correct' | 'incorrect' | 'next';
@@ -8,7 +10,7 @@ export type SubmitState = 'initial' | 'correct' | 'incorrect' | 'next';
 interface AnswerSectionProps {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   onNext: () => void;
   submitState: SubmitState;
   wasAnswerCorrect?: boolean;
@@ -57,6 +59,7 @@ export default function AnswerSection({
   disabled = false,
   placeholder = '답을 입력해 주세요',
 }: AnswerSectionProps) {
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const config = submitStateConfig[submitState];
 
   // Override variant for next button based on answer correctness
@@ -67,42 +70,54 @@ export default function AnswerSection({
         : 'incorrect'
       : config.variant;
 
+  // Map ButtonVariant to MathInput variant
+  const mathInputVariant: 'submit' | 'correct' | 'incorrect' | 'next' =
+    buttonVariant === 'submit'
+      ? 'submit'
+      : buttonVariant === 'correct'
+        ? 'correct'
+        : buttonVariant === 'incorrect'
+          ? 'incorrect'
+          : buttonVariant === 'next'
+            ? 'next'
+            : 'submit';
+
   const isDisabled =
     disabled || loading || (submitState === 'initial' && !value.trim());
 
   const handleButtonClick = () => {
     if (submitState === 'next') {
       onNext();
-    } else if (submitState === 'initial') {
+    } else if (submitState === 'initial' && onSubmit) {
       onSubmit();
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="space-y-4">
-        {/* Math Input */}
-        <MathInput
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled || loading}
-        />
+    <>
+      {/* Help Modal */}
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
 
-        {/* Submit/Next Button */}
-        <div className="flex justify-center">
-          <Button
-            variant={buttonVariant}
-            onClick={handleButtonClick}
-            disabled={isDisabled}
-            loading={loading}
-            icon={config.icon}
-            className="w-full"
-          >
-            {config.text}
-          </Button>
+      <div className="mx-auto w-full">
+        <div className="space-y-4">
+          {/* Math Input with integrated buttons */}
+          <MathInput
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled || loading}
+            onSubmit={onSubmit ? handleButtonClick : undefined}
+            onHelp={() => setIsHelpModalOpen(true)}
+            submitDisabled={isDisabled}
+            submitLoading={loading}
+            submitText={config.text}
+            submitVariant={mathInputVariant}
+          />
         </div>
       </div>
-    </div>
+    </>
   );
 }

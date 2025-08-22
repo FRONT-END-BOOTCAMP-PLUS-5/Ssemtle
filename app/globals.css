@@ -15,7 +15,7 @@ html {
 body {
   background-color: #f8f5ff;
 }
-
+:root { --sidebar-w: 120px; }
 /* Design System Tokens as CSS Variables */
 @theme {
   /* Color Tokens */

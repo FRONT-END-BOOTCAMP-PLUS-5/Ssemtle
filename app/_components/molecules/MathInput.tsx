@@ -11,6 +11,12 @@ interface MathInputProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  onSubmit?: () => void;
+  onHelp?: () => void;
+  submitDisabled?: boolean;
+  submitLoading?: boolean;
+  submitText?: string;
+  submitVariant?: 'submit' | 'correct' | 'incorrect' | 'next';
 }
 
 export default function MathInput({
@@ -19,6 +25,12 @@ export default function MathInput({
   placeholder = '수식을 입력하세요',
   disabled = false,
   className = '',
+  onSubmit,
+  onHelp,
+  submitDisabled = false,
+  submitLoading = false,
+  submitText = '제출',
+  submitVariant = 'submit',
 }: MathInputProps) {
   const renderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,31 +64,97 @@ export default function MathInput({
     // Allow common keyboard shortcuts for math input
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Could trigger submit if needed
+      if (onSubmit) {
+        onSubmit();
+      }
+    }
+  };
+
+  const getSubmitButtonStyles = () => {
+    const baseStyles =
+      'px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
+
+    switch (submitVariant) {
+      case 'correct':
+        return `${baseStyles} bg-green-500 text-white`;
+      case 'incorrect':
+        return `${baseStyles} bg-red-500 text-white`;
+      case 'next':
+        return `${baseStyles} bg-blue-500 text-white`;
+      case 'submit':
+      default:
+        return `${baseStyles} bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-[0px_4px_15px_0px_rgba(139,92,246,0.30)]`;
     }
   };
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Raw input field */}
-      <div className="relative">
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
-        />
-        {value && (
-          <button
-            onClick={() => onChange('')}
+      {/* Input row with buttons */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
             disabled={disabled}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            readOnly
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+          />
+          {value && (
+            <button
+              onClick={() => onChange('')}
+              disabled={disabled}
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Help button */}
+        {onHelp && (
+          <button
+            onClick={onHelp}
+            disabled={disabled}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="도움말"
           >
-            ×
+            ?
+          </button>
+        )}
+
+        {/* Submit button */}
+        {onSubmit && (
+          <button
+            onClick={onSubmit}
+            disabled={disabled || submitDisabled}
+            className={getSubmitButtonStyles()}
+          >
+            {submitLoading && (
+              <svg
+                className="mr-1 -ml-1 inline h-3 w-3 animate-spin text-current"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            )}
+            {submitText}
           </button>
         )}
       </div>

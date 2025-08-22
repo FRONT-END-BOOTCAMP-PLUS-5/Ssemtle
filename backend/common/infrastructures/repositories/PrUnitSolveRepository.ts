@@ -35,13 +35,41 @@ export class PrUnitSolveRepository implements IUnitSolveRepository {
           userInput: true,
           isCorrect: true,
           createdAt: true,
-          question: { select: { question: true, answer: true } },
+          question: {
+            select: { question: true, answer: true, helpText: true },
+          },
         },
       });
       return rows;
     } catch (error) {
       console.error('UnitSolve 조회 오류:', error);
       throw new Error('문제 풀이 조회에 실패했습니다.');
+    }
+  }
+
+  async findByUserIdAndCodeWithQuestion(userId: string, code: string) {
+    try {
+      const rows = await this.prisma.unitSolve.findMany({
+        where: {
+          userId,
+          question: { unitCode: code },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          questionId: true,
+          userInput: true,
+          isCorrect: true,
+          createdAt: true,
+          question: {
+            select: { question: true, answer: true, helpText: true },
+          },
+        },
+      });
+      return rows;
+    } catch (error) {
+      console.error('UnitSolve 코드별 조회 오류:', error);
+      throw new Error('코드별 단원평가 조회에 실패했습니다.');
     }
   }
 

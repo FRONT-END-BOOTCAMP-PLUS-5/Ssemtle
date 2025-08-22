@@ -213,7 +213,7 @@ export default function MyPage() {
         {/* 캘린더 + (데스크톱) 우측 패널 */}
 
         <div className="mt-6 flex justify-center">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[480px_480px] md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-[450px_450px]">
             {/* 캘린더 */}
             <div className="flex shrink-0 justify-center">
               <CalendarComponent
@@ -227,7 +227,7 @@ export default function MyPage() {
             {/* 데스크톱 우측 패널: 항상 보이게 */}
             <aside className="hidden w-[480px] shrink-0 md:block">
               <div className="sticky top-16">
-                <div className="max-h-[calc(100vh-21rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
+                <div className="h-[360px] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
                       {selectedDate ?? '날짜를 선택하세요'}

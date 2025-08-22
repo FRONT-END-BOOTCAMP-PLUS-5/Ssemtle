@@ -52,8 +52,10 @@ export default function SidebarTeacher() {
             }`}
             title={item.label}
           >
-            <Icons Icon={item.icon} />
-            <div>{item.label}</div>
+            <div className="mx-auto flex flex-col items-center justify-center text-center">
+              <Icons Icon={item.icon} />
+              <div>{item.label}</div>
+            </div>
           </Link>
         ) : (
           <button

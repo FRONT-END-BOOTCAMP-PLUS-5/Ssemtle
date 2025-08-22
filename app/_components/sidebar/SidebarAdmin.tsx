@@ -13,7 +13,7 @@ const SidebarAdmin = () => {
 
   const NAV = [
     {
-      label: '선생 승인',
+      label: '선생님 승인',
       href: '/admin/teacher-approval',
       icon: LuUserRoundPlus,
     },

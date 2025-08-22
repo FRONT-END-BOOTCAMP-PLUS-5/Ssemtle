@@ -66,8 +66,10 @@ export default function SidebarUser() {
             }`}
             title={item.label}
           >
-            <Icon Icon={item.icon} />
-            <div>{item.label}</div>
+            <div className="mx-auto flex flex-col items-center justify-center text-center">
+              <Icon Icon={item.icon} />
+              <div>{item.label}</div>
+            </div>
           </Link>
         ) : (
           <button

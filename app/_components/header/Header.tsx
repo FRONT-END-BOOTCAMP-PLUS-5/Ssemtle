@@ -17,12 +17,12 @@ export default function MinimalHeader({
   onHamburgerClick,
   className = '',
 }: MinimalHeaderProps) {
-  const HEADER_HEIGHT = 36;
+  const HEADER_HEIGHT = 52;
 
   return (
     <div style={{ paddingTop: HEADER_HEIGHT }}>
       <header
-        className={`fixed inset-x-0 top-0 z-50 h-[36px] bg-[#fef7ff] ${className}`}
+        className={`fixed inset-x-0 top-0 z-50 h-[52px] bg-[#fef7ff] ${className}`}
       >
         <label
           htmlFor="nav-toggle"
@@ -60,9 +60,9 @@ export default function MinimalHeader({
             <Image
               src={logoSrc}
               alt={logoAlt}
-              width={80}
-              height={20}
-              className="h-5 w-auto"
+              width={200}
+              height={40}
+              className="h-10 w-auto"
               priority
             />
           </a>

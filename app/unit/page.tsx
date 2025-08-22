@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { useSession } from 'next-auth/react';
 
 // 단원평가 시작 페이지 컴포넌트
 // - 코드 입력값 유효성 검사 후, TanStack Query(POST 훅)로 검증/문제 조회 진행
 const UnitPage = () => {
   const [unitCode, setUnitCode] = useState('');
   const router = useRouter();
+  const { data: session } = useSession();
 
   // 입력창 변경 핸들러: 사용자가 단원평가 코드를 입력할 때 상태 업데이트
   const onChangeUnitCode = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,94 +22,22 @@ const UnitPage = () => {
     setUnitCode(next);
   };
 
-  // 응답 타입 정의
-  type VerifyResponse = {
-    success: boolean;
-    valid?: boolean;
-    alreadyAttempted?: boolean;
-    error?: string;
-    examData?: unknown;
-  };
-
-  type QuestionsResponse = {
-    success: boolean;
-    questions?: { id: number; question: string }[];
-    error?: string;
-  };
-
-  // TanStack Query - POST 뮤테이션 (상대 경로 fetch 사용)
-  const verifyMutation = useMutation<VerifyResponse, unknown, string>({
-    mutationFn: async (code: string) => {
-      const res = await fetch('/api/unit-exam/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const data = (await res.json()) as VerifyResponse;
-      return data;
-    },
-  });
-
-  const questionsMutation = useMutation<QuestionsResponse, unknown, string>({
-    mutationFn: async (code: string) => {
-      const res = await fetch('/api/unit-exam/questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const data = (await res.json()) as QuestionsResponse;
-      return data;
-    },
-  });
-
   // 단원평가 시작 클릭 시 실행
   // 1) 코드 유효성 검사
-  // 2) /api/unit-exam/verify 검증 (존재/응시여부 확인)
-  // 3) /api/unit-exam/questions 문제 조회 후 alert로 표시(모달은 추후 렌더링 예정)
-  // 단원평가 시작 버튼 클릭 핸들러
-  // - 입력값 유효성 검사, 코드 검증 API, 문제 조회 API 순으로 호출
+  // 2) 유효하면 /unit-exam?examCode=... 로 이동 (검증/문제 로딩은 대상 페이지에서 수행)
   const onClickUnitExam = async () => {
     try {
       const raw = unitCode?.trim();
       const code = raw?.toUpperCase();
-
-      // 입력값 검증: 대문자 6글자 또는 ABCDEF-01~60 형식
-      const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
+      // 입력값 검증: ABCDEF-01~60 형식(총 9글자)
+      const codePattern = /^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/;
       if (!code || !codePattern.test(code)) {
         toast.warn('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
 
-      // 1,2: 검증 API 호출
-      const verifyRes = await verifyMutation.mutateAsync(code);
-
-      // 실패 처리 분기
-      if (!(verifyRes?.success && verifyRes?.valid)) {
-        if (verifyRes?.alreadyAttempted) {
-          toast.info('이미 응시한 시험은 다시 응시할 수 없습니다.');
-          return;
-        }
-        toast.error('존재하지 않는 코드');
-        return;
-      }
-
-      // 3: 문제 조회
-      const questionsRes = await questionsMutation.mutateAsync(code);
-
-      if (
-        !questionsRes?.success ||
-        !questionsRes?.questions ||
-        questionsRes.questions.length === 0
-      ) {
-        toast.error('문제를 불러오지 못했습니다.');
-        return;
-      }
-
-      // 임시: 모달 대신 alert로 문제 내용 표시 (문항 간 구분선 추가)
-      const message = questionsRes.questions
-        .map((q, idx) => `${idx + 1}. ${q.question}`)
-        .join('\n\n');
-      toast(message, { type: 'info', autoClose: 5000 });
+      // 유효한 코드면 unit-exam 페이지로 이동 (검증/문제 로딩은 대상 페이지에서 처리)
+      router.push(`/unit-exam?examCode=${encodeURIComponent(code)}`);
     } catch (error) {
       console.error('단원평가 시작 처리 중 오류:', error);
       toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
@@ -117,19 +46,25 @@ const UnitPage = () => {
 
   // 단원평가 결과 조회 버튼 클릭 핸들러
   // - 입력한 코드 유효성 검사 후 결과 페이지로 이동
-  const onClickViewResults = () => {
+  // 응시한 단원평가 목록 페이지 이동 핸들러
+  // - 세션의 내부 id 확인 후, 세션에 포함된 외부 식별자(userId)를 studentId로 전달
+  const onClickViewAttemptedList = () => {
     try {
-      const raw = unitCode?.trim();
-      const code = raw?.toUpperCase();
-      // 결과 조회 코드는 반드시 ABCDEF-01~60 형식(총 9글자)
-      const resultCodePattern = /^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/;
-      if (!code || !resultCodePattern.test(code)) {
-        toast.warn('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
+      if (!session?.user?.id) {
+        toast.warn('로그인이 필요합니다.');
+        router.push('/signin');
         return;
       }
-      router.push(`/unit-result?code=${encodeURIComponent(code)}`);
+      const externalUserId = session.user.userId;
+      if (!externalUserId) {
+        toast.error('사용자 정보를 불러오지 못했습니다. 다시 로그인해주세요.');
+        return;
+      }
+      router.push(
+        `/workbook/unit-exam?studentId=${encodeURIComponent(externalUserId)}`
+      );
     } catch (error) {
-      console.error('단원평가 결과 조회 이동 중 오류:', error);
+      console.error('응시한 단원평가 목록 이동 중 오류:', error);
       toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
@@ -138,30 +73,37 @@ const UnitPage = () => {
     <div className="border-black-100 flex w-screen flex-col">
       <span className="flex w-full p-8 text-2xl font-bold">단원 평가</span>
       <div className="flex h-full w-full flex-1 justify-center pt-10">
-        <div className="flex h-100 w-200 flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] max-[431px]:w-[80%] max-[431px]:origin-top">
-          <div className="flex gap-4">
-            <button
-              className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
-              onClick={onClickUnitExam}
-            >
-              단원평가 시작
-            </button>
-            <button
-              className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
-              onClick={onClickViewResults}
-            >
-              단원평가 결과 조회
-            </button>
+        <div className="flex w-[min(800px,92%)] flex-col gap-6">
+          {/* 섹션 1: 코드 입력 + 단원평가 시작 */}
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] p-8">
+            <div className="mb-4">
+              <input
+                type="text"
+                value={unitCode}
+                onChange={onChangeUnitCode}
+                placeholder="단원 평가 코드를 입력해주세요."
+                maxLength={9}
+                className="h-15 w-100 rounded-2xl border-1 border-[var(--color-sidebar-icon)] text-center max-[431px]:w-70"
+              />
+            </div>
+            <div className="flex gap-4">
+              <button
+                className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
+                onClick={onClickUnitExam}
+              >
+                단원평가 시작
+              </button>
+            </div>
           </div>
-          <div>
-            <input
-              type="text"
-              value={unitCode}
-              onChange={onChangeUnitCode}
-              placeholder="단원 평가 코드를 입력해주세요."
-              maxLength={9}
-              className="mt-15 h-15 w-100 rounded-2xl border-1 border-[var(--color-sidebar-icon)] text-center max-[431px]:w-70"
-            ></input>
+
+          {/* 섹션 2: 응시한 단원평가 목록 버튼 */}
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] p-8">
+            <button
+              className="h-15 w-70 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
+              onClick={onClickViewAttemptedList}
+            >
+              응시한 단원평가 목록
+            </button>
           </div>
         </div>
       </div>

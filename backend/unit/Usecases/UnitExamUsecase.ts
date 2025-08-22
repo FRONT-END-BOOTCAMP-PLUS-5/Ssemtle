@@ -718,6 +718,7 @@ export class GetUserUnitSolvesUseCase {
         : await this.unitSolveRepository.findByUserIdWithQuestion(userId);
       const solves = rows.map((r) => ({
         id: r.id,
+        questionId: r.questionId,
         question: r.question.question,
         answer: r.question.answer,
         // helpText는 결과 화면에서만 노출
@@ -726,6 +727,8 @@ export class GetUserUnitSolvesUseCase {
         userInput: r.userInput,
         isCorrect: r.isCorrect,
         createdAt: r.createdAt,
+        unitCode: (r as unknown as { question: { unitCode: string } }).question
+          .unitCode,
       }));
       return { success: true, solves };
     } catch {

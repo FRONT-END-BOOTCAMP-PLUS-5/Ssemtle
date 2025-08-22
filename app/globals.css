@@ -15,7 +15,7 @@ html {
 body {
   background-color: #f8f5ff;
 }
-
+:root { --sidebar-w: 120px; }
 /* Design System Tokens as CSS Variables */
 @theme {
   /* Color Tokens */
@@ -28,9 +28,6 @@ body {
   --color-text-secondary: white;
   --color-text-placeholder: #9ca3af;
   --color-error: #e87a74;
-  --color-success: #22c55e;
-  --color-success-light: #dcfce7;
-  --color-success-dark: #16a34a;
   --color-disabled: #a0aec0;
   --color-sidebar: rgb(254, 247, 255);
   --color-sidebar-button: #eaddff;

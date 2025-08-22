@@ -1,7 +1,6 @@
 'use client';
 
 import HeaderSizeObserver from './HeaderSizeObserver';
-import Image from 'next/image';
 import Icons from './Icons';
 import { LuUserRoundPlus } from 'react-icons/lu';
 import { BsFillGridFill } from 'react-icons/bs';
@@ -13,9 +12,13 @@ const SidebarAdmin = () => {
   const pathname = usePathname();
 
   const NAV = [
-    { label: '사용자 추가', href: '/admin/user/add', icon: LuUserRoundPlus },
-    { label: '대시보드', href: '/admin/dashboard', icon: BsFillGridFill },
-    { label: '로그아웃', href: '/logout', icon: LuLogOut },
+    {
+      label: '선생님 승인',
+      href: '/admin/teacher-approval',
+      icon: LuUserRoundPlus,
+    },
+    { label: '단원 생성', href: '/admin/unit', icon: BsFillGridFill },
+    { label: '로그아웃', href: '/', icon: LuLogOut },
   ];
 
   const isActive = (href: string) =>
@@ -26,17 +29,10 @@ const SidebarAdmin = () => {
   return (
     <>
       <div
-        className="sticky top-[var(--header-h,0px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
+        className="flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)] pt-10"
         style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
       >
         <HeaderSizeObserver />
-        <Image
-          className="mt-10"
-          src="/logos/Ssemtle_logo.png"
-          alt="Ssemtle 로고"
-          width={110}
-          height={110}
-        />
         {NAV.map(({ label, href, icon: I }) => (
           <Link
             key={label}
@@ -46,7 +42,10 @@ const SidebarAdmin = () => {
             className={`rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${isActive(href) ? 'text-indigo-600' : 'text-gray-700'}`}
             title={label}
           >
-            <Icons Icon={I} />
+            <div className="mx-auto flex flex-col items-center justify-center text-center">
+              <Icons Icon={I} />
+              <div>{label}</div>
+            </div>
           </Link>
         ))}
       </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 // 단원평가 시작 페이지 컴포넌트
 // - 코드 입력값 유효성 검사 후, TanStack Query(POST 훅)로 검증/문제 조회 진행
@@ -74,7 +75,7 @@ const UnitPage = () => {
       // 입력값 검증: 대문자 6글자 또는 ABCDEF-01~60 형식
       const codePattern = /^[A-Z]{6}(?:-(0[1-9]|[1-5][0-9]|60))?$/;
       if (!code || !codePattern.test(code)) {
-        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
+        toast.warn('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
 
@@ -84,10 +85,10 @@ const UnitPage = () => {
       // 실패 처리 분기
       if (!(verifyRes?.success && verifyRes?.valid)) {
         if (verifyRes?.alreadyAttempted) {
-          alert('이미 응시한 시험은 다시 응시할 수 없습니다.');
+          toast.info('이미 응시한 시험은 다시 응시할 수 없습니다.');
           return;
         }
-        alert('존재하지 않는 코드');
+        toast.error('존재하지 않는 코드');
         return;
       }
 
@@ -99,7 +100,7 @@ const UnitPage = () => {
         !questionsRes?.questions ||
         questionsRes.questions.length === 0
       ) {
-        alert('문제를 불러오지 못했습니다.');
+        toast.error('문제를 불러오지 못했습니다.');
         return;
       }
 
@@ -107,10 +108,10 @@ const UnitPage = () => {
       const message = questionsRes.questions
         .map((q, idx) => `${idx + 1}. ${q.question}`)
         .join('\n\n');
-      alert(message);
+      toast(message, { type: 'info', autoClose: 5000 });
     } catch (error) {
       console.error('단원평가 시작 처리 중 오류:', error);
-      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 
@@ -123,13 +124,13 @@ const UnitPage = () => {
       // 결과 조회 코드는 반드시 ABCDEF-01~60 형식(총 9글자)
       const resultCodePattern = /^[A-Z]{6}-(0[1-9]|[1-5][0-9]|60)$/;
       if (!code || !resultCodePattern.test(code)) {
-        alert('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
+        toast.warn('코드를 입력해주세요. 예) ABCDEF-05 (01~60)');
         return;
       }
       router.push(`/unit-result?code=${encodeURIComponent(code)}`);
     } catch (error) {
       console.error('단원평가 결과 조회 이동 중 오류:', error);
-      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 

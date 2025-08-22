@@ -5,11 +5,13 @@ import Pagination from '@/app/_components/pagination/Pagination';
 import SearchInput from '@/app/teacher/student/components/SearchInput';
 import TableHeader from './components/TableHeader';
 import UnitExamCodeTable from './components/UnitExamCodeTable';
-import ProblemsModal from '@/app/admin/unit-exam-codes/components/ProblemsModal';
+import ProblemsModal from '@/app/teacher/unit-exam-codes/components/ProblemsModal';
 import CreateUnitExamModal from './components/CreateUnitExamModal';
 import { useGets } from '@/hooks/useGets';
 import { useDeletes } from '@/hooks/useDeletes';
 import { AxiosError } from 'axios';
+import { toast } from 'react-toastify';
+import { confirmToast } from '@/utils/toast/confirmToast';
 
 interface UnitExamListResponse {
   success: boolean;
@@ -86,7 +88,7 @@ export default function UnitExamCodesPage() {
   const { mutateAsync: deleteCode } = useDeletes<unknown, DeleteResponse>({
     onSuccess: (resp) => {
       if (!resp?.success) {
-        alert(resp?.error || '삭제에 실패했습니다.');
+        toast.error(resp?.error || '삭제에 실패했습니다.');
         return;
       }
       refetch();
@@ -102,20 +104,20 @@ export default function UnitExamCodesPage() {
         message &&
         (message.includes('이미 응시') || message.includes('응시 기록'))
       ) {
-        alert(
+        toast.info(
           '이미 응시한 시험지는 삭제할 수 없습니다. 배부된 시험지는 삭제가 불가능합니다.'
         );
         return;
       }
       if (status === 403) {
-        alert('삭제 권한이 없습니다.');
+        toast.warn('삭제 권한이 없습니다.');
         return;
       }
       if (status === 401) {
-        alert('로그인이 필요합니다.');
+        toast.warn('로그인이 필요합니다.');
         return;
       }
-      alert(message || '삭제가 불가능합니다. 잠시 후 다시 시도해주세요.');
+      toast.error(message || '삭제가 불가능합니다. 잠시 후 다시 시도해주세요.');
     },
   });
 
@@ -162,8 +164,9 @@ export default function UnitExamCodesPage() {
               <UnitExamCodeTable
                 items={currentData}
                 onDelete={async (code: string) => {
-                  const ok = confirm(
-                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
+                  const ok = await confirmToast(
+                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.',
+                    { confirmText: '삭제', cancelText: '취소' }
                   );
                   if (!ok) return;
                   await deleteCode({ path: `/admin/unit-exam-codes/${code}` });
@@ -200,8 +203,9 @@ export default function UnitExamCodesPage() {
               <UnitExamCodeTable
                 items={currentData}
                 onDelete={async (code: string) => {
-                  const ok = confirm(
-                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.'
+                  const ok = await confirmToast(
+                    '정말 이 단원평가 코드를 삭제하시겠습니까?\n코드와 해당 문제들이 모두 삭제됩니다.',
+                    { confirmText: '삭제', cancelText: '취소' }
                   );
                   if (!ok) return;
                   await deleteCode({ path: `/admin/unit-exam-codes/${code}` });

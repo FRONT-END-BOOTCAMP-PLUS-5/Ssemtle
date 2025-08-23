@@ -3,14 +3,61 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePosts } from '@/hooks/usePosts';
 import AnswerSection from '@/app/_components/molecules/AnswerSection';
 import NumberPad from '@/app/_components/molecules/NumberPad';
+import ExamCountdown from '@/app/unit-exam/_components/ExamCountdown';
 
 interface Problem {
   id: string;
   question: string;
   answer: string;
   helpText: string;
+}
+
+interface ExamQuestion {
+  id: number;
+  question: string;
+  helpText: string;
+}
+
+interface FetchQuestionsRequest {
+  code: string;
+}
+
+interface FetchQuestionsResponse {
+  success: boolean;
+  questions: ExamQuestion[];
+}
+
+interface SubmitExamRequest {
+  code: string;
+  answers: Array<{
+    questionId: number;
+    userInput: string;
+  }>;
+}
+
+interface SubmitExamResponse {
+  success: boolean;
+  saved: number;
+  error?: string;
+}
+
+interface VerifyExamRequest {
+  code: string;
+}
+
+interface VerifyExamResponse {
+  success: boolean;
+  valid?: boolean;
+  examData?: {
+    id: number;
+    teacherId: string;
+    createdAt: Date;
+  };
+  error?: string;
+  alreadyAttempted?: boolean;
 }
 
 // Unit exam specific interfaces will be handled inline
@@ -22,17 +69,97 @@ export default function UnitExamPageContent() {
 
   const examCodeParam = searchParams.get('examCode');
   const examCode = examCodeParam?.trim().toUpperCase() || null;
+
+  // Parse exam code to extract timer minutes
+  const parseExamCode = (code: string | null) => {
+    if (!code) return { baseCode: null, timeMinutes: null };
+
+    const match = code.match(/^([A-Z]{6})-?(\d+)$/);
+    if (match) {
+      return {
+        baseCode: match[1],
+        timeMinutes: parseInt(match[2], 10),
+      };
+    }
+
+    return { baseCode: null, timeMinutes: null };
+  };
+
+  const { baseCode, timeMinutes } = parseExamCode(examCode);
   // Unit exam specific state
-  const [examQuestions, setExamQuestions] = useState<
-    Array<{ id: number; question: string; helpText: string }>
-  >([]);
+  const [examQuestions, setExamQuestions] = useState<ExamQuestion[]>([]);
   const [userAnswers, setUserAnswers] = useState<Map<number, string>>(
     new Map()
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questionsLoading, setQuestionsLoading] = useState(false);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
+
+  // Setup usePosts hooks
+  const verifyExamMutation = usePosts<VerifyExamRequest, VerifyExamResponse>({
+    onSuccess: (data) => {
+      setVerificationAttempted(true); // Mark verification as attempted regardless of result
+
+      if (data.success && data.valid) {
+        setIsVerified(true);
+        // After successful verification, fetch questions
+        fetchExamQuestions();
+      } else if (data.alreadyAttempted) {
+        console.error('Student has already attempted this exam');
+        alert('이미 응시한 시험입니다.');
+        router.push('/');
+      } else {
+        console.error('Exam verification failed:', data.error);
+        setIsVerified(false);
+      }
+    },
+    onError: (error) => {
+      setVerificationAttempted(true); // Mark verification as attempted even on error
+      console.error('Error verifying exam code:', error);
+      setIsVerified(false);
+      alert('시험 코드 검증 중 오류가 발생했습니다.');
+    },
+  });
+
+  const fetchQuestionsMutation = usePosts<
+    FetchQuestionsRequest,
+    FetchQuestionsResponse
+  >({
+    onSuccess: (data) => {
+      if (data.success && data.questions && data.questions.length > 0) {
+        setExamQuestions(data.questions);
+        setCurrentQuestionIndex(0);
+
+        // Show the first question
+        const firstProblem = convertExamQuestionToProblem(data.questions[0]);
+        setCurrentProblem(firstProblem);
+      } else {
+        console.error('No exam questions found');
+        setCurrentProblem(null);
+        setExamQuestions([]);
+        setCurrentQuestionIndex(0);
+      }
+    },
+    onError: (error) => {
+      console.error('Error fetching exam questions:', error);
+      setCurrentProblem(null);
+      setExamQuestions([]);
+      setCurrentQuestionIndex(0);
+    },
+  });
+
+  const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
+    onSuccess: () => {
+      router.push('/'); // Redirect to home or results page
+    },
+    onError: (error) => {
+      console.error('Error submitting exam:', error);
+      alert(
+        `시험 제출 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
+    },
+  });
 
   // No need for unit or video data in exam mode
 
@@ -65,44 +192,23 @@ export default function UnitExamPageContent() {
     [examQuestions, convertExamQuestionToProblem]
   );
 
-  const fetchExamQuestions = useCallback(async () => {
-    if (!examCode || !/^[A-Z]{6}$/.test(examCode)) return;
+  const verifyExamCode = useCallback(() => {
+    if (!examCode || !baseCode) return;
 
-    setQuestionsLoading(true);
-    try {
-      const response = await fetch('/api/unit-exam/questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: examCode }),
-      });
+    verifyExamMutation.mutate({
+      postData: { code: examCode },
+      path: '/unit-exam/verify',
+    });
+  }, [examCode, baseCode, verifyExamMutation]);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch exam questions');
-      }
+  const fetchExamQuestions = useCallback(() => {
+    if (!examCode || !baseCode) return;
 
-      const data = await response.json();
-
-      if (data.success && data.questions && data.questions.length > 0) {
-        setExamQuestions(data.questions);
-        setCurrentQuestionIndex(0);
-
-        // Show the first question
-        const firstProblem = convertExamQuestionToProblem(data.questions[0]);
-        setCurrentProblem(firstProblem);
-      } else {
-        throw new Error('No exam questions found');
-      }
-    } catch (error) {
-      console.error('Error fetching exam questions:', error);
-      setCurrentProblem(null);
-      setExamQuestions([]);
-      setCurrentQuestionIndex(0);
-    } finally {
-      setQuestionsLoading(false);
-    }
-  }, [examCode, convertExamQuestionToProblem]);
+    fetchQuestionsMutation.mutate({
+      postData: { code: examCode },
+      path: '/unit-exam/questions',
+    });
+  }, [examCode, baseCode, fetchQuestionsMutation]);
 
   // No need for handleSaveAnswer - answers are saved directly via UI interaction
 
@@ -122,88 +228,80 @@ export default function UnitExamPageContent() {
   }, [currentQuestionIndex, showQuestionAtIndex]);
 
   // Submit all exam answers
-  const handleSubmitExam = useCallback(async () => {
-    if (!examCode || !session?.user?.id) {
-      alert('로그인 정보가 없습니다.');
-      return;
-    }
+  const handleSubmitExam = useCallback(
+    (forceSubmit = false) => {
+      if (!examCode || !session?.user?.id) {
+        alert('로그인 정보가 없습니다.');
+        return;
+      }
 
-    const answers = Array.from(userAnswers.entries()).map(
-      ([questionId, userInput]) => ({
-        questionId,
-        userInput,
-      })
-    );
+      const answers = Array.from(userAnswers.entries()).map(
+        ([questionId, userInput]) => ({
+          questionId,
+          userInput,
+        })
+      );
 
-    if (answers.length === 0) {
-      alert('제출할 답안이 없습니다.');
-      return;
-    }
+      if (forceSubmit && answers.length === 0) {
+        router.push('/');
+        return;
+      }
 
-    // Confirm submission
-    if (
-      !confirm(
-        `${answers.length}개의 답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`
-      )
-    ) {
-      return;
-    }
+      if (!forceSubmit && answers.length === 0) {
+        alert('제출할 답안이 없습니다.');
+        return;
+      }
 
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/unit-exam/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Confirm submission
+      if (
+        !forceSubmit &&
+        !confirm(`답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`)
+      ) {
+        return;
+      }
+
+      submitExamMutation.mutate({
+        postData: {
           code: examCode,
           answers: answers,
-        }),
+        },
+        path: '/unit-exam/submit',
       });
+    },
+    [examCode, session?.user?.id, userAnswers, submitExamMutation, router]
+  );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to submit exam');
-      }
+  // Handle time expiry with auto-submit
+  const handleTimeUp = useCallback(() => {
+    // Show warning and auto-submit
+    alert('시험 시간이 만료되었습니다. 자동으로 답안을 제출합니다.');
 
-      const result = await response.json();
+    handleSubmitExam(true); // Pass true to force submit behavior
+  }, [handleSubmitExam]);
 
-      if (result.success) {
-        alert(
-          `시험이 성공적으로 제출되었습니다. ${result.saved || answers.length}개의 답안이 저장되었습니다.`
-        );
-        router.push('/'); // Redirect to home or results page
-      } else {
-        throw new Error(result.error || 'Submission failed');
-      }
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      alert(
-        `시험 제출 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [examCode, session?.user?.id, userAnswers, router]);
-
-  // Fetch exam questions when component mounts
+  // Verify exam code first, then fetch questions
   useEffect(() => {
     if (
       examCode &&
-      !currentProblem &&
-      !questionsLoading &&
-      examQuestions.length === 0
+      !verificationAttempted &&
+      !verifyExamMutation.isPending &&
+      !fetchQuestionsMutation.isPending
     ) {
-      fetchExamQuestions();
+      verifyExamCode();
     }
   }, [
     examCode,
-    currentProblem,
-    questionsLoading,
-    examQuestions.length,
-    fetchExamQuestions,
+    verificationAttempted,
+    verifyExamMutation.isPending,
+    fetchQuestionsMutation.isPending,
+    verifyExamCode,
   ]);
+
+  // Reset verification states when exam code changes
+  useEffect(() => {
+    setVerificationAttempted(false);
+    setIsVerified(false);
+  }, [examCode]);
 
   // Check authentication and loading state
   if (status === 'loading') {
@@ -233,8 +331,19 @@ export default function UnitExamPageContent() {
     );
   }
 
-  // Show loading state
-  if (questionsLoading) {
+  // Show loading state for verification and questions
+  if (verifyExamMutation.isPending) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">시험 코드를 확인하는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchQuestionsMutation.isPending) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
@@ -246,14 +355,14 @@ export default function UnitExamPageContent() {
   }
 
   // Handle missing or invalid exam code
-  if (!examCode || !/^[A-Z]{6}$/.test(examCode)) {
+  if (!examCode || !baseCode) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
             {!examCode
               ? '단원평가 코드를 입력해주세요'
-              : '유효하지 않은 단원평가 코드입니다 (6자리 대문자)'}
+              : '유효하지 않은 단원평가 코드입니다 (ABCDEF-60 형식)'}
           </p>
           <button
             onClick={() => router.back()}
@@ -261,6 +370,18 @@ export default function UnitExamPageContent() {
           >
             돌아가기
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show exam interface if verification is complete and successful
+  if (!isVerified) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">시험을 준비하는 중...</p>
         </div>
       </div>
     );
@@ -278,21 +399,29 @@ export default function UnitExamPageContent() {
               <div className="space-y-4 rounded-3xl bg-white p-6 shadow-lg">
                 {/* Problem Title with Progress */}
                 <div className="text-center">
-                  <h1 className="font-['Inter'] text-2xl font-bold text-gray-800">
-                    {session.user.name} - 단원평가 {examCode}
-                  </h1>
-                  {examQuestions.length > 0 && (
-                    <p className="mt-2 text-sm text-gray-600">
-                      문제 {currentQuestionIndex + 1} / {examQuestions.length}
-                    </p>
-                  )}
+                  <div className="flex justify-between text-2xl font-bold text-gray-800">
+                    <div className="pl-2">단원평가</div>
+                    {timeMinutes && (
+                      <ExamCountdown
+                        timeMinutes={timeMinutes}
+                        onTimeUp={handleTimeUp}
+                      />
+                    )}
+                  </div>
+                  <div className="mt-2 flex flex-col items-center space-y-2">
+                    {examQuestions.length > 0 && (
+                      <p className="text-sm text-gray-600">
+                        문제 {currentQuestionIndex + 1} / {examQuestions.length}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Equation Card */}
                 {currentProblem && (
                   <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-violet-100 p-6 shadow-sm">
                     <div className="text-center">
-                      <p className="font-['Inter'] text-lg font-bold text-gray-800">
+                      <p className="text-lg font-bold text-gray-800">
                         {currentProblem.question}
                       </p>
                     </div>
@@ -323,7 +452,7 @@ export default function UnitExamPageContent() {
                   submitState="initial"
                   wasAnswerCorrect={undefined}
                   loading={false}
-                  disabled={questionsLoading}
+                  disabled={fetchQuestionsMutation.isPending}
                 />
 
                 {/* Exam Navigation */}
@@ -340,17 +469,20 @@ export default function UnitExamPageContent() {
                     {currentQuestionIndex < examQuestions.length - 1 ? (
                       <button
                         onClick={handleNext}
-                        className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                        disabled={submitExamMutation.isPending}
+                        className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         다음 문제
                       </button>
                     ) : (
                       <button
-                        onClick={handleSubmitExam}
-                        disabled={isSubmitting}
+                        onClick={() => handleSubmitExam()}
+                        disabled={submitExamMutation.isPending}
                         className="rounded-lg bg-green-500 px-6 py-2 text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
-                        {isSubmitting ? '제출 중...' : '시험 제출'}
+                        {submitExamMutation.isPending
+                          ? '제출 중...'
+                          : '시험 제출'}
                       </button>
                     )}
                   </div>
@@ -384,7 +516,7 @@ export default function UnitExamPageContent() {
                   setUserAnswers((prev) => new Map(prev).set(questionId, ''));
                 }
               }}
-              disabled={questionsLoading}
+              disabled={fetchQuestionsMutation.isPending}
             />
           </div>
         </div>

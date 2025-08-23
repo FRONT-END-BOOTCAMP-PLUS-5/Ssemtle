@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
+import { HiOutlineArrowRight } from 'react-icons/hi2';
 
 // 단원평가 시작 페이지 컴포넌트
 // - 코드 입력값 유효성 검사 후, TanStack Query(POST 훅)로 검증/문제 조회 진행
@@ -70,41 +71,85 @@ const UnitPage = () => {
   };
 
   return (
-    <div className="border-black-100 flex w-screen flex-col">
-      <span className="flex w-full p-8 text-2xl font-bold">단원 평가</span>
-      <div className="flex h-full w-full flex-1 justify-center pt-10">
-        <div className="flex w-[min(800px,92%)] flex-col gap-6">
-          {/* 섹션 1: 코드 입력 + 단원평가 시작 */}
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] p-8">
-            <div className="mb-4">
+    <div className="flex w-full flex-col">
+      {/* 상단 헤더: 타이틀, 부제목 */}
+      <div className="w-full px-6 pt-8 sm:px-10">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold sm:text-3xl">단원 평가</h1>
+        </div>
+        <p className="mt-2 text-sm text-gray-500 sm:text-base">
+          단원별 실력을 평가하고 학습 성과를 확인해보세요!
+        </p>
+      </div>
+
+      {/* 본문: 좌우 카드 레이아웃 */}
+      <div className="mt-10 flex w-full justify-center p-6 sm:p-10">
+        <div className="grid w-[min(1100px,96%)] grid-cols-1 gap-6 md:grid-cols-2">
+          {/* 카드 1: 새로운 단원평가 */}
+          <section className="rounded-2xl bg-blue-50 p-6 sm:p-8">
+            {/* 카드 헤더 */}
+            <div className="flex items-center gap-4">
+              <div>
+                <h2 className="text-3xl font-bold text-blue-700">
+                  새로운 단원평가
+                </h2>
+                <p className="mt-1 text-lg text-blue-700/80">
+                  단원 평가 코드를 입력하여 시작하세요
+                </p>
+              </div>
+            </div>
+
+            {/* 입력 영역 */}
+            <div className="mt-6">
+              <label htmlFor="unitCode" className="sr-only">
+                단원 평가 코드
+              </label>
               <input
+                id="unitCode"
                 type="text"
                 value={unitCode}
                 onChange={onChangeUnitCode}
-                placeholder="단원 평가 코드를 입력해주세요."
+                placeholder="단원 평가 코드를 입력해주세요"
                 maxLength={9}
-                className="h-15 w-100 rounded-2xl border-1 border-[var(--color-sidebar-icon)] text-center max-[431px]:w-70"
+                className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-center text-base ring-blue-300 transition outline-none focus:ring-2"
               />
             </div>
-            <div className="flex gap-4">
+
+            {/* 버튼 */}
+            <div className="mt-4">
               <button
-                className="h-15 w-50 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
                 onClick={onClickUnitExam}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-sm transition hover:bg-blue-700"
               >
-                단원평가 시작
+                <span>단원평가 시작</span>
+                <HiOutlineArrowRight className="h-5 w-5" />
               </button>
             </div>
-          </div>
+          </section>
 
-          {/* 섹션 2: 응시한 단원평가 목록 버튼 */}
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-[var(--color-sidebar-button)] p-8">
-            <button
-              className="h-15 w-70 rounded-2xl border-1 border-[var(--color-sidebar-icon)] shadow-md transition hover:translate-y-[-3px] hover:shadow-xl"
-              onClick={onClickViewAttemptedList}
-            >
-              응시한 단원평가 목록
-            </button>
-          </div>
+          {/* 카드 2: 평가 기록 */}
+          <section className="rounded-2xl bg-emerald-50 p-6 sm:p-8">
+            <div className="flex items-center gap-4">
+              <div>
+                <h2 className="text-3xl font-bold text-emerald-700">
+                  평가 기록
+                </h2>
+                <p className="mt-1 text-lg text-emerald-700/80">
+                  이전에 응시한 단원평가 결과를 확인하세요
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-22">
+              <button
+                onClick={onClickViewAttemptedList}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-white shadow-sm transition hover:bg-emerald-700"
+              >
+                <span>응시한 단원평가 목록</span>
+                <HiOutlineArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </div>

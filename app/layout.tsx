@@ -9,6 +9,11 @@ import 'react-toastify/dist/ReactToastify.css';
 export const metadata: Metadata = {
   title: 'Ssemtle',
   description: 'Ssemtle web service',
+  icons: {
+    icon: [{ url: '/ssemtle_favicon.png', type: 'image/png' }],
+    shortcut: ['/ssemtle_favicon.png'],
+    apple: [{ url: '/ssemtle_favicon.png' }],
+  },
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 

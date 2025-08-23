@@ -1,3 +1,3 @@
 export default function Home() {
-  return <>셈틀 메인 홈페이지ㅁㄴㅇㄹㅁㄴㅇㄹ</>;
+  return <>셈틀 홈페이지</>;
 }

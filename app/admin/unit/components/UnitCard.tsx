@@ -32,14 +32,14 @@ export default function UnitCard({ unit, onEdit, onDelete }: UnitCardProps) {
           <div className="flex gap-2 sm:gap-3">
             <button
               type="button"
-              className="flex-1 rounded-md border border-purple-200 bg-transparent text-xs font-medium whitespace-nowrap text-purple-700 hover:bg-purple-50 sm:text-sm"
+              className="flex-1 cursor-pointer rounded-md border border-purple-200 bg-transparent text-xs font-medium whitespace-nowrap text-purple-700 hover:bg-purple-50 sm:text-sm"
               onClick={() => onEdit?.(unit)}
             >
               수정
             </button>
             <button
               type="button"
-              className="flex-1 rounded-md border border-red-200 bg-transparent text-xs font-medium whitespace-nowrap text-red-600 hover:bg-red-50 sm:text-sm"
+              className="flex-1 cursor-pointer rounded-md border border-red-200 bg-transparent text-xs font-medium whitespace-nowrap text-red-600 hover:bg-red-50 sm:text-sm"
               onClick={() => onDelete?.(unit)}
             >
               삭제

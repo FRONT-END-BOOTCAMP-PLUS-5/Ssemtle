@@ -69,6 +69,7 @@ export default function UnitExamPageContent() {
 
   const examCodeParam = searchParams.get('examCode');
   const examCode = examCodeParam?.trim().toUpperCase() || null;
+  const redirectURL = `/unit-result?studentId${session?.user.userId}&code=${examCode}`;
 
   // Parse exam code to extract timer minutes
   const parseExamCode = (code: string | null) => {
@@ -106,19 +107,14 @@ export default function UnitExamPageContent() {
         // After successful verification, fetch questions
         fetchExamQuestions();
       } else if (data.alreadyAttempted) {
-        console.error('Student has already attempted this exam');
         alert('이미 응시한 시험입니다.');
         router.push('/');
       } else {
-        console.error('Exam verification failed:', data.error);
-        setIsVerified(false);
+        router.push('/');
       }
     },
-    onError: (error) => {
-      setVerificationAttempted(true); // Mark verification as attempted even on error
-      console.error('Error verifying exam code:', error);
-      setIsVerified(false);
-      alert('시험 코드 검증 중 오류가 발생했습니다.');
+    onError: () => {
+      router.push('/');
     },
   });
 
@@ -151,7 +147,7 @@ export default function UnitExamPageContent() {
 
   const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
     onSuccess: () => {
-      router.push('/'); // Redirect to home or results page
+      router.push(redirectURL); // Redirect to home or results page
     },
     onError: (error) => {
       console.error('Error submitting exam:', error);
@@ -243,7 +239,7 @@ export default function UnitExamPageContent() {
       );
 
       if (forceSubmit && answers.length === 0) {
-        router.push('/');
+        router.push(redirectURL);
         return;
       }
 
@@ -268,7 +264,14 @@ export default function UnitExamPageContent() {
         path: '/unit-exam/submit',
       });
     },
-    [examCode, session?.user?.id, userAnswers, submitExamMutation, router]
+    [
+      examCode,
+      session?.user?.id,
+      userAnswers,
+      submitExamMutation,
+      router,
+      redirectURL,
+    ]
   );
 
   // Handle time expiry with auto-submit

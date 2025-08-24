@@ -25,7 +25,7 @@ export default function SidebarUser() {
     },
     {
       label: '문제집',
-      href: '/problem-solving',
+      href: '/workbook/practice',
       icon: GiBookshelf,
       type: 'link' as const,
     },
@@ -49,7 +49,7 @@ export default function SidebarUser() {
 
   return (
     <div
-      className="sticky top-[var(--header-h,0px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
+      className="sticky top-[var(--header-h,50px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
       style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
     >
       <HeaderSizeObserver />

@@ -39,19 +39,24 @@ export default async function RootLayout({
               >
                 <RoleBasedSidebar />
               </div>
-              {/* 데스크톱 전용(≥431px): 항상 보임 */ []}
-              <div className="hidden min-[431px]:block">
+              {/* 데스크톱 전용(≥431px): 항상 보임 */}
+              <aside
+                className="sticky top-[var(--header-h,0px)] hidden self-start min-[431px]:block"
+                style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
+              >
                 <RoleBasedSidebar />
-              </div>
+              </aside>
               {/* 메인 콘텐츠 영역 */}
-              <ToastContainer
-                position="top-center"
-                limit={1}
-                closeButton={true}
-                autoClose={2500}
-                hideProgressBar={false}
-              />
-              {children}
+              <main className="flex-1 overflow-y-auto">
+                <ToastContainer
+                  position="top-center"
+                  limit={1}
+                  closeButton={true}
+                  autoClose={2500}
+                  hideProgressBar={false}
+                />
+                {children}
+              </main>
             </div>
           </LayoutClient>
 

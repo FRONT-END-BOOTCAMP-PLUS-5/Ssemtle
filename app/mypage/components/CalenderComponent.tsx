@@ -12,6 +12,7 @@ type Props = {
   attendanceMap?: Record<string, number>;
   resultsMap?: Record<string, Results>;
   showZero?: boolean;
+  onDayHover?: (d: Date | null) => void; // 🟣 MyPage에서 받는 호버 콜백
 };
 
 /* ---------- 유틸 ---------- */
@@ -49,6 +50,8 @@ export default function CalendarComponent({
   onMonthChange,
   attendanceMap = {},
   resultsMap = {},
+  showZero = false, // 🔹 기본은 0/0 숨김
+  onDayHover, // 🔹 데스크톱 미리보기용 (옵션)
 }: Props) {
   const [cursor, setCursor] = React.useState<Date>(
     value ? startOfMonth(value) : startOfMonth(new Date())
@@ -58,7 +61,7 @@ export default function CalendarComponent({
     if (value) setCursor(startOfMonth(value));
   }, [value]);
 
-  // ✅ 커서 바뀐 후에만 부모 콜백 실행
+  // ✅ 커서 바뀐 후 부모 콜백
   React.useEffect(() => {
     if (!onMonthChange) return;
     const y = cursor.getFullYear();
@@ -69,17 +72,21 @@ export default function CalendarComponent({
   const weeks = React.useMemo(() => {
     const first = startOfMonth(cursor);
     const last = endOfMonth(cursor);
+    // Monday-first: 월(1)~일(0) => 0~6로 재매핑
     const firstWeekday = (first.getDay() + 6) % 7;
     const days: Date[] = [];
 
+    // 이전 달 채우기
     for (let i = 0; i < firstWeekday; i++) {
       const d = new Date(first);
       d.setDate(first.getDate() - (firstWeekday - i));
       days.push(d);
     }
+    // 이번 달
     for (let d = 1; d <= last.getDate(); d++) {
       days.push(new Date(cursor.getFullYear(), cursor.getMonth(), d));
     }
+    // 다음 달 채우기 (6주 = 42칸)
     while (days.length < 42) {
       const lastDay = days[days.length - 1];
       const next = new Date(lastDay);
@@ -112,14 +119,18 @@ export default function CalendarComponent({
         </div>
         <div className="flex items-center gap-1">
           <button
+            type="button"
             className="rounded-lg px-2 py-1 hover:bg-gray-100"
             onClick={goPrev}
+            aria-label="이전 달"
           >
             ←
           </button>
           <button
+            type="button"
             className="rounded-lg px-2 py-1 hover:bg-gray-100"
             onClick={goNext}
+            aria-label="다음 달"
           >
             →
           </button>
@@ -139,7 +150,11 @@ export default function CalendarComponent({
       </div>
 
       {/* Days */}
-      <div className="grid grid-cols-7 gap-[4px]">
+      <div
+        className="grid grid-cols-7 gap-[4px]"
+        // 캘린더 전체 영역을 벗어날 때 호버 초기화(선택)
+        onMouseLeave={() => onDayHover?.(null)}
+      >
         {weeks.flat().map((d, idx) => {
           const inMonth = d.getMonth() === cursor.getMonth();
           const selected = value && isSameDay(d, value);
@@ -152,16 +167,23 @@ export default function CalendarComponent({
           const total = res?.total ?? 0;
           const weekend = d.getDay() === 0 || d.getDay() === 6;
 
+          const showRatio = showZero || correct !== 0 || total !== 0;
+
           return (
             <button
               key={idx}
+              type="button"
               onClick={() => onChange?.(d)}
+              onMouseEnter={() => onDayHover?.(d)} // 🟣 호버 진입
+              onFocus={() => onDayHover?.(d)} // 🟣 키보드 포커스
+              onBlur={() => onDayHover?.(null)} // 🟣 포커스 아웃
               className={[
                 'relative grid h-10 w-10 grid-cols-2 grid-rows-2 gap-[2px] rounded-lg border border-gray-200 p-1 text-[10px]',
                 !inMonth ? 'text-gray-300' : 'text-gray-900',
                 selected ? 'ring-2 ring-purple-600' : 'hover:bg-gray-50',
                 isToday && !selected ? 'bg-purple-200' : '',
               ].join(' ')}
+              aria-label={`${ymd(d)}${showRatio ? `, 정답 ${correct}/${total}` : ''}`}
             >
               {/* 날짜 */}
               <div
@@ -178,7 +200,7 @@ export default function CalendarComponent({
                 {d.getDate()}
               </div>
 
-              {/* 🔥 */}
+              {/* 🔥 연속 출석 */}
               <div className="self-start justify-self-end">
                 {att > 1 ? '🔥' : ''}
               </div>
@@ -186,8 +208,8 @@ export default function CalendarComponent({
               {/* 좌하 빈칸 */}
               <div className="self-end justify-self-start" />
 
-              {/* 맞은/전체 — 0/0은 숨김 */}
-              {(correct !== 0 || total !== 0) && (
+              {/* 맞은/전체 */}
+              {showRatio && (
                 <div className="self-end justify-self-end text-[9px]">
                   <span className="font-bold text-green-600">{correct}</span>
                   <span className="text-black">/{total}</span>

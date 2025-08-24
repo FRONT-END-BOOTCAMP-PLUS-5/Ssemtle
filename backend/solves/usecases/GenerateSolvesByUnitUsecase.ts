@@ -24,6 +24,8 @@ export class GenerateSolvesByUnitUseCase {
 - 반드시 위 형식처럼 JSON 배열만 출력해줘.
 - 설명, 마크다운, 코드 블록, 주석 없이 순수 JSON으로만 응답해줘.
 - 전과 항상 다른 문제를 생성해줘.
+- 정답은 하나로 작성하고, 답이 여러개가 나오지 않게 해줘.
+- 우리의 입력값이 1~9, +,-,×,/,(),^,√,x,y,π,.,,,이기 때문에, 정답을 이 기호들로 표현할 수 있게 해줘.
 `;
 
     const rawText = await this.gemini.generate(prompt);

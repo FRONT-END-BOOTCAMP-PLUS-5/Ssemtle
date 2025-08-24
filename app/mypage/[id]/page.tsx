@@ -7,25 +7,21 @@ import { GetStudentUnitPerformanceResponseDTO } from '@/backend/analysis/dtos/Ge
 import { GetUserInfoResponseDTO } from '@/backend/auth/dtos/UserDto';
 import CalendarComponent from '../components/CalenderComponent';
 import TestCard from '../../_components/cards/TestCard';
-import PerformanceChart from '../components/PerformanceChart';
+import PerformanceChartBase from '../components/PerformanceChart';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
 import AccountSettingsCard from '../components/AccountSettingsCard';
 import { useSession } from 'next-auth/react';
 
-// ---------- 달력(월별) API 응답 타입 ----------
+// ---------- 유틸 ----------
 type CalendarDay = {
   date: string; // 'YYYY-MM-DD'
   total: number;
   correct: number;
   accuracy: number; // 0~1
-  solves: SolveListItemDto[]; // 당일 풀이 리스트
+  solves: SolveListItemDto[];
 };
+type CalendarResponse = { days: CalendarDay[] };
 
-type CalendarResponse = {
-  days: CalendarDay[];
-};
-
-// ---------- 유틸 ----------
 function ym(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -38,6 +34,28 @@ function ymd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+// ---------- 커스텀 훅 (컴포넌트 바깥에 선언) ----------
+function useHoverCapable() {
+  const [ok, setOk] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia?.('(hover: hover) and (pointer: fine)');
+    const apply = () => setOk(!!mq?.matches);
+    apply();
+    mq?.addEventListener?.('change', apply);
+    return () => mq?.removeEventListener?.('change', apply);
+  }, []);
+  return ok;
+}
+function useDebounced<T>(value: T, delay = 60) {
+  const [v, setV] = React.useState(value);
+  React.useEffect(() => {
+    const t = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return v;
+}
+
+// ---------- 페이지 ----------
 export default function MyPage() {
   const router = useRouter();
   const { id: userId } = useParams(); // /mypage/[id]
@@ -54,21 +72,19 @@ export default function MyPage() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  // 1) 유저 정보 (납작 구조)
+  // 유저 정보
   const { data: userData } = useGets<GetUserInfoResponseDTO>(
     ['user-info', userId],
     `/users/${userId}`,
     !!userId
   );
+  const username = userData?.userId;
+  const displayName = userData?.name ?? '사용자';
 
-  //  납작 구조 기반 파생 값
-  const username = userData?.userId; // 분석/캘린더 API에 사용할 외부 식별자
-  const displayName = userData?.name ?? '사용자'; // 화면표시용 이름
-
-  // 2) 현재 보고 있는 달 상태 (초기: 오늘)
+  // 현재 달
   const [month, setMonth] = useState<string>(() => ym(new Date()));
 
-  // 3) 레이더 차트 데이터 (학생 단원 성과)
+  // 성과(레이더/막대) 데이터
   const {
     data: analysisData,
     isLoading,
@@ -79,7 +95,6 @@ export default function MyPage() {
     username ? `/students/${username}/unit` : '',
     !!username
   );
-
   const radarData = useMemo(() => {
     const units = analysisData?.units ?? [];
     return units.map((u) => ({
@@ -90,23 +105,19 @@ export default function MyPage() {
     }));
   }, [analysisData]);
 
-  // 4) 월별 캘린더 데이터
+  // 달력 데이터
   const { data: calendarResp } = useGets<CalendarResponse>(
     ['solvesCalendar', username, month],
     username ? `/solves/calendar/user/${username}?month=${month}` : '',
     !!username
   );
 
-  // 5) 캘린더 바인딩 맵 (맞은/전체, 연속 출석)
+  // 캘린더 표시 맵
   const { resultsMap, attendanceMap } = useMemo(() => {
     const map: Record<string, { correct: number; total: number }> = {};
     const days = calendarResp?.days ?? [];
+    for (const d of days) map[d.date] = { correct: d.correct, total: d.total };
 
-    for (const d of days) {
-      map[d.date] = { correct: d.correct, total: d.total };
-    }
-
-    // 풀이 있는 날들만 기준으로 연속 출석
     const activeDays = days
       .filter((d) => d.total > 0)
       .map((d) => d.date)
@@ -114,28 +125,28 @@ export default function MyPage() {
     const att: Record<string, number> = {};
     let streak = 0;
     let prev: string | null = null;
-
-    const isNextDay = (a: string, b: string): boolean => {
+    const isNextDay = (a: string, b: string) => {
       const da = new Date(a + 'T00:00:00Z').getTime();
       const db = new Date(b + 'T00:00:00Z').getTime();
       return db - da === 86400000;
     };
-
     for (const day of activeDays) {
       streak = prev && isNextDay(prev, day) ? streak + 1 : 1;
       att[day] = streak;
       prev = day;
     }
-
     return { resultsMap: map, attendanceMap: att };
   }, [calendarResp]);
 
-  // 6) 날짜 선택 상태 (모달/패널 공통)
+  // 선택/호버 상태
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSolves, setSelectedSolves] = useState<SolveListItemDto[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 날짜 클릭 → 모바일: 모달 / 데스크톱: 우측 패널
+  const hoverCapable = useHoverCapable();
+  const [hoverDate, setHoverDate] = useState<string | null>(null);
+  const debouncedHoverDate = useDebounced(hoverDate, 50);
+
   const handleDayClick = (d: Date) => {
     const key = ymd(d);
     const day = calendarResp?.days.find((x) => x.date === key);
@@ -143,11 +154,12 @@ export default function MyPage() {
     setSelectedSolves(day?.solves ?? []);
     if (!isDesktop) setIsModalOpen(true);
   };
+  function handleDayHover(d: Date | null) {
+    if (!hoverCapable) return;
+    setHoverDate(d ? ymd(d) : null);
+  }
 
-  // 7) 달 변경 콜백
-  const handleMonthChange = (newMonth: string) => {
-    setMonth(newMonth);
-  };
+  const handleMonthChange = (newMonth: string) => setMonth(newMonth);
 
   // 모달 열릴 때 body 스크롤 잠금
   useEffect(() => {
@@ -167,10 +179,16 @@ export default function MyPage() {
     router.push(`/solve?${q.toString()}`);
   };
 
-  // 모달/패널 리스트: 카테고리 그룹핑
+  // 패널 표시용 기준 날짜: 호버 우선, 없으면 선택
+  const effectiveDate = debouncedHoverDate ?? selectedDate;
+
+  // 패널 리스트 데이터 (카테고리 그룹핑)
   const solvesByCategory = useMemo<Record<string, SolveListItemDto[]>>(() => {
     const map: Record<string, SolveListItemDto[]> = {};
-    for (const s of selectedSolves) {
+    const day = calendarResp?.days.find((x) => x.date === effectiveDate);
+    const list =
+      day?.solves ?? (effectiveDate === selectedDate ? selectedSolves : []);
+    for (const s of list) {
       const cat = s.category ?? '전체';
       (map[cat] ??= []).push(s);
     }
@@ -178,8 +196,9 @@ export default function MyPage() {
       arr.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
     );
     return map;
-  }, [selectedSolves]);
+  }, [calendarResp, effectiveDate, selectedSolves, selectedDate]);
 
+  const PerformanceChart = React.memo(PerformanceChartBase);
   const { data: session } = useSession();
 
   return (
@@ -204,33 +223,41 @@ export default function MyPage() {
 
         {/* 성과 그래프 */}
         <div
-          className="mx-auto mt-4 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none"
+          className="mx-auto mt-4 flex w-full max-w-6xl justify-center rounded-2xl bg-white p-4 outline-none focus:outline-none"
           onMouseDown={(e) => e.preventDefault()}
         >
           <PerformanceChart data={radarData} />
         </div>
 
         {/* 캘린더 + (데스크톱) 우측 패널 */}
-
-        <div className="mt-6 flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-[450px_450px]">
+        <div className="w/full mx-auto mt-6 flex max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none">
+          <div className="flex w-full flex-row gap-6">
             {/* 캘린더 */}
-            <div className="flex shrink-0 justify-center">
+            <div className="flex min-w-0 flex-1 basis-0 justify-center">
               <CalendarComponent
                 onChange={handleDayClick}
                 onMonthChange={handleMonthChange}
                 attendanceMap={attendanceMap ?? {}}
                 resultsMap={resultsMap ?? {}}
+                onDayHover={handleDayHover} // 데스크톱 호버 미리보기
               />
             </div>
 
-            {/* 데스크톱 우측 패널: 항상 보이게 */}
-            <aside className="hidden w-[480px] shrink-0 md:block">
-              <div className="sticky top-16">
+            {/* 데스크톱 우측 패널 */}
+            <aside className="hidden min-w-0 flex-1 basis-0 md:flex">
+              <div className="sticky top-16 w-full">
                 <div className="h-[360px] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-sm text-gray-500">
-                      {selectedDate ?? '날짜를 선택하세요'}
+                      {effectiveDate ?? '날짜를 선택하세요'}
+                      {hoverCapable &&
+                        debouncedHoverDate &&
+                        selectedDate &&
+                        debouncedHoverDate !== selectedDate && (
+                          <span className="ml-2 text-xs text-indigo-500">
+                            (미리보기)
+                          </span>
+                        )}
                     </div>
                     {selectedDate && (
                       <button
@@ -242,14 +269,14 @@ export default function MyPage() {
                     )}
                   </div>
 
-                  {selectedDate &&
+                  {effectiveDate &&
                     Object.keys(solvesByCategory).length === 0 && (
                       <div className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
                         해당 날짜에는 풀이 기록이 없습니다.
                       </div>
                     )}
 
-                  {selectedDate &&
+                  {effectiveDate &&
                     Object.entries(solvesByCategory).map(
                       ([category, solves]) => (
                         <div
@@ -263,9 +290,10 @@ export default function MyPage() {
                       )
                     )}
 
-                  {!selectedDate && (
+                  {!effectiveDate && (
                     <div className="text-sm text-gray-500">
-                      캘린더에서 날짜를 선택하면 이곳에 카드가 표시됩니다.
+                      캘린더에서 날짜를 선택하거나(모바일), 날짜 위로 마우스를
+                      올리면(데스크톱) 이곳에 카드가 표시됩니다.
                     </div>
                   )}
                 </div>
@@ -273,12 +301,13 @@ export default function MyPage() {
             </aside>
           </div>
         </div>
+
         {/* 본인 계정일 때만 계정 설정 버튼 */}
         {session?.user.userId === userData?.userId && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={() => setIsAccountOpen(true)}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-white shadow hover:brightness-110 active:scale-[.99]"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:brightness-110 active:scale-[.99]"
             >
               아이디/비밀번호 변경
             </button>
@@ -303,7 +332,7 @@ export default function MyPage() {
         </div>
       )}
 
-      {/* 모바일 모달: 데스크톱에선 사용 안 함 */}
+      {/* 모바일 모달 */}
       {!isDesktop && isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -311,7 +340,7 @@ export default function MyPage() {
             onClick={closeModal}
           />
           <div className="relative mx-auto w-full max-w-lg">
-            <div className="flex max-h-[min(88vh,720px)] flex-col overflow-hidden rounded-2xl bg-white shadow-lg outline outline-gray-200">
+            <div className="flex max-h-[min(88vh,720px)] flex-col overflow-hidden rounded-2xl bg-white outline outline-gray-200">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                 <div className="text-sm text-gray-500">선택한 날짜</div>
                 <button

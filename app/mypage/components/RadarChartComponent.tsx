@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   ResponsiveContainer,
   RadarChart,
@@ -11,15 +11,13 @@ import {
   Tooltip,
 } from 'recharts';
 
-// ✅ 레이더 데이터 타입에 correct/total 추가
 type RadarDatum = {
   subject: string;
-  value: number; // % 값 (0~100)
-  correct: number; // 맞은 개수
-  total: number; // 전체 개수
+  value: number; // 0~100 (%)
+  correct: number;
+  total: number;
 };
 
-// ✅ 커스텀 툴팁
 type CustomTooltipProps = {
   active?: boolean;
   payload?: Array<{ payload: RadarDatum }>;
@@ -31,7 +29,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   const pct = p.total > 0 ? Math.round((p.correct / p.total) * 100) : 0;
 
   return (
-    <div className="rounded-md bg-white/95 px-3 py-2 text-sm shadow">
+    <div className="rounded-md bg-white/95 px-3 py-2 text-sm">
       <div className="mb-1 font-medium">{p.subject}</div>
       <div>
         <span className="font-bold text-green-600">{p.correct}</span>/{p.total}{' '}
@@ -41,23 +39,31 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
-/**
- * RadarChartComponent
- * - 반응형 레이더 차트
- * - props로 data(overrides) 전달 가능
- */
 export default function RadarChartComponent({
   data = [],
   className = '',
 }: {
-  data?: RadarDatum[]; // ✅ 타입 교체
+  data?: RadarDatum[];
   className?: string;
 }) {
+  // ✅ "처음으로 데이터가 채워진 렌더"에서만 애니메이션을 켜고 즉시 닫음(상태/이펙트 X)
+  const hasAnimatedRef = useRef(false);
+  const dataReady = (data?.length ?? 0) > 0;
+
+  let isAnimationActive = false;
+  if (dataReady && !hasAnimatedRef.current) {
+    isAnimationActive = true; // 이번 렌더에서만 애니메이션
+    hasAnimatedRef.current = true; // 이후 렌더부터는 false
+  }
+
+  // (선택) 상위가 매 렌더 새 배열을 만들어도 동일 참조 유지
+  const chartData = useMemo(() => data, [data]);
+
   return (
     <div className={`w-full max-w-xl ${className}`}>
-      <div className="rounded-2x h-[280px] backdrop-blur sm:h-[340px]">
+      <div className="h-[280px] rounded-2xl sm:h-[340px]">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={data} outerRadius="70%">
+          <RadarChart data={chartData} outerRadius="70%">
             <PolarGrid />
             <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
             <PolarRadiusAxis
@@ -67,11 +73,11 @@ export default function RadarChartComponent({
             />
             <Radar
               dataKey="value"
-              stroke="rgb(124, 58, 237)" /* purple-600 */
+              stroke="rgb(124, 58, 237)"
               fill="rgba(124, 58, 237, 0.5)"
               strokeWidth={2}
+              isAnimationActive={isAnimationActive}
             />
-            {/* ✅ 커스텀 툴팁로 교체 */}
             <Tooltip content={<CustomTooltip />} />
           </RadarChart>
         </ResponsiveContainer>

@@ -60,7 +60,11 @@ export default function BarChartComponent({
             <XAxis dataKey="subject" tick={{ fontSize: 12 }} />
             <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" fill="rgb(124, 58, 237)" />{' '}
+            <Bar
+              dataKey="value"
+              isAnimationActive={false}
+              fill="rgb(124, 58, 237)"
+            />{' '}
             {/* tailwind sky-500 */}
           </BarChart>
         </ResponsiveContainer>

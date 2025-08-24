@@ -107,8 +107,6 @@ export default function AccountPage() {
             : '아이디 변경에 실패했습니다.';
         throw new Error(msg);
       }
-
-      setIdMsg('아이디가 변경되었습니다.');
     } catch (e: unknown) {
       setIdErr(getErrorMessage(e) || '아이디 변경 중 오류가 발생했습니다.');
     } finally {
@@ -142,11 +140,6 @@ export default function AccountPage() {
             : '비밀번호 변경에 실패했습니다.';
         throw new Error(msg);
       }
-
-      setPwMsg('비밀번호가 변경되었습니다.');
-      setCurrentPassword('');
-      setNewPassword('');
-      setNewPassword2('');
     } catch (e: unknown) {
       setPwErr(getErrorMessage(e) || '비밀번호 변경 중 오류가 발생했습니다.');
     } finally {

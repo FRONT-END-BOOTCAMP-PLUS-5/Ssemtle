@@ -31,7 +31,6 @@ export class GenerateSolvesByUnitUseCase {
 `;
 
     const rawText = await this.gemini.generate(prompt);
-    console.log('📨 Gemini 응답 원문:\n', rawText);
 
     // 대괄호로 감싼 JSON 배열만 추출
     const match = rawText.match(/\[\s*{[\s\S]*?}\s*\]/);

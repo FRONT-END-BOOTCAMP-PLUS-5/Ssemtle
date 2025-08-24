@@ -50,7 +50,10 @@ export default function UnitExamPage() {
     <WorkbookAuthGuard>
       <div className="mx-auto">
         <div className="px-4 py-6 desktop:px-48">
-          <WorkbookHeader title="단원평가" />
+          <WorkbookHeader
+            title="단원평가"
+            description="기존에 푼 단원평가를 확인해 보세요!"
+          />
 
           <UnitExamDataProvider
             selectedUnits={selectedUnits}

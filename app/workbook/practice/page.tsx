@@ -78,7 +78,10 @@ export default function ProblemSolvingPage() {
     <WorkbookAuthGuard>
       <div className="mx-auto">
         <div className="px-4 py-6 desktop:px-48">
-          <WorkbookHeader title="문제풀기" />
+          <WorkbookHeader
+            title="문제집"
+            description="기존에 푼 연습문제를 확인해 보세요!"
+          />
 
           <WorkbookDataProvider
             selectedUnits={selectedUnits}

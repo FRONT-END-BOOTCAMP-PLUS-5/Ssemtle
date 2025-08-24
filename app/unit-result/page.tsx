@@ -22,7 +22,7 @@ async function fetchMyUnitSolves(
   code: string
 ): Promise<{ items: UnitSolveItem[]; codeExists: boolean }> {
   const params = new URLSearchParams();
-  if (studentId) params.set('student_id', studentId);
+  if (studentId) params.set('studentId', studentId);
   if (code) params.set('code', code);
   const qs = params.toString() ? `?${params.toString()}` : '';
   const res = await fetch(`/api/unit-exam/solves${qs}`, { cache: 'no-store' });
@@ -100,7 +100,7 @@ const UnitResultContent = () => {
   // URL 파라미터에서 code를 읽어옴 (?code=ABCDEF-01)
   useEffect(() => {
     const c = (searchParams.get('code') || '').toUpperCase();
-    const s = searchParams.get('student_id') || '';
+    const s = searchParams.get('studentId') || '';
     setCode(c);
     setCodeInput(c);
     setStudentId(s);

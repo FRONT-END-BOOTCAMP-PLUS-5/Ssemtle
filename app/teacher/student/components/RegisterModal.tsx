@@ -94,7 +94,7 @@ export default function RegisterModal({
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="inline-flex h-14 items-center justify-center gap-3 self-stretch overflow-hidden rounded-lg bg-[#6366F1] px-7 py-4 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] disabled:opacity-50"
+            className="inline-flex h-14 cursor-pointer items-center justify-center gap-3 self-stretch overflow-hidden rounded-lg bg-[#6366F1] px-7 py-4 shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors hover:bg-[#5855EB] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <div className="text-Text---Button justify-start text-lg font-medium text-white">
               {isPending ? '등록 중...' : '등록하기'}

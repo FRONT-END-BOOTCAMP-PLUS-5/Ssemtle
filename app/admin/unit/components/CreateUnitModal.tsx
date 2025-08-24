@@ -5,6 +5,7 @@ import { usePosts } from '@/hooks/usePosts';
 import { UnitDto } from '@/backend/admin/units/dtos/UnitDto';
 import FormModal from '@/app/_components/admin-modal/FormModal';
 import TextField from '@/app/_components/admin-modal/TextField';
+import { toast } from 'react-toastify';
 
 interface CreateUnitModalProps {
   isOpen: boolean;
@@ -40,12 +41,12 @@ export default function CreateUnitModal({
     onSuccess: () => {
       setFormData({ name: '', vidUrl: '' });
       setErrors({});
+      toast.success('과목이 성공적으로 등록되었습니다.');
       onSuccess();
       onClose();
     },
-    onError: (error) => {
-      console.error('과목 생성 실패:', error);
-      alert('과목 생성에 실패했습니다.');
+    onError: () => {
+      toast.error('과목 생성에 실패했습니다.');
     },
   });
 

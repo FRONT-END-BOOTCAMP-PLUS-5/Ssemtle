@@ -75,12 +75,12 @@ export default function StudentManagementPage() {
   const handleRegister = () => setIsRegisterOpen(true);
   const handleRegisterSuccess = () => refetch();
 
-  const handleViewAnalysis = (userId: string) => {
-    router.push(`/mypage/${userId}`);
+  const handleViewAnalysis = (studentId: string) => {
+    router.push(`/students/${studentId}/unit-exam`);
   };
 
-  const handleViewWorkbook = (userId: string) => {
-    router.push(`/workbook/unit-exam?studentId=${userId}`);
+  const handleViewWorkbook = (studentId: string) => {
+    router.push(`/students/${studentId}/unit`);
   };
 
   const handleSearchChange = (value: string) => {

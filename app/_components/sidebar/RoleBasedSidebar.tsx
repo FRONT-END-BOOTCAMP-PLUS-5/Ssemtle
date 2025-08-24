@@ -16,6 +16,8 @@ export default function RoleBasedSidebar() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
   const isLandingPage = pathname === '/landing';
+  const isAuthPage =
+    pathname?.startsWith('/signin') || pathname?.startsWith('/signup');
 
   // 클라이언트 사이드에서만 실행
   useEffect(() => {
@@ -27,7 +29,8 @@ export default function RoleBasedSidebar() {
     return null;
   }
 
-  if (isLandingPage) {
+  // 랜딩/인증 페이지에서는 사이드바 숨김
+  if (isLandingPage || isAuthPage) {
     return null;
   }
 

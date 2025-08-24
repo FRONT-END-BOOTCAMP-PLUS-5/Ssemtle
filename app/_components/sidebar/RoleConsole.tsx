@@ -13,9 +13,7 @@ export default function RoleConsole() {
         const res = await fetch('/api/auth/session', {
           credentials: 'include',
         });
-        const json = await res.json().catch(() => null);
-        console.log('[SessionConsole] /api/auth/session status:', res.status);
-        console.log('[SessionConsole] /api/auth/session body:', json);
+        await res.json().catch(() => null);
       } catch (e) {
         console.error('[SessionConsole] fetch error:', e);
       }

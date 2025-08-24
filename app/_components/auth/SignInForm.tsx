@@ -11,6 +11,17 @@ export default function SignInForm() {
   const [errors, setErrors] = useState<Partial<SignInFormData>>({});
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading) {
+      e.preventDefault();
+      const form = e.currentTarget.closest('form');
+      if (form) {
+        const formData = new FormData(form);
+        handleSubmit(formData);
+      }
+    }
+  };
+
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     setErrors({});
@@ -64,7 +75,11 @@ export default function SignInForm() {
 
   return (
     <div className="w-full max-w-md">
-      <form action={handleSubmit} className="space-y-6">
+      <form
+        onKeyDown={handleKeyDown}
+        action={handleSubmit}
+        className="space-y-6"
+      >
         <div>
           <label
             htmlFor="id"

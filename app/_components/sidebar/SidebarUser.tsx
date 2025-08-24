@@ -25,7 +25,7 @@ export default function SidebarUser() {
     },
     {
       label: '문제집',
-      href: '/problem-solving',
+      href: '/workbook/practice',
       icon: GiBookshelf,
       type: 'link' as const,
     },

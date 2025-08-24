@@ -11,7 +11,7 @@ interface ExportButtonProps {
 }
 
 export default function ExportButton({
-  className = 'h-10 w-full rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 sm:w-40',
+  className = 'h-10 w-full rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 sm:w-40 cursor-pointer',
 }: ExportButtonProps) {
   const { data: session } = useSession();
 

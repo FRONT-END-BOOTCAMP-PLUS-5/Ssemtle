@@ -6,6 +6,7 @@ import {
 import type { ITeacherStudentRepository } from '../../domains/repositories/ITeacherStudentRepository';
 import type { User } from '../../domains/entities/User';
 import type { TeacherStudent } from '../../domains/entities/TeacherStudent';
+import bcrypt from 'bcryptjs';
 
 export class PrTeacherStudentRepository implements ITeacherStudentRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -18,10 +19,12 @@ export class PrTeacherStudentRepository implements ITeacherStudentRepository {
       const results: Array<{ user: User; teacherStudent: TeacherStudent }> = [];
 
       for (const student of students) {
+        const hashedPassword = await bcrypt.hash(student.password, 10);
+
         const user = await tx.user.create({
           data: {
             userId: student.userId,
-            password: student.password,
+            password: hashedPassword,
             name: student.name,
             role: 'student',
             point: 0,

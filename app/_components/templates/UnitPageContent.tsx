@@ -107,19 +107,14 @@ export default function UnitExamPageContent() {
         // After successful verification, fetch questions
         fetchExamQuestions();
       } else if (data.alreadyAttempted) {
-        console.error('Student has already attempted this exam');
         alert('이미 응시한 시험입니다.');
         router.push('/');
       } else {
-        console.error('Exam verification failed:', data.error);
-        setIsVerified(false);
+        router.push('/');
       }
     },
-    onError: (error) => {
-      setVerificationAttempted(true); // Mark verification as attempted even on error
-      console.error('Error verifying exam code:', error);
-      setIsVerified(false);
-      alert('시험 코드 검증 중 오류가 발생했습니다.');
+    onError: () => {
+      router.push('/');
     },
   });
 

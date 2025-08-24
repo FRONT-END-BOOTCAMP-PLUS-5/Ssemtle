@@ -1,6 +1,3 @@
-'use client';
-import { useEffect } from 'react';
-import { toast } from 'react-toastify';
 import { Suspense } from 'react';
 import PracticePageContent from '@/app/_components/templates/PracticePageContent';
 
@@ -16,12 +13,6 @@ function PracticePageFallback() {
 }
 
 export default function PracticePage() {
-  // 페이지 진입 시 남아있는 토스트를 정리
-  useEffect(() => {
-    try {
-      toast.dismiss();
-    } catch {}
-  }, []);
   return (
     <Suspense fallback={<PracticePageFallback />}>
       <PracticePageContent />

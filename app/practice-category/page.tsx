@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import CategoryCard from './components/categoryCard';
 import ProgressBar from './components/ProgressBar';
 import SearchInput from './components/SearchInput';
@@ -104,6 +105,15 @@ const PracticeCategoryPage = () => {
     })();
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  // 페이지 떠날 때(언마운트) 남아있는 로딩 토스트 정리
+  useEffect(() => {
+    return () => {
+      try {
+        toast.dismiss();
+      } catch {}
     };
   }, []);
 

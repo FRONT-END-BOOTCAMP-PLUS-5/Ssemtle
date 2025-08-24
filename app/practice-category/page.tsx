@@ -130,8 +130,13 @@ const PracticeCategoryPage = () => {
           <div>
             <div className="text-3xl font-semibold">문제풀기</div>
             <div className="mt-2 text-gray-700">
+              {/* 출석 완료 시 완료 문구로 변경 */}
               {attendance ? (
-                <>출석까지 {attendance.remainingCount}문제 남았어요!</>
+                attendance.remainingCount <= 0 ? (
+                  <>출석이 완료되었습니다!</>
+                ) : (
+                  <>출석까지 {attendance.remainingCount}문제 남았어요!</>
+                )
               ) : attendanceError ? (
                 <span className="text-red-500">{attendanceError}</span>
               ) : (

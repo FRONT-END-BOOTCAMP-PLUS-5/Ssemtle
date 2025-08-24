@@ -80,7 +80,7 @@ export default function StudentManagementPage() {
   };
 
   const handleViewWorkbook = (userId: string) => {
-    router.push(`/workbook/unit-exam?studentId=[${userId} : string] `);
+    router.push(`/workbook/unit-exam?studentId=${userId}`);
   };
 
   const handleSearchChange = (value: string) => {

@@ -16,10 +16,15 @@ type UnitSolveItem = {
 };
 
 // 사용자 단원평가 결과 조회 함수 (React Query용)
+// studentId는 외부 공개 식별자(users.user_id), 서버에서 내부 id로 매핑됨
 async function fetchMyUnitSolves(
-  code?: string
+  studentId: string,
+  code: string
 ): Promise<{ items: UnitSolveItem[]; codeExists: boolean }> {
-  const qs = code ? `?code=${encodeURIComponent(code)}` : '';
+  const params = new URLSearchParams();
+  if (studentId) params.set('student_id', studentId);
+  if (code) params.set('code', code);
+  const qs = params.toString() ? `?${params.toString()}` : '';
   const res = await fetch(`/api/unit-exam/solves${qs}`, { cache: 'no-store' });
   if (!res.ok) {
     throw new Error('단원평가 결과를 불러오지 못했습니다.');
@@ -81,6 +86,7 @@ const UnitResultContent = () => {
   const [error, setError] = useState<string>('');
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
   const [code, setCode] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
   const [codeInput, setCodeInput] = useState<string>('');
   const [codeExists, setCodeExists] = useState<boolean | null>(null);
 
@@ -94,14 +100,16 @@ const UnitResultContent = () => {
   // URL 파라미터에서 code를 읽어옴 (?code=ABCDEF-01)
   useEffect(() => {
     const c = (searchParams.get('code') || '').toUpperCase();
+    const s = searchParams.get('student_id') || '';
     setCode(c);
     setCodeInput(c);
+    setStudentId(s);
   }, [searchParams]);
 
   const query = useQuery({
-    queryKey: ['unit-result', code],
-    queryFn: () => fetchMyUnitSolves(code || undefined),
-    enabled: Boolean(code),
+    queryKey: ['unit-result', studentId, code],
+    queryFn: () => fetchMyUnitSolves(studentId, code),
+    enabled: Boolean(code && studentId),
   });
 
   useEffect(() => {
@@ -125,44 +133,14 @@ const UnitResultContent = () => {
     });
   };
 
-  // 코드 미입력 시 코드 입력 안내 UI
-  if (!code) {
-    const onSubmit = () => {
-      const normalized = codeInput.trim();
-      if (!normalized) {
-        setError('코드를 입력해주세요.');
-        return;
-      }
-      setError('');
-      setCode(normalized);
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('code', normalized);
-      router.replace(`${pathname}?${params.toString()}`);
-    };
-
+  // 접근 가드: student_id와 code 둘 다 필수
+  if (!studentId || !code) {
     return (
       <div className="mx-auto w-full max-w-2xl p-6">
         <div className="rounded-xl border bg-white p-6">
-          <div className="text-lg font-semibold">단원평가 코드 입력</div>
-          <p className="mt-2 text-sm text-gray-600">
-            단원평가 코드를 입력하면 해당 코드로 제출한 결과가 표시됩니다.
-          </p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <input
-              value={codeInput}
-              onChange={(e) => setCodeInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
-              placeholder="예: 단원평가 코드"
-              className="flex-1 rounded border p-3 font-mono"
-            />
-            <button
-              onClick={onSubmit}
-              className="rounded bg-emerald-600 px-5 py-3 text-white hover:bg-emerald-700"
-            >
-              확인
-            </button>
+          <div className="text-lg font-semibold">
+            접근이 제한되었습니다. 코드를 다시 확인해 주세요.
           </div>
-          {error && <div className="mt-2 text-sm text-rose-600">{error}</div>}
         </div>
       </div>
     );

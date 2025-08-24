@@ -69,6 +69,7 @@ export default function UnitExamPageContent() {
 
   const examCodeParam = searchParams.get('examCode');
   const examCode = examCodeParam?.trim().toUpperCase() || null;
+  const redirectURL = `/unit-result?studentId${session?.user.userId}&code=${examCode}`;
 
   // Parse exam code to extract timer minutes
   const parseExamCode = (code: string | null) => {
@@ -146,7 +147,7 @@ export default function UnitExamPageContent() {
 
   const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
     onSuccess: () => {
-      router.push('/'); // Redirect to home or results page
+      router.push(redirectURL); // Redirect to home or results page
     },
     onError: (error) => {
       console.error('Error submitting exam:', error);
@@ -238,7 +239,7 @@ export default function UnitExamPageContent() {
       );
 
       if (forceSubmit && answers.length === 0) {
-        router.push('/');
+        router.push(redirectURL);
         return;
       }
 
@@ -263,7 +264,14 @@ export default function UnitExamPageContent() {
         path: '/unit-exam/submit',
       });
     },
-    [examCode, session?.user?.id, userAnswers, submitExamMutation, router]
+    [
+      examCode,
+      session?.user?.id,
+      userAnswers,
+      submitExamMutation,
+      router,
+      redirectURL,
+    ]
   );
 
   // Handle time expiry with auto-submit

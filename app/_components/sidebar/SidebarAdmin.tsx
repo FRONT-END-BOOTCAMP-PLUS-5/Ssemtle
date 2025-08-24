@@ -39,10 +39,10 @@ const SidebarAdmin = () => {
             href={href}
             aria-label={label}
             prefetch // (기본 true지만 명시적으로; 무거운 페이지면 false 고려)
-            className={`rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${isActive(href) ? 'text-indigo-600' : 'text-gray-700'}`}
+            className={`group cursor-pointer rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${isActive(href) ? 'text-indigo-600' : 'text-gray-700'}`}
             title={label}
           >
-            <div className="mx-auto flex flex-col items-center justify-center text-center">
+            <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">
               <Icons Icon={I} />
               <div>{label}</div>
             </div>

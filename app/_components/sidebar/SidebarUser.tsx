@@ -61,12 +61,12 @@ export default function SidebarUser() {
             href={item.href}
             aria-label={item.label}
             prefetch
-            className={`rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+            className={`group cursor-pointer rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
               isActive(item.href) ? 'text-indigo-600' : 'text-gray-700'
             }`}
             title={item.label}
           >
-            <div className="mx-auto flex flex-col items-center justify-center text-center">
+            <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">
               <Icon Icon={item.icon} />
               <div>{item.label}</div>
             </div>
@@ -78,9 +78,9 @@ export default function SidebarUser() {
             aria-label={item.label}
             title={item.label}
             onClick={() => signOut({ callbackUrl: '/' })} // ✅ 로그아웃 후 루트로 이동
-            className="rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="group cursor-pointer rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
-            <div className="mx-auto flex flex-col items-center justify-center text-center">
+            <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">
               <Icon Icon={item.icon} />
               <div>{item.label}</div>
             </div>

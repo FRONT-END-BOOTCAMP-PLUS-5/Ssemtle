@@ -14,6 +14,7 @@ type SearchInputProps = {
 /**
  * 카테고리 검색 인풋 컴포넌트
  * - 부모로부터 value/onChange/onSubmit을 전달받아 제어됨
+ * - 접근성 및 엔터 제출 지원
  */
 const SearchInput = ({
   value,
@@ -26,18 +27,22 @@ const SearchInput = ({
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <input
-        type="text"
-        placeholder={placeholder ?? '카테고리 검색'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="w-72 rounded-lg border border-gray-300 px-4 py-2 text-base outline-none focus:border-blue-500"
-      />
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2">
+        <input
+          type="text"
+          placeholder={placeholder ?? '카테고리 검색'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-64 bg-transparent text-base outline-none max-[420px]:w-44"
+          aria-label="카테고리 검색"
+        />
+      </div>
       <button
         onClick={onSubmit}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
+        className="rounded-full bg-indigo-600 px-4 py-2 text-sm text-white transition-colors hover:bg-indigo-700"
+        aria-label="검색"
       >
         검색
       </button>

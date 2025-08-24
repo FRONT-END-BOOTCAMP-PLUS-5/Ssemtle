@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 type MinimalHeaderProps = {
   logoSrc?: string;
@@ -18,6 +19,12 @@ export default function MinimalHeader({
   className = '',
 }: MinimalHeaderProps) {
   const HEADER_HEIGHT = 36;
+
+  const pathname = usePathname();
+  const isLandingPage = pathname === '/landing';
+  if (isLandingPage) {
+    return null;
+  }
 
   return (
     <div style={{ paddingTop: HEADER_HEIGHT }}>

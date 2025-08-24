@@ -48,7 +48,7 @@ export default function DeleteStudentIcon({
       title="학생 삭제"
     >
       <svg
-        className="h-4 w-4"
+        className="h-4 w-4 cursor-pointer"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

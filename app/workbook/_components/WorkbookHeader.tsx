@@ -1,28 +1,21 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { IoChevronBack } from 'react-icons/io5';
-
 interface WorkbookHeaderProps {
   title: string;
+  description: string;
 }
 
-export default function WorkbookHeader({ title }: WorkbookHeaderProps) {
-  const router = useRouter();
-
+export default function WorkbookHeader({
+  title,
+  description,
+}: WorkbookHeaderProps) {
   return (
-    <div className="mb-6 flex items-center justify-between">
-      <button
-        onClick={() => router.back()}
-        className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-200"
-      >
-        <IoChevronBack className="h-6 w-6 text-gray-700" />
-      </button>
-
-      <h1 className="text-lg font-bold text-gray-800">{title}</h1>
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-        <div className="h-6 w-6 rounded-full bg-purple-300"></div>
+    <div className="mb-6 flex flex-row">
+      <div className="w-full px-6 pt-8 sm:px-10">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
+        </div>
+        <p className="mt-2 text-sm text-gray-500 sm:text-base">{description}</p>
       </div>
     </div>
   );

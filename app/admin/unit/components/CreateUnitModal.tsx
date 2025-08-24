@@ -110,7 +110,7 @@ export default function CreateUnitModal({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-[#6366F1] px-7 py-4 text-lg leading-normal font-medium text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] disabled:opacity-50"
+            className="inline-flex h-14 w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-lg bg-[#6366F1] px-7 py-4 text-lg leading-normal font-medium text-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] transition-colors hover:bg-[#5855EB] disabled:cursor-not-allowed disabled:opacity-50"
           >
             과목등록
           </button>

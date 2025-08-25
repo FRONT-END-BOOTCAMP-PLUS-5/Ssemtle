@@ -5,6 +5,7 @@ import { SubmitState } from './AnswerSection';
 
 interface HelpSectionProps {
   helpText: string;
+  answerText: string;
   videoUrl?: string;
   unitName?: string;
   submitState?: SubmitState;
@@ -12,6 +13,7 @@ interface HelpSectionProps {
 
 export default function HelpSection({
   helpText,
+  answerText,
   videoUrl,
   unitName,
   submitState = 'initial',
@@ -41,6 +43,9 @@ export default function HelpSection({
             <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4">
               <p className="leading-relaxed whitespace-pre-wrap text-gray-700">
                 {helpText}
+              </p>
+              <p className="leading-relaxed whitespace-pre-wrap text-gray-700">
+                {'정답: ' + answerText}
               </p>
             </div>
           )}

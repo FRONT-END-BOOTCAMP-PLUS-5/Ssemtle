@@ -69,7 +69,7 @@ export default function UnitExamPageContent() {
 
   const examCodeParam = searchParams.get('examCode');
   const examCode = examCodeParam?.trim().toUpperCase() || null;
-  const redirectURL = `/unit-result?studentId${session?.user.userId}&code=${examCode}`;
+  const redirectURL = `/unit-result?studentId=${session?.user.userId}&code=${examCode}`;
 
   // Parse exam code to extract timer minutes
   const parseExamCode = (code: string | null) => {

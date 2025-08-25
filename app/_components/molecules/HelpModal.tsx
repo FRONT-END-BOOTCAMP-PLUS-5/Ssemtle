@@ -50,10 +50,14 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   <h3 className="text-md mb-2 font-semibold text-gray-800">
                     수식 입력 방법
                   </h3>
-                  <div className="rounded-lg bg-gray-50 p-3">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">분수 표기법:</span> 1/3 → ¼
+                  <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                    <p>
+                      <span className="font-medium">분수 표기법:</span>
                     </p>
+                    <p>{'- 1/4 → ¼'}</p>
+                    <p>{'- 2/5x 와 (2/5)x는 다릅니다.'}</p>
+                    <p>{'- 2/5x -> 2 * 1/5x -> 5x분의 2'}</p>
+                    <p>{'- (2/5)x -> 2x * 1/5 -> 5분의 2x'}</p>
                   </div>
                 </div>
 

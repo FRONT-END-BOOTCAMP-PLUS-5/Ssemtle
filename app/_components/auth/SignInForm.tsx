@@ -3,16 +3,28 @@
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { signInSchema, type SignInFormData } from '@/libs/zod/auth';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 export default function SignInForm() {
+  const router = useRouter();
   const [errors, setErrors] = useState<Partial<SignInFormData>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState<string>('');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading) {
+      e.preventDefault();
+      const form = e.currentTarget.closest('form');
+      if (form) {
+        const formData = new FormData(form);
+        handleSubmit(formData);
+      }
+    }
+  };
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     setErrors({});
-    setAuthError('');
 
     try {
       const data = {
@@ -37,17 +49,25 @@ export default function SignInForm() {
         id: data.id,
         password: data.password,
         redirect: false,
-        callbackUrl: '/',
       });
 
       if (signInResult?.error) {
-        setAuthError('아이디 또는 비밀번호가 올바르지 않습니다.');
+        const getErrorMessage = (error: string) => {
+          switch (error) {
+            case 'CredentialsSignin':
+              return '아이디 또는 비밀번호가 올바르지 않습니다.';
+            case 'Configuration':
+              return '시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            default:
+              return '로그인 중 오류가 발생했습니다. 다시 시도해주세요.';
+          }
+        };
+        toast.error(getErrorMessage(signInResult.error));
       } else if (signInResult?.ok) {
-        window.location.href = '/';
+        router.push('/');
       }
     } catch (error) {
       console.error('Sign in error:', error);
-      setAuthError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +75,11 @@ export default function SignInForm() {
 
   return (
     <div className="w-full max-w-md">
-      <form action={handleSubmit} className="space-y-6">
+      <form
+        onKeyDown={handleKeyDown}
+        action={handleSubmit}
+        className="space-y-6"
+      >
         <div>
           <label
             htmlFor="id"
@@ -107,12 +131,6 @@ export default function SignInForm() {
             )}
           </div>
         </div>
-
-        {authError && (
-          <div className="rounded-lg bg-red-50 p-4">
-            <p className="text-sm text-red-600">{authError}</p>
-          </div>
-        )}
 
         <div>
           <button

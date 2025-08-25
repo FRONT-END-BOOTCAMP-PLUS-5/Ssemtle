@@ -1,7 +1,6 @@
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
 import { IAdmTchrAuthRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 
-// 교사 인증 요청 삭제 유스케이스
 export class DeleteTeacherAuthUsecase {
   private teacherAuthRepository: IAdmTchrAuthRepository;
 
@@ -15,7 +14,24 @@ export class DeleteTeacherAuthUsecase {
     }
 
     try {
-      return await this.teacherAuthRepository.delete(id);
+      const teacherAuth = await this.teacherAuthRepository.findById(id);
+      if (!teacherAuth) {
+        throw new Error('존재하지 않는 교사 인증 요청입니다.');
+      }
+      const deletedAuth = await this.teacherAuthRepository.delete(id);
+      const userRole = await this.teacherAuthRepository.getUserRole(
+        teacherAuth.teacherId
+      );
+
+      if (userRole && userRole !== 'teacher') {
+        await this.teacherAuthRepository.deleteUser(teacherAuth.teacherId);
+        console.log(
+          '승인되지 않은 교사 계정이 삭제되었습니다:',
+          teacherAuth.teacherId
+        );
+      }
+
+      return deletedAuth;
     } catch (error) {
       console.error('교사 인증 요청 삭제 실패:', error);
 

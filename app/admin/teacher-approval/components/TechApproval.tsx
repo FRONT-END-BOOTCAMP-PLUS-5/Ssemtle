@@ -5,6 +5,7 @@ import {
   TeacherAuthApprovalResponseDto,
 } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import { usePuts } from '@/hooks/usePuts';
+import { toast } from 'react-toastify';
 
 interface TechApprovalProps {
   teacherAuth: TeacherAuthDto;
@@ -20,13 +21,11 @@ export default function TechApproval({
     TeacherAuthApprovalResponseDto
   >({
     onSuccess: (data) => {
-      console.log('승인 성공:', data);
-      alert(data.message);
+      toast.success(data.message);
       onSuccess?.();
     },
-    onError: (error) => {
-      console.error('승인 처리 실패:', error);
-      alert('승인 처리 중 오류가 발생했습니다.');
+    onError: () => {
+      toast.error('승인 처리 중 오류가 발생했습니다.');
     },
   });
 

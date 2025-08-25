@@ -14,6 +14,7 @@ import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Pagination from '@/app/_components/pagination/Pagination';
 import { usePagination } from '@/hooks/usePagination';
 import DataStateHandler from '@/app/_components/admin-loading/DataStateHandler';
+import { toast } from 'react-toastify';
 
 interface DeleteUnitResponse {
   message: string;
@@ -81,11 +82,11 @@ export default function UnitManagementPage() {
     onSuccess: () => {
       setIsDeleteOpen(false);
       setSelectedUnit(null);
+      toast.success('과목이 성공적으로 삭제되었습니다.');
       refetch();
     },
-    onError: (err) => {
-      console.error('과목 삭제 실패:', err);
-      alert('과목 삭제에 실패했습니다.');
+    onError: () => {
+      toast.error('과목 삭제에 실패했습니다.');
     },
   });
 

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import * as XLSX from 'xlsx';
+import { toast } from 'react-toastify';
 
 interface ExportButtonProps {
   className?: string;
@@ -29,18 +30,28 @@ export default function ExportButton({
 
   const handleExport = async () => {
     if (!session?.user?.id) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       return;
     }
+
+    toast.info('내보내기는 일괄 등록된 학생만 가능합니다.');
 
     try {
       const result = await exportData();
       if (result.data) {
-        downloadExcel(result.data.students);
+        const students = result.data.students;
+
+        if (!students || students.length === 0) {
+          toast.warn('내보내기 할 학생이 없습니다.');
+          return;
+        }
+
+        downloadExcel(students);
+        toast.success('학생 목록이 성공적으로 내보내기되었습니다.');
       }
     } catch (err) {
       console.error('내보내기 실패:', err);
-      alert('내보내기에 실패했습니다.');
+      toast.error('내보내기에 실패했습니다.');
     }
   };
 
@@ -54,6 +65,13 @@ export default function ExportButton({
 
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [['내보내기는 일괄 등록된 학생만 가능합니다.']],
+      { origin: 'A1' }
+    );
+    worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
 
     const columnWidths = [
       { wch: 10 }, // 이름

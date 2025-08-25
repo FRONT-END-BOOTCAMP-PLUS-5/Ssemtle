@@ -1,5 +1,6 @@
 'use client';
 
+import { signOut } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 
 type Props = {
@@ -98,6 +99,10 @@ export default function AccountSettingsCard({
       }
 
       setIdMsg('아이디가 변경되었습니다.');
+      await signOut({
+        redirect: true,
+        callbackUrl: `${window.location.origin}/signin`,
+      });
     } catch (e: unknown) {
       setIdErr(getErrorMessage(e) || '아이디 변경 중 오류가 발생했습니다.');
     } finally {
@@ -136,6 +141,10 @@ export default function AccountSettingsCard({
       setCurrentPassword('');
       setNewPassword('');
       setNewPassword2('');
+      await signOut({
+        redirect: true,
+        callbackUrl: `${window.location.origin}/signin`,
+      });
     } catch (e: unknown) {
       setPwErr(getErrorMessage(e) || '비밀번호 변경 중 오류가 발생했습니다.');
     } finally {

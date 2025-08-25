@@ -172,11 +172,12 @@ export default function MyPage() {
 
   const closeModal = () => setIsModalOpen(false);
 
-  const goSolvePage = (category: string) => {
-    const q = new URLSearchParams();
-    if (selectedDate) q.set('date', selectedDate);
-    if (category) q.set('category', category);
-    router.push(`/solve?${q.toString()}`);
+  // ✅ 에러노트로 이동 (해당 날짜만 필터)
+  const goErrorNotePage = () => {
+    const d = debouncedHoverDate ?? selectedDate;
+    if (!d) return;
+    router.push(`/mypage/error-note?date=${encodeURIComponent(d)}`);
+    // 만약 바로 원 페이지로 가고 싶다면 위 경로를 `/error-note?date=${...}` 로 바꾸면 됩니다.
   };
 
   // 패널 표시용 기준 날짜: 호버 우선, 없으면 선택
@@ -282,7 +283,7 @@ export default function MyPage() {
                         <div
                           key={category}
                           role="button"
-                          onClick={() => goSolvePage(category)}
+                          onClick={goErrorNotePage} // ✅ 여기
                           className="mx-auto mb-3 flex w-full cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
                         >
                           <TestCard solves={solves} category={category} />
@@ -366,7 +367,7 @@ export default function MyPage() {
                   <div
                     key={category}
                     role="button"
-                    onClick={() => goSolvePage(category)}
+                    onClick={goErrorNotePage} // ✅ 여기
                     className="mx-auto my-2 flex w-full max-w-md cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
                   >
                     <TestCard solves={solves} category={category} />

@@ -11,4 +11,6 @@ export interface IAdmTchrAuthRepository {
   findById(id: number): Promise<TeacherAuthorization | null>;
   findByTeacherId(teacherId: string): Promise<TeacherAuthorization | null>;
   updateUserRole(userId: string, role: string): Promise<void>;
+  deleteUser(teacherId: string): Promise<void>;
+  getUserRole(teacherId: string): Promise<string | null>;
 }

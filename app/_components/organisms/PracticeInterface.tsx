@@ -155,6 +155,7 @@ export default function PracticeInterface({
       </div>
       <div>
         <HelpSection
+          answerText={currentProblem.answer}
           helpText={currentProblem.helpText}
           videoUrl={videoUrl}
           unitName={unitName}

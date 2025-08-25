@@ -1,12 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
-import ErrorNoteCard from './ErrorNoteCard';
-import VirtualKeyboard from './VirtualKeyboard';
-import ContextualHelpSection from './ContextualHelpSection';
+
+// 기존 컴포넌트 재사용
+import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
+import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
+import ContextualHelpSection from '@/app/error-note/_components/ContextualHelpSection';
+
+type SubmissionState = 'initial' | 'correct' | 'incorrect';
 
 interface ErrorNoteProblem {
   id: string;
@@ -19,10 +24,6 @@ interface ErrorNoteProblem {
   videoUrl?: string;
 }
 
-interface ErrorNoteInterfaceProps {
-  className?: string;
-}
-
 interface SolveItem {
   id: number;
   question: string;
@@ -30,7 +31,7 @@ interface SolveItem {
   helpText: string;
   userInput: string;
   isCorrect: boolean;
-  createdAt: Date;
+  createdAt: string | Date; // ← API가 string일 수도 있으니 유연하게
   unitId: number;
   userId: string;
   category: string;
@@ -43,21 +44,53 @@ interface UnitVideoResponse {
   };
 }
 
-export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
+export default function MyPageErrorNote() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
 
+  // 쿼리 파라미터 (단일 날짜 or 범위)
+  const filterDate = searchParams.get('date'); // YYYY-MM-DD
+  const startDate = searchParams.get('start'); // YYYY-MM-DD
+  const endDate = searchParams.get('end'); // YYYY-MM-DD
+
+  // 한국시간 기준 YYYY-MM-DD
+  const toKstYmd = (dLike: string | number | Date) =>
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(dLike));
+
+  // 상태들
   const [focusedProblemId, setFocusedProblemId] = useState<string | null>(null);
   const [userInputs, setUserInputs] = useState<Map<string, string>>(new Map());
   const [submissionStates, setSubmissionStates] = useState<
-    Map<string, 'initial' | 'correct' | 'incorrect'>
+    Map<string, SubmissionState>
   >(new Map());
   const [isVirtualKeyboardVisible, setIsVirtualKeyboardVisible] =
     useState(false);
+
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const lastClickTargetRef = useRef<EventTarget | null>(null);
 
-  // Use infinite scrolling for wrong problems
+  const qs = useMemo(() => {
+    // 기본 쿼리
+    const base = { only: 'wrong', limit: '20' } as Record<string, string>;
+
+    if (filterDate) {
+      // 1일 필터: 서버가 단일 date를 받으면 base.date = filterDate
+      // 범위만 받는다면:
+      base.start = filterDate;
+      base.end = filterDate;
+    } else {
+      if (startDate) base.start = startDate;
+      if (endDate) base.end = endDate;
+    }
+    return base;
+  }, [filterDate, startDate, endDate]);
+
+  // 무한스크롤로 오답 목록 로드 (기존 훅 그대로)
   const {
     data: wrongSolves,
     isLoading,
@@ -66,43 +99,53 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     isFetchingNextPage,
     isError,
   } = useInfiniteGets<SolveItem>(
-    ['wrong-solves'],
+    ['wrong-solves', filterDate, startDate, endDate], // 키에 날짜 조건 포함
     '/solves/mode/wrong',
     !!session?.user?.id,
-    {
-      only: 'wrong',
-      limit: '20',
-    }
+    qs
   );
 
-  // Get the focused problem's unit ID for video loading
+  // 날짜 필터
+  const filteredSolves = useMemo(() => {
+    if (!filterDate && !startDate && !endDate) return wrongSolves;
+    return wrongSolves.filter((s) => {
+      const ymd = toKstYmd(s.createdAt);
+      if (filterDate) return ymd === filterDate;
+      if (startDate && endDate) return ymd >= startDate && ymd <= endDate;
+      if (startDate) return ymd >= startDate;
+      if (endDate) return ymd <= endDate;
+      return true;
+    });
+  }, [wrongSolves, filterDate, startDate, endDate]);
+
+  // 포커스된 문제 (동영상 로딩용)
   const focusedProblem = focusedProblemId
-    ? wrongSolves.find((solve) => solve.id.toString() === focusedProblemId)
+    ? filteredSolves.find((s) => s.id.toString() === focusedProblemId)
     : null;
 
-  // Fetch video URL for the focused problem's unit
+  // 유닛 동영상 URL 가져오기
   const { data: videoData } = useGets<UnitVideoResponse>(
     ['unitVideo', focusedProblem?.unitId],
     `/unitvidurl/${focusedProblem?.unitId}`,
     !!focusedProblem?.unitId
   );
 
-  // Transform API data to match our interface
-  const wrongProblems: ErrorNoteProblem[] = wrongSolves.map((solve) => ({
+  // 렌더용 데이터로 매핑
+  const displayProblems: ErrorNoteProblem[] = filteredSolves.map((solve) => ({
     id: solve.id.toString(),
     question: solve.question || 'No question available',
     userAnswer: solve.userInput || '',
     correctAnswer: solve.answer || '',
     helpText: solve.helpText || 'No help text available',
-    instruction: undefined, // Not available in the API response
-    unitName: solve.category, // Using category as unit name for now
+    instruction: undefined,
+    unitName: solve.category,
     videoUrl:
       focusedProblemId === solve.id.toString() && videoData?.data?.vidUrl
         ? videoData.data.vidUrl
         : undefined,
   }));
 
-  // Intersection observer for infinite scroll - using the better pattern
+  // 무한 스크롤 옵저버
   const handleIntersection = useRef(
     (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
       entries.forEach((entry) => {
@@ -113,8 +156,6 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
       });
     }
   );
-
-  // Update the handler closure with current values
   handleIntersection.current = (
     entries: IntersectionObserverEntry[],
     observer: IntersectionObserver
@@ -129,183 +170,91 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
 
   useEffect(() => {
     if (!loaderRef.current) return;
-
     const observer = new IntersectionObserver(
       (entries) => handleIntersection.current(entries, observer),
-      {
-        root: null,
-        rootMargin: '20px',
-        threshold: 0,
-      }
+      { root: null, rootMargin: '20px', threshold: 0 }
     );
-
     observer.observe(loaderRef.current);
-
     return () => observer.disconnect();
-  }, [wrongProblems.length]);
+  }, [displayProblems.length]);
 
-  // Re-observe when fetch completes
   useEffect(() => {
     if (!isFetchingNextPage && hasNextPage && loaderRef.current) {
       const observer = new IntersectionObserver(
         (entries) => handleIntersection.current(entries, observer),
-        {
-          root: null,
-          rootMargin: '20px',
-          threshold: 0,
-        }
+        { root: null, rootMargin: '20px', threshold: 0 }
       );
       observer.observe(loaderRef.current);
-
       return () => observer.disconnect();
     }
   }, [isFetchingNextPage, hasNextPage]);
 
+  // 카드 포커스/블러
   const handleCardFocus = (problemId: string) => {
-    // Cancel any pending blur timeout
     if (blurTimeoutRef.current) {
       clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = null;
     }
-
     setFocusedProblemId(problemId);
     setIsVirtualKeyboardVisible(true);
-
-    // Focus the actual input element within this card
     setTimeout(() => {
       const cardElement = document.querySelector(
         `[data-problem-card="${problemId}"]`
       );
       const inputElement = cardElement?.querySelector(
         'input[type="text"]'
-      ) as HTMLInputElement;
-      if (inputElement) {
-        inputElement.focus();
-      }
+      ) as HTMLInputElement | null;
+      inputElement?.focus();
     }, 100);
   };
-
   const handleCardBlur = () => {
-    // Use ref to track timeout and prevent flickering
     blurTimeoutRef.current = setTimeout(() => {
-      // Check if focus moved to virtual keyboard or another input within the same card
-      const activeElement = document.activeElement;
-
+      const active = document.activeElement;
       if (
-        activeElement &&
-        (activeElement.closest('[data-virtual-keyboard]') ||
-          activeElement.closest('[data-clickable-zone]'))
+        active &&
+        (active.closest('[data-virtual-keyboard]') ||
+          active.closest('[data-clickable-zone]'))
       ) {
         return;
       }
-
-      // Reset everything to initial state
       setFocusedProblemId(null);
       setIsVirtualKeyboardVisible(false);
       blurTimeoutRef.current = null;
     }, 200);
   };
 
-  // Enhanced focus handler that tracks both click targets and active elements
-  useEffect(() => {
-    const handleDocumentClick = (e: Event) => {
-      // Store the actual click target before focus changes
-      lastClickTargetRef.current = e.target;
-    };
-
-    const handleDocumentFocusChange = () => {
-      // Small delay to let focus settle
-      setTimeout(() => {
-        const activeElement = document.activeElement;
-        const lastClickTarget = lastClickTargetRef.current as Element | null;
-
-        // Check if we should preserve focus based on activeElement (existing logic)
-        const shouldPreserveFocusFromActiveElement =
-          activeElement &&
-          (activeElement.closest('input[type="text"]') ||
-            activeElement.closest('[data-virtual-keyboard]') ||
-            activeElement.closest('[data-clickable-zone]'));
-
-        // Check if we should preserve focus based on where the user actually clicked
-        const shouldPreserveFocusFromClickTarget =
-          lastClickTarget &&
-          focusedProblemId &&
-          (lastClickTarget.closest(
-            `[data-problem-card="${focusedProblemId}"]`
-          ) ||
-            lastClickTarget.closest('[data-virtual-keyboard]'));
-
-        // Preserve focus if either condition is met
-        if (
-          shouldPreserveFocusFromActiveElement ||
-          shouldPreserveFocusFromClickTarget
-        ) {
-          return;
-        }
-
-        // Reset focus state
-        setFocusedProblemId(null);
-        setIsVirtualKeyboardVisible(false);
-        if (blurTimeoutRef.current) {
-          clearTimeout(blurTimeoutRef.current);
-          blurTimeoutRef.current = null;
-        }
-      }, 150);
-    };
-
-    // Listen for click and focus changes on the document
-    document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('focusin', handleDocumentFocusChange);
-    document.addEventListener('click', handleDocumentFocusChange);
-
-    return () => {
-      document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('focusin', handleDocumentFocusChange);
-      document.removeEventListener('click', handleDocumentFocusChange);
-    };
-  }, [focusedProblemId]);
-
+  // 입력/제출 상태
   const handleInputChange = (problemId: string, value: string) => {
     setUserInputs((prev) => new Map(prev).set(problemId, value));
   };
-
-  const handleNumberClick = (number: string) => {
+  const handleNumberClick = (num: string) => {
     if (!focusedProblemId) return;
-    const currentValue = userInputs.get(focusedProblemId) || '';
-    setUserInputs((prev) =>
-      new Map(prev).set(focusedProblemId, currentValue + number)
-    );
+    const cur = userInputs.get(focusedProblemId) || '';
+    setUserInputs((p) => new Map(p).set(focusedProblemId, cur + num));
   };
-
-  const handleOperatorClick = (operator: string) => {
+  const handleOperatorClick = (op: string) => {
     if (!focusedProblemId) return;
-    const currentValue = userInputs.get(focusedProblemId) || '';
-    setUserInputs((prev) =>
-      new Map(prev).set(focusedProblemId, currentValue + operator)
-    );
+    const cur = userInputs.get(focusedProblemId) || '';
+    setUserInputs((p) => new Map(p).set(focusedProblemId, cur + op));
   };
-
   const handleClear = () => {
     if (!focusedProblemId) return;
-    setUserInputs((prev) => new Map(prev).set(focusedProblemId, ''));
+    setUserInputs((p) => new Map(p).set(focusedProblemId, ''));
   };
-
   const handleSubmissionResult = (problemId: string, isCorrect: boolean) => {
     setSubmissionStates((prev) =>
       new Map(prev).set(problemId, isCorrect ? 'correct' : 'incorrect')
     );
   };
 
-  // Cleanup blur timeout on unmount
+  // 언마운트 클린업
   useEffect(() => {
     return () => {
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     };
   }, []);
 
-  // Check authentication and loading state
+  // 로딩/인증/빈 상태
   if (status === 'loading' || isLoading) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
@@ -316,7 +265,6 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
       </div>
     );
   }
-
   if (!session?.user?.id) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
@@ -326,47 +274,45 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
       </div>
     );
   }
-
-  if (!isLoading && wrongProblems.length === 0) {
+  if (!isLoading && displayProblems.length === 0) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
-          <p className="mb-4 text-gray-600">오답 문제가 없습니다!</p>
-          <p className="text-sm text-gray-500">
-            모든 문제를 정확히 풀었습니다.
-          </p>
+          <p className="mb-2 text-gray-600">오답 문제가 없습니다!</p>
+          {(filterDate || startDate || endDate) && (
+            <p className="text-sm text-gray-500">
+              선택한 날짜 조건에 해당하는 오답이 없습니다.
+            </p>
+          )}
         </div>
       </div>
     );
   }
 
+  // 렌더
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-32">
-        {/* Mobile Layout: Help Section above Cards */}
+        {/* Mobile: 헬프 먼저 */}
         <div className="tablet:hidden">
-          {/* Header */}
           <div className="mb-6 px-4 text-center">
             <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-            <p className="mt-2 text-gray-600">틀린 문제들을 다시 풀어보세요</p>
           </div>
 
-          {/* Contextual Help Section - Draggable on mobile */}
           <div className="mb-6 px-4">
             <ContextualHelpSection
               focusZone={focusedProblemId ? 'answer' : 'none'}
               currentProblem={
                 focusedProblemId
-                  ? wrongProblems.find((p) => p.id === focusedProblemId)
+                  ? displayProblems.find((p) => p.id === focusedProblemId)
                   : undefined
               }
               isDraggable={true}
             />
           </div>
 
-          {/* Error Note Cards */}
           <div className="space-y-6 px-4">
-            {wrongProblems.map((problem) => (
+            {displayProblems.map((problem) => (
               <ErrorNoteCard
                 key={problem.id}
                 problem={problem}
@@ -379,26 +325,12 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
               />
             ))}
 
-            {/* Loading indicator for infinite scroll */}
             {isFetchingNextPage && (
               <div className="flex justify-center py-4">
                 <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
               </div>
             )}
-
-            {/* Intersection observer target for infinite scrolling */}
             {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
-
-            {/* End of results indicator */}
-            {!hasNextPage && wrongProblems.length > 0 && (
-              <div className="flex justify-center py-6">
-                <div className="text-sm text-gray-500">
-                  모든 오답노트를 불러왔습니다
-                </div>
-              </div>
-            )}
-
-            {/* Error state */}
             {isError && (
               <div className="flex justify-center py-12">
                 <div className="text-sm text-red-600">
@@ -409,21 +341,15 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
           </div>
         </div>
 
-        {/* Tablet+ Layout: Side-by-side layout */}
+        {/* Tablet+ */}
         <div className="mx-auto hidden w-full gap-12 tablet:flex">
-          {/* Main Content - Scrollable Cards */}
           <div className="max-h-full flex-1 overflow-y-auto pr-4">
             <div className="space-y-6">
-              {/* Header */}
               <div className="mb-6 text-center">
                 <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-                <p className="mt-2 text-gray-600">
-                  틀린 문제들을 다시 풀어보세요
-                </p>
               </div>
 
-              {/* Error Note Cards */}
-              {wrongProblems.map((problem) => (
+              {displayProblems.map((problem) => (
                 <ErrorNoteCard
                   key={problem.id}
                   problem={problem}
@@ -438,26 +364,12 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
                 />
               ))}
 
-              {/* Loading indicator for infinite scroll */}
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
                   <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
                 </div>
               )}
-
-              {/* Intersection observer target for infinite scrolling */}
               {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
-
-              {/* End of results indicator */}
-              {!hasNextPage && wrongProblems.length > 0 && (
-                <div className="flex justify-center py-6">
-                  <div className="text-sm text-gray-500">
-                    모든 오답노트를 불러왔습니다
-                  </div>
-                </div>
-              )}
-
-              {/* Error state */}
               {isError && (
                 <div className="flex justify-center py-12">
                   <div className="text-sm text-red-600">
@@ -468,14 +380,13 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
             </div>
           </div>
 
-          {/* Contextual Help Section - Fixed on tablet+ */}
           <div className="w-80 flex-shrink-0">
             <div className="sticky top-6">
               <ContextualHelpSection
                 focusZone={focusedProblemId ? 'answer' : 'none'}
                 currentProblem={
                   focusedProblemId
-                    ? wrongProblems.find((p) => p.id === focusedProblemId)
+                    ? displayProblems.find((p) => p.id === focusedProblemId)
                     : undefined
                 }
                 isDraggable={false}
@@ -484,7 +395,6 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
           </div>
         </div>
 
-        {/* Virtual Keyboard */}
         <VirtualKeyboard
           isVisible={isVirtualKeyboardVisible}
           onNumberClick={handleNumberClick}

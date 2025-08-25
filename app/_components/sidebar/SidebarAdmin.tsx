@@ -2,13 +2,13 @@
 
 import HeaderSizeObserver from './HeaderSizeObserver';
 import Icons from './Icons';
-import { LuUserRoundPlus } from 'react-icons/lu';
+import { LuUserRoundPlus, LuLogOut } from 'react-icons/lu';
 import { BsFillGridFill } from 'react-icons/bs';
-import { LuLogOut } from 'react-icons/lu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
-const SidebarAdmin = () => {
+export default function SidebarAdmin() {
   const pathname = usePathname();
 
   const NAV = [
@@ -16,10 +16,16 @@ const SidebarAdmin = () => {
       label: '선생님 승인',
       href: '/admin/teacher-approval',
       icon: LuUserRoundPlus,
+      type: 'link' as const,
     },
-    { label: '단원 생성', href: '/admin/unit', icon: BsFillGridFill },
-    { label: '로그아웃', href: '/', icon: LuLogOut },
-  ];
+    {
+      label: '단원 생성',
+      href: '/admin/unit',
+      icon: BsFillGridFill,
+      type: 'link' as const,
+    },
+    { label: '로그아웃', icon: LuLogOut, type: 'logout' as const },
+  ] as const;
 
   const isActive = (href: string) =>
     href === '/'
@@ -27,30 +33,45 @@ const SidebarAdmin = () => {
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <>
-      <div
-        className="flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)] pt-10"
-        style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
-      >
-        <HeaderSizeObserver />
-        {NAV.map(({ label, href, icon: I }) => (
+    <div
+      className="flex w-30 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)] pt-10"
+      style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
+    >
+      <HeaderSizeObserver />
+
+      {NAV.map((item) =>
+        item.type === 'link' ? (
           <Link
-            key={label}
-            href={href}
-            aria-label={label}
-            prefetch // (기본 true지만 명시적으로; 무거운 페이지면 false 고려)
-            className={`group cursor-pointer rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${isActive(href) ? 'text-indigo-600' : 'text-gray-700'}`}
-            title={label}
+            key={item.label}
+            href={item.href}
+            aria-label={item.label}
+            prefetch
+            className={`group cursor-pointer rounded-md transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+              isActive(item.href) ? 'text-indigo-600' : 'text-gray-700'
+            }`}
+            title={item.label}
           >
             <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">
-              <Icons Icon={I} />
-              <div>{label}</div>
+              <Icons Icon={item.icon} />
+              <div>{item.label}</div>
             </div>
           </Link>
-        ))}
-      </div>
-    </>
+        ) : (
+          <button
+            key={item.label}
+            type="button"
+            aria-label={item.label}
+            title={item.label}
+            onClick={() => signOut({ callbackUrl: '/signin' })}
+            className="group cursor-pointer rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">
+              <Icons Icon={item.icon} />
+              <div>{item.label}</div>
+            </div>
+          </button>
+        )
+      )}
+    </div>
   );
-};
-
-export default SidebarAdmin;
+}

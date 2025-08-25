@@ -5,6 +5,7 @@ import {
   TeacherAuthApprovalResponseDto,
 } from '@/backend/admin/teachers/dtos/TeacherAuthDto';
 import { useDeletes } from '@/hooks/useDeletes';
+import { toast } from 'react-toastify';
 
 interface TechRejectProps {
   teacherAuth: TeacherAuthDto;
@@ -20,13 +21,11 @@ export default function TechReject({
     TeacherAuthApprovalResponseDto
   >({
     onSuccess: (data) => {
-      console.log('거절 성공:', data);
-      alert(data.message);
+      toast.success(data.message);
       onSuccess?.();
     },
-    onError: (error) => {
-      console.error('거절 처리 실패:', error);
-      alert('거절 처리 중 오류가 발생했습니다.');
+    onError: () => {
+      toast.error('거절 처리 중 오류가 발생했습니다.');
     },
   });
 

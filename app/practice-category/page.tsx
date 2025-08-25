@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import CategoryCard from './components/categoryCard';
 import ProgressBar from './components/ProgressBar';
 import SearchInput from './components/SearchInput';
@@ -66,6 +67,8 @@ const UNIT_META: Record<string, { accentClass: string; description: string }> =
 const PracticeCategoryPage = () => {
   const [searchInput, setSearchInput] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
+  // 네비게이션 진행 여부 (로딩 딤/비활성화 제어)
+  const [isNavigating, setIsNavigating] = useState(false);
   const [attendance, setAttendance] = useState<{
     remainingCount: number;
     solvedCount: number;
@@ -105,6 +108,15 @@ const PracticeCategoryPage = () => {
     };
   }, []);
 
+  // 페이지 떠날 때(언마운트) 남아있는 로딩 토스트 정리
+  useEffect(() => {
+    return () => {
+      try {
+        toast.dismiss();
+      } catch {}
+    };
+  }, []);
+
   // 유닛 목록 로드 (DB)
   const {
     data: unitsData,
@@ -123,7 +135,7 @@ const PracticeCategoryPage = () => {
   const handleSubmit = () => setSubmittedQuery(searchInput);
 
   return (
-    <div className="flex w-full flex-col p-8">
+    <div className="relative flex w-full flex-col p-8">
       {/* 상단 히어로: 문제풀기 카드 + 진행률 */}
       <section className="mb-8 rounded-3xl border border-gray-100 bg-gradient-to-r from-indigo-50 via-fuchsia-50 to-rose-50 p-6 shadow-sm">
         <div className="flex items-center justify-between gap-6 max-[680px]:flex-col max-[680px]:items-start">
@@ -201,6 +213,9 @@ const PracticeCategoryPage = () => {
                       UNIT_META[item.name]?.accentClass ?? 'bg-white'
                     }
                     description={UNIT_META[item.name]?.description}
+                    onNavigateStart={() => setIsNavigating(true)}
+                    onNavigateError={() => setIsNavigating(false)}
+                    isDisabled={isNavigating}
                   />
                 ))
               ) : (
@@ -212,6 +227,15 @@ const PracticeCategoryPage = () => {
           </>
         )}
       </section>
+
+      {/* 네비게이션 중 화면 오버레이 */}
+      {isNavigating ? (
+        <div
+          className="fixed inset-0 z-[70] bg-black/30 backdrop-blur-[1px]"
+          aria-hidden="true"
+          aria-busy="true"
+        />
+      ) : null}
     </div>
   );
 };

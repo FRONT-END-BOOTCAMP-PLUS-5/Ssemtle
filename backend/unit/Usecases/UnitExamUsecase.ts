@@ -497,9 +497,8 @@ export class VerifyUnitExamUseCase {
           }
         }
 
-        // 유효한 코드이면서 응시 이력이 없으면, 시도 기록 생성
-        await this.createExamAttempt(full, unitExam.id, request.studentId);
-
+        // 유효한 코드이면서 응시 이력이 없는 경우: 검증만 통과시키고 시도기록은 생성하지 않음
+        // attempts 생성은 실제 응시 시작 시점(예: 문제 페이지 진입 후)에서 처리해야 합니다.
         return {
           success: true,
           valid: true,

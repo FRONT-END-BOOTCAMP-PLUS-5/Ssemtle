@@ -172,12 +172,14 @@ export default function MyPage() {
 
   const closeModal = () => setIsModalOpen(false);
 
-  // ✅ 에러노트로 이동 (해당 날짜만 필터)
   const goErrorNotePage = (cat: string) => {
     const d = debouncedHoverDate ?? selectedDate;
-    if (!d) return;
+    if (!d || !userId) return; // userId = useParams().id
+
     router.push(
-      `/mypage/error-note?date=${encodeURIComponent(d)}&category=${encodeURIComponent(cat)}`
+      `/mypage/${encodeURIComponent(String(userId))}/error-note` +
+        `?date=${encodeURIComponent(d)}` +
+        `&category=${encodeURIComponent(cat)}`
     );
   };
 

@@ -57,15 +57,18 @@ export default function MyPageErrorNote() {
   const searchParams = useSearchParams();
   const params = useParams();
 
-  // 열람 대상 사용자 ID (경로 /mypage/[id]/error-note 또는 ?userId=)
-  const pathUserId =
+  // 열람 대상 사용자 ID: /mypage/[id]/error-note 또는 ?userId=...
+  const targetUserId =
     (params?.id as string | undefined) ??
     searchParams.get('userId') ??
     undefined;
 
+  // 세션의 로그인 아이디
   const sessionUserId = session?.user?.userId;
+
+  // ✨ 편집 가능 여부 (내 페이지일 때만 true)
   const canEdit =
-    !!sessionUserId && (!!pathUserId ? pathUserId === sessionUserId : true);
+    !!sessionUserId && (!!targetUserId ? targetUserId === sessionUserId : true);
 
   // 쿼리: 날짜 + 카테고리(또는 unitId)
   const filterDate = searchParams.get('date'); // YYYY-MM-DD
@@ -201,9 +204,9 @@ export default function MyPageErrorNote() {
     }
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 카드 포커스/블러 + 입력
+  // 카드 포커스/블러 + 입력 (canEdit 가드)
   const handleCardFocus = (problemId: string) => {
-    if (!canEdit) return; // 🔒 내 문제가 아니면 편집 불가
+    if (!canEdit) return;
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     setFocusedProblemId(problemId);
     setIsVirtualKeyboardVisible(true);
@@ -350,11 +353,9 @@ export default function MyPageErrorNote() {
                     userInput={userInputs.get(p.id) || ''}
                     submissionState={submissionStates.get(p.id) || 'initial'}
                     onSubmissionResult={handleSubmissionResult}
+                    readOnly={!canEdit}
                   />
                 </div>
-                {!canEdit && (
-                  <div className="mt-1 text-xs text-gray-500">읽기 전용</div>
-                )}
               </div>
             ))}
 
@@ -402,9 +403,6 @@ export default function MyPageErrorNote() {
                       readOnly={!canEdit}
                     />
                   </div>
-                  {!canEdit && (
-                    <div className="mt-1 text-xs text-gray-500">읽기 전용</div>
-                  )}
                 </div>
               ))}
 

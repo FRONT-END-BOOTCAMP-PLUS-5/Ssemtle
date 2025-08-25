@@ -21,7 +21,7 @@ type UsernameResp =
 
 type PasswordResp = { success: true } | { success: false; error: string };
 
-// --- 타입가드 ---
+// --- 타입가드 & 공용 에러 포맷터 ---
 function isUsernameResp(x: unknown): x is UsernameResp {
   return typeof x === 'object' && x !== null && 'success' in x;
 }
@@ -38,6 +38,12 @@ function getErrorMessage(e: unknown): string {
   }
 }
 
+/* ---------- 한글 금지 유틸 ---------- */
+const HANGUL_GLOBAL = /[ㄱ-ㅎㅏ-ㅣ가-힣]/g; // replace용
+const HANGUL_TEST = /[ㄱ-ㅎㅏ-ㅣ가-힣]/; // test용
+const stripHangul = (s: string) => s.replace(HANGUL_GLOBAL, '');
+const hasHangul = (s: string) => HANGUL_TEST.test(s);
+
 export default function AccountSettingsCard({
   internalId,
   currentUserId,
@@ -50,9 +56,9 @@ export default function AccountSettingsCard({
   const [idErr, setIdErr] = useState<string | null>(null);
 
   // --- 비밀번호 변경 ---
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newPassword2, setNewPassword2] = useState('');
+  const [currentPassword, setCurrentPassword] = useState(''); // 현재 비번: 한글 허용
+  const [newPassword, setNewPassword] = useState(''); // 새 비번: 한글 금지
+  const [newPassword2, setNewPassword2] = useState(''); // 확인도 한글 금지
   const [isSavingPw, setIsSavingPw] = useState(false);
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [pwErr, setPwErr] = useState<string | null>(null);
@@ -61,7 +67,8 @@ export default function AccountSettingsCard({
     () =>
       Boolean(internalId) &&
       Boolean(newUserId.trim()) &&
-      newUserId.trim() !== currentUserId,
+      newUserId.trim() !== currentUserId &&
+      !hasHangul(newUserId),
     [internalId, newUserId, currentUserId]
   );
 
@@ -70,7 +77,9 @@ export default function AccountSettingsCard({
       Boolean(internalId) &&
       Boolean(currentPassword) &&
       newPassword.length >= 6 &&
-      newPassword === newPassword2,
+      newPassword === newPassword2 &&
+      !hasHangul(newPassword) &&
+      !hasHangul(newPassword2),
     [internalId, currentPassword, newPassword, newPassword2]
   );
 
@@ -80,6 +89,11 @@ export default function AccountSettingsCard({
     setIdMsg(null);
     setIdErr(null);
     try {
+      // 제출 전 방어
+      if (hasHangul(newUserId)) {
+        throw new Error('아이디에 한글을 사용할 수 없습니다.');
+      }
+
       const res = await fetch(`/api/users/${internalId}/username`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -116,6 +130,11 @@ export default function AccountSettingsCard({
     setPwMsg(null);
     setPwErr(null);
     try {
+      // 제출 전 방어 (현재 비번은 제한 X)
+      if (hasHangul(newPassword) || hasHangul(newPassword2)) {
+        throw new Error('새 비밀번호에 한글을 사용할 수 없습니다.');
+      }
+
       const res = await fetch(`/api/users/${internalId}/password`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -180,12 +199,18 @@ export default function AccountSettingsCard({
             <input
               type="text"
               value={newUserId}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setNewUserId(e.target.value)
+              onChange={
+                (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewUserId(stripHangul(e.target.value)) // 입력 시 한글 자동 제거
               }
               placeholder="새 아이디를 입력"
+              pattern="^[A-Za-z0-9._-]+$"
+              title="영문, 숫자, '.', '_', '-'만 사용할 수 있습니다"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-200"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              * 한글은 사용할 수 없습니다.
+            </p>
           </label>
 
           <div className="flex items-center gap-3">
@@ -213,8 +238,9 @@ export default function AccountSettingsCard({
             <input
               type="password"
               value={currentPassword}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setCurrentPassword(e.target.value)
+              onChange={
+                (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentPassword(e.target.value) // 현재 비번은 제한 없음
               }
               placeholder="현재 비밀번호"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-200"
@@ -226,8 +252,9 @@ export default function AccountSettingsCard({
             <input
               type="password"
               value={newPassword}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setNewPassword(e.target.value)
+              onChange={
+                (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewPassword(stripHangul(e.target.value)) // 한글 자동 제거
               }
               placeholder="새 비밀번호"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-200"
@@ -239,8 +266,9 @@ export default function AccountSettingsCard({
             <input
               type="password"
               value={newPassword2}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setNewPassword2(e.target.value)
+              onChange={
+                (e: React.ChangeEvent<HTMLInputElement>) =>
+                  setNewPassword2(stripHangul(e.target.value)) // 한글 자동 제거
               }
               placeholder="새 비밀번호 확인"
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-200"

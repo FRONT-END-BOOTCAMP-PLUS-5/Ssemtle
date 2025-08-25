@@ -36,7 +36,6 @@ export default function MinimalHeader({
           aria-label="Open navigation"
           className="absolute top-1/2 left-0 z-10 inline-flex -translate-y-1/2 cursor-pointer items-center justify-center p-2 text-gray-700 hover:text-black min-[431px]:hidden"
           onClick={() => {
-            console.log('[Header] hamburger clicked');
             onHamburgerClick?.();
           }}
           role="button"

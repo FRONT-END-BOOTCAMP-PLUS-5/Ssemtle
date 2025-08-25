@@ -5,6 +5,7 @@ import { usePuts } from '@/hooks/usePuts';
 import { UnitDto } from '@/backend/admin/units/dtos/UnitDto';
 import FormModal from '@/app/_components/admin-modal/FormModal';
 import TextField from '@/app/_components/admin-modal/TextField';
+import { toast } from 'react-toastify';
 
 interface EditUnitModalProps {
   isOpen: boolean;
@@ -48,12 +49,12 @@ export default function EditUnitModal({
   >({
     onSuccess: () => {
       setErrors({});
+      toast.success('과목이 성공적으로 수정되었습니다.');
       onSuccess();
       onClose();
     },
-    onError: (error) => {
-      console.error('과목 수정 실패:', error);
-      alert('과목 수정에 실패했습니다.');
+    onError: () => {
+      toast.error('과목 수정에 실패했습니다.');
     },
   });
 

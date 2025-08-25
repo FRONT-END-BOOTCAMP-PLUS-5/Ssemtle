@@ -203,7 +203,7 @@ export default function SignUpForm() {
           <button
             type="submit"
             disabled={isLoading || !isUserIdAvailable}
-            className="flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-3 text-sm leading-6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+            className="flex w-full justify-center rounded-lg bg-indigo-600 px-3 py-3 text-sm leading-6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-400"
           >
             {isLoading ? '회원가입 중...' : '회원가입'}
           </button>

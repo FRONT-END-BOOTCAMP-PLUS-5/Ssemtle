@@ -13,9 +13,21 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
   const pathname = usePathname();
   const isUpdatingFromScroll = useRef(false);
   const lastUpdateTime = useRef(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const scrollToElementSmoothly = useCallback((element: HTMLElement) => {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
       (entries) => {
         // Find the section that's most visible
         let maxVisibility = 0;
@@ -28,7 +40,7 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
           }
         });
 
-        if (mostVisibleSection && mostVisibleSection !== activeSection) {
+        if (mostVisibleSection) {
           const now = Date.now();
           // Throttle updates to prevent excessive calls
           if (now - lastUpdateTime.current > 100) {
@@ -44,17 +56,19 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
       }
     );
 
-    sectionIds.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        observer.observe(element);
-      }
+    // Validate and observe elements
+    const validElements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
+
+    validElements.forEach((element) => {
+      observerRef.current?.observe(element);
     });
 
     return () => {
-      observer.disconnect();
+      observerRef.current?.disconnect();
     };
-  }, [sectionIds, offset, activeSection]);
+  }, [sectionIds, offset]);
 
   // Update URL when active section changes from scrolling
   useEffect(() => {
@@ -81,17 +95,14 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
       setTimeout(() => {
         const element = document.getElementById(hash);
         if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
+          scrollToElementSmoothly(element);
         }
       }, 100);
-    } else if (sectionIds.length > 0 && !activeSection) {
-      // Set first section as default if no hash and no active section
+    } else if (sectionIds.length > 0 && !hash && !activeSection) {
+      // Set first section as default only if no hash and no active section
       setActiveSection(sectionIds[0]);
     }
-  }, [sectionIds, activeSection]);
+  }, [sectionIds, scrollToElementSmoothly, activeSection]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -102,17 +113,14 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
         setActiveSection(hash);
         const element = document.getElementById(hash);
         if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
+          scrollToElementSmoothly(element);
         }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [sectionIds, activeSection]);
+  }, [sectionIds, activeSection, scrollToElementSmoothly]);
 
   const scrollToSection = useCallback(
     (sectionId: string) => {
@@ -120,17 +128,14 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
         isUpdatingFromScroll.current = false; // This is intentional navigation
         const element = document.getElementById(sectionId);
         if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
+          scrollToElementSmoothly(element);
           // Update the URL immediately for navigation clicks
           window.history.replaceState(null, '', `${pathname}#${sectionId}`);
           setActiveSection(sectionId);
         }
       }
     },
-    [sectionIds, pathname]
+    [sectionIds, pathname, scrollToElementSmoothly]
   );
 
   return { activeSection, scrollToSection };

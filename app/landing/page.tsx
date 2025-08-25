@@ -4,7 +4,7 @@ import { ScrollNavigation } from './_component/ScrollNavigation';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'SSemtle - 기초학력의 시작',
+  title: 'SSemtle - 기초학력의 수학 ',
   description:
     '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
   keywords:
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'SSemtle - 기초학력의 시작',
+    title: 'SSemtle - 기초학력의 수학',
     description:
       '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
     url: 'https://ssemtle.com/landing',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SSemtle - 기초학력의 시작',
+    title: 'SSemtle - 기초학력의 수학',
     description:
       '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
     images: ['https://ssemtle.com/logos/Ssemtle_logo.png'],
@@ -99,7 +99,7 @@ export default function LandingLogoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <h1 style={{ display: 'none' }}>SSemtle - 기초학력의 시작</h1>
+      <h1 style={{ display: 'none' }}>SSemtle - 기초학력의 수학</h1>
 
       <ScrollNavigation sections={sections} />
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
@@ -29,7 +29,7 @@ interface SolveItem {
   answer: string;
   helpText: string;
   userInput: string;
-  isCorrect: boolean; // ✅ 이미 존재
+  isCorrect: boolean;
   createdAt: string | Date;
   unitId: number;
   userId: string;
@@ -37,30 +37,32 @@ interface SolveItem {
 }
 
 interface UnitVideoResponse {
-  data: { id: number; vidUrl: string };
+  data: {
+    id: number;
+    vidUrl: string;
+  };
 }
 
-export default function ErrorNoteInterface() {
+function toKstYmd(dLike: string | number | Date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(dLike));
+}
+
+export default function MyPageErrorNote() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
 
-  // ✅ 쿼리
+  // 쿼리: 날짜 + 카테고리(또는 unitId)
   const filterDate = searchParams.get('date'); // YYYY-MM-DD
-  const startDate = searchParams.get('start'); // YYYY-MM-DD
-  const endDate = searchParams.get('end'); // YYYY-MM-DD
+  const startDate = searchParams.get('start');
+  const endDate = searchParams.get('end');
   const category = searchParams.get('category');
-  const show = searchParams.get('show'); // 'all' 이면 전부
-
-  const showAll = show === 'all'; // ✅
-
-  // KST YYYY-MM-DD
-  const toKstYmd = (dLike: string | number | Date) =>
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Seoul',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(new Date(dLike));
+  const unitIdStr = searchParams.get('unitId');
+  const unitId = unitIdStr ? Number(unitIdStr) : null;
 
   // 상태
   const [focusedProblemId, setFocusedProblemId] = useState<string | null>(null);
@@ -71,13 +73,12 @@ export default function ErrorNoteInterface() {
   const [isVirtualKeyboardVisible, setIsVirtualKeyboardVisible] =
     useState(false);
 
-  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ✅ 타입 안전
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // ✅ API 파라미터 & 엔드포인트 선택
+  // 서버 쿼리(가능한 범위로 선필터)
   const qs = useMemo(() => {
-    const base: Record<string, string> = { limit: '20' };
-    if (!showAll) base.only = 'wrong'; // 기존 동작
+    const base: Record<string, string> = { only: 'wrong', limit: '20' };
     if (filterDate) {
       base.start = filterDate;
       base.end = filterDate;
@@ -86,80 +87,72 @@ export default function ErrorNoteInterface() {
       if (endDate) base.end = endDate;
     }
     if (category) base.category = category;
+    if (unitId != null && !Number.isNaN(unitId)) base.unitId = String(unitId);
     return base;
-  }, [showAll, filterDate, startDate, endDate, category]);
+  }, [filterDate, startDate, endDate, category, unitId]);
 
-  const endpoint = showAll ? '/solves/list' : '/solves/mode/wrong'; // ✅
-
-  // ✅ 데이터 요청 (무한스크롤)
+  // 무한 스크롤 로드 (오답 전용)
   const {
-    data: solves,
+    data: wrongSolves,
     isLoading,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
     isError,
   } = useInfiniteGets<SolveItem>(
-    [
-      'error-note',
-      showAll ? 'all' : 'wrong',
-      filterDate,
-      startDate,
-      endDate,
-      category,
-    ],
-    endpoint,
+    ['mypage-wrong-solves', filterDate, startDate, endDate, category, unitId],
+    '/solves/mode/wrong',
     !!session?.user?.id,
     qs
   );
 
-  // ✅ 날짜+카테고리 클라이언트 보강 필터 (서버가 지원 못할 때 대비)
-  const normalize = (s: string | null | undefined) =>
-    (s ?? '').trim().toLowerCase();
-  const categoryNorm = useMemo(() => normalize(category), [category]);
-
+  // 클라 최종 필터: 날짜 + (unitId 우선, 없으면 category)
   const filteredSolves = useMemo(() => {
-    if (!solves.length) return [];
-    return solves.filter((s) => {
-      const ymd = toKstYmd(s.createdAt);
-      const okDate =
-        (filterDate && ymd === filterDate) ||
-        (!filterDate &&
-          startDate &&
-          endDate &&
-          ymd >= startDate &&
-          ymd <= endDate) ||
-        (!filterDate && startDate && !endDate && ymd >= startDate) ||
-        (!filterDate && !startDate && endDate && ymd <= endDate) ||
-        (!filterDate && !startDate && !endDate); // 조건 없을 때는 통과
+    let list = wrongSolves;
 
-      const okCat = !categoryNorm || normalize(s.category) === categoryNorm;
-      return okDate && okCat;
-    });
-  }, [solves, filterDate, startDate, endDate, categoryNorm]);
+    if (filterDate || startDate || endDate) {
+      list = list.filter((s) => {
+        const ymd = toKstYmd(s.createdAt);
+        if (filterDate) return ymd === filterDate;
+        if (startDate && endDate) return ymd >= startDate && ymd <= endDate;
+        if (startDate) return ymd >= startDate;
+        if (endDate) return ymd <= endDate;
+        return true;
+      });
+    }
 
-  // 포커스된 문제(동영상)
+    if (unitId != null && !Number.isNaN(unitId)) {
+      list = list.filter((s) => s.unitId === unitId);
+    } else if (category) {
+      list = list.filter((s) => s.category === category);
+    }
+
+    return list;
+  }, [wrongSolves, filterDate, startDate, endDate, unitId, category]);
+
+  // 포커스된 문제(동영상 로딩)
   const focusedProblem = focusedProblemId
     ? filteredSolves.find((s) => s.id.toString() === focusedProblemId)
     : null;
 
+  // 유닛 영상
   const { data: videoData } = useGets<UnitVideoResponse>(
     ['unitVideo', focusedProblem?.unitId],
     `/unitvidurl/${focusedProblem?.unitId}`,
     !!focusedProblem?.unitId
   );
 
-  // 렌더용 매핑
-  const displayProblems: ErrorNoteProblem[] = filteredSolves.map((solve) => ({
-    id: solve.id.toString(),
-    question: solve.question || 'No question available',
-    userAnswer: solve.userInput || '',
-    correctAnswer: solve.answer || '',
-    helpText: solve.helpText || 'No help text available',
+  // 렌더 데이터
+  const displayProblems: ErrorNoteProblem[] = filteredSolves.map((s) => ({
+    id: s.id.toString(),
+    question: s.question || 'No question available',
+    userAnswer: s.userInput || '',
+    correctAnswer: s.answer || '',
+    helpText: s.helpText || 'No help text available',
+    unitName: s.category,
     instruction: undefined,
-    unitName: solve.category,
     videoUrl:
-      focusedProblemId === solve.id.toString() && videoData?.data?.vidUrl
+      focusedProblemId === s.id.toString() && videoData?.data?.vidUrl
         ? videoData.data.vidUrl
         : undefined,
   }));
@@ -175,14 +168,6 @@ export default function ErrorNoteInterface() {
       });
     }
   );
-  handleIntersection.current = (entries, observer) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        observer.unobserve(entry.target);
-        fetchNextPage();
-      }
-    });
-  };
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -205,20 +190,16 @@ export default function ErrorNoteInterface() {
     }
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 카드 포커스/블러
+  // 카드 포커스/블러 + 입력
   const handleCardFocus = (problemId: string) => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     setFocusedProblemId(problemId);
     setIsVirtualKeyboardVisible(true);
     setTimeout(() => {
-      const el = document.querySelector(`[data-problem-card="${problemId}"]`);
-      const input = el?.querySelector(
-        'input[type="text"]'
+      const el = document.querySelector(
+        `[data-problem-card="${problemId}"] input[type="text"]`
       ) as HTMLInputElement | null;
-      input?.focus();
+      el?.focus();
     }, 100);
   };
   const handleCardBlur = () => {
@@ -236,11 +217,8 @@ export default function ErrorNoteInterface() {
       blurTimeoutRef.current = null;
     }, 200);
   };
-
-  // 입력/제출 상태
-  const handleInputChange = (problemId: string, value: string) => {
-    setUserInputs((prev) => new Map(prev).set(problemId, value));
-  };
+  const handleInputChange = (id: string, v: string) =>
+    setUserInputs((prev) => new Map(prev).set(id, v));
   const handleNumberClick = (n: string) => {
     if (!focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
@@ -255,24 +233,26 @@ export default function ErrorNoteInterface() {
     if (!focusedProblemId) return;
     setUserInputs((p) => new Map(p).set(focusedProblemId, ''));
   };
-  const handleSubmissionResult = (problemId: string, isCorrect: boolean) => {
+  const handleSubmissionResult = (id: string, ok: boolean) =>
     setSubmissionStates((prev) =>
-      new Map(prev).set(problemId, isCorrect ? 'correct' : 'incorrect')
+      new Map(prev).set(id, ok ? 'correct' : 'incorrect')
     );
-  };
 
+  // 클린업
   useEffect(() => {
     return () => {
-      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
     };
   }, []);
 
-  // 상태 렌더
+  // 상태 분기
   if (status === 'loading' || isLoading) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500" />
           <p className="text-gray-600">오답노트를 불러오는 중...</p>
         </div>
       </div>
@@ -291,7 +271,12 @@ export default function ErrorNoteInterface() {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
-          <p className="mb-2 text-gray-600">표시할 문제가 없습니다.</p>
+          <p className="mb-2 text-gray-600">오답 문제가 없습니다!</p>
+          {(filterDate || startDate || endDate || category || unitIdStr) && (
+            <p className="text-sm text-gray-500">
+              선택한 조건(날짜/카테고리)에 해당하는 오답이 없습니다.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -305,6 +290,9 @@ export default function ErrorNoteInterface() {
         <div className="tablet:hidden">
           <div className="mb-6 px-4 text-center">
             <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+            <p className="mt-2 text-gray-600">
+              선택한 조건의 오답만 표시됩니다
+            </p>
           </div>
 
           <div className="mb-6 px-4">
@@ -315,36 +303,27 @@ export default function ErrorNoteInterface() {
                   ? displayProblems.find((p) => p.id === focusedProblemId)
                   : undefined
               }
-              isDraggable
+              isDraggable={true}
             />
           </div>
 
           <div className="space-y-6 px-4">
-            {filteredSolves.map((solve) => {
-              const problem = displayProblems.find(
-                (p) => p.id === solve.id.toString()
-              )!;
-              return (
-                <div key={problem.id}>
-                  <ErrorNoteCard
-                    problem={problem}
-                    onFocus={handleCardFocus}
-                    onBlur={handleCardBlur}
-                    onInputChange={handleInputChange}
-                    userInput={userInputs.get(problem.id) || ''}
-                    submissionState={
-                      submissionStates.get(problem.id) || 'initial'
-                    }
-                    onSubmissionResult={handleSubmissionResult}
-                    isCorrect={solve.isCorrect}
-                  />
-                </div>
-              );
-            })}
+            {displayProblems.map((p) => (
+              <ErrorNoteCard
+                key={p.id}
+                problem={p}
+                onFocus={handleCardFocus}
+                onBlur={handleCardBlur}
+                onInputChange={handleInputChange}
+                userInput={userInputs.get(p.id) || ''}
+                submissionState={submissionStates.get(p.id) || 'initial'}
+                onSubmissionResult={handleSubmissionResult}
+              />
+            ))}
 
             {isFetchingNextPage && (
               <div className="flex justify-center py-4">
-                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500" />
               </div>
             )}
             {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
@@ -364,37 +343,27 @@ export default function ErrorNoteInterface() {
             <div className="space-y-6">
               <div className="mb-6 text-center">
                 <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-                {showAll && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    맞은 문제는 흐리게 표시됩니다
-                  </p>
-                )}
+                <p className="mt-2 text-gray-600">
+                  선택한 조건의 오답만 표시됩니다
+                </p>
               </div>
 
-              {filteredSolves.map((solve) => {
-                const problem = displayProblems.find(
-                  (p) => p.id === solve.id.toString()
-                )!;
-                return (
-                  <div key={problem.id}>
-                    <ErrorNoteCard
-                      problem={problem}
-                      onFocus={handleCardFocus}
-                      onBlur={handleCardBlur}
-                      onInputChange={handleInputChange}
-                      userInput={userInputs.get(problem.id) || ''}
-                      submissionState={
-                        submissionStates.get(problem.id) || 'initial'
-                      }
-                      onSubmissionResult={handleSubmissionResult}
-                    />
-                  </div>
-                );
-              })}
+              {displayProblems.map((p) => (
+                <ErrorNoteCard
+                  key={p.id}
+                  problem={p}
+                  onFocus={handleCardFocus}
+                  onBlur={handleCardBlur}
+                  onInputChange={handleInputChange}
+                  userInput={userInputs.get(p.id) || ''}
+                  submissionState={submissionStates.get(p.id) || 'initial'}
+                  onSubmissionResult={handleSubmissionResult}
+                />
+              ))}
 
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
-                  <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
+                  <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500" />
                 </div>
               )}
               {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}

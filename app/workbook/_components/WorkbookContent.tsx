@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useRouter } from 'next/navigation'; // ✅ 추가
 import TestCard from '@/app/_components/cards/TestCard';
 import WorkbookInfiniteScroll from './WorkbookInfiniteScroll';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
@@ -20,6 +21,16 @@ interface WorkbookContentProps {
   children?: ReactNode; // For filter components
 }
 
+/** KST YYYY-MM-DD */
+function toKstYmd(dLike: string | number | Date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(dLike));
+}
+
 export default function WorkbookContent({
   isLoading,
   isError,
@@ -30,6 +41,8 @@ export default function WorkbookContent({
   fetchNextPage,
   children,
 }: WorkbookContentProps) {
+  const router = useRouter();
+
   return (
     <>
       {children}
@@ -64,13 +77,30 @@ export default function WorkbookContent({
         {!isLoading && !isError && filteredAndGroupedSolves.length > 0 && (
           <>
             {filteredAndGroupedSolves.map((group) => {
-              // Create stable key using the same logic as grouping
+              // 기존 그룹 키 로직 유지
               const firstSolve = group.solves[0];
-              const date = new Date(firstSolve.createdAt).toDateString();
-              const stableKey = `${group.unitId}-${group.category}-${date}-${dateSort}`;
+              const dateForKey = new Date(firstSolve.createdAt).toDateString();
+              const stableKey = `${group.unitId}-${group.category}-${dateForKey}-${dateSort}`;
+
+              // ✅ error-note로 넘길 쿼리들 (카테고리 + 해당 날짜)
+              const dateKst = toKstYmd(firstSolve.createdAt);
+              const toUrl =
+                `/error-note?date=${dateKst}` +
+                `&category=${encodeURIComponent(group.category)}` +
+                `&unitId=${group.unitId}` + // ✅ 추가
+                `&show=all`;
 
               return (
-                <div key={stableKey}>
+                <div
+                  key={stableKey}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(toUrl)} // ✅ 라우팅
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') router.push(toUrl);
+                  }}
+                  className="outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                >
                   <TestCard solves={group.solves} category={group.category} />
                 </div>
               );

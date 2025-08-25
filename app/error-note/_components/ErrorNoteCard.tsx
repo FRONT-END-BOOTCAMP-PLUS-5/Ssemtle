@@ -25,6 +25,8 @@ interface ErrorNoteCardProps {
   userInput: string;
   submissionState?: SubmissionState;
   onSubmissionResult: (problemId: string, isCorrect: boolean) => void;
+  /** 이미 맞은 문제면 true: 카드 흐리게/초록테두리 + 입력 비활성화 */
+  isCorrect?: boolean;
 }
 
 export default function ErrorNoteCard({
@@ -35,6 +37,7 @@ export default function ErrorNoteCard({
   userInput,
   submissionState = 'initial',
   onSubmissionResult,
+  isCorrect = false,
 }: ErrorNoteCardProps) {
   // PUT hook for submitting corrections
   const submitCorrection = usePuts<
@@ -42,9 +45,8 @@ export default function ErrorNoteCard({
     { success: boolean; isCorrect?: boolean }
   >({
     onSuccess: (result) => {
-      // Determine if the answer was correct based on the response
-      const isCorrect = result.isCorrect ?? true; // Assume correct if not specified
-      onSubmissionResult(problem.id, isCorrect);
+      const ok = result.isCorrect ?? true;
+      onSubmissionResult(problem.id, ok);
     },
     onError: (error) => {
       console.error('Error submitting correction:', error);
@@ -53,24 +55,30 @@ export default function ErrorNoteCard({
   });
 
   const handleSubmitCorrection = useCallback(() => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim() || isCorrect) return;
 
     submitCorrection.mutate({
       putData: { userInput: userInput.trim() },
       path: `/solves/${problem.id}`,
     });
-  }, [problem.id, userInput, submitCorrection]);
+  }, [problem.id, userInput, submitCorrection, isCorrect]);
 
   const handleInputChange = (value: string) => {
+    if (isCorrect) return;
     onInputChange(problem.id, value);
   };
 
   const handleCardFocus = () => {
+    if (isCorrect) return; // 이미 정답이면 키보드/포커스 안 띄움
     onFocus(problem.id);
   };
 
-  // Dynamic border classes based on submission state
+  const effectiveDisabled =
+    isCorrect || submitCorrection.isPending || submissionState === 'correct';
+
+  // Border/배경 스타일
   const getBorderClasses = () => {
+    if (isCorrect) return 'border-2 border-green-500 bg-green-50 opacity-50';
     switch (submissionState) {
       case 'correct':
         return 'border-2 border-green-500 bg-green-50';
@@ -81,8 +89,8 @@ export default function ErrorNoteCard({
     }
   };
 
-  // Dynamic problem info styling
   const getProblemInfoClasses = () => {
+    if (isCorrect) return 'bg-green-50 border border-green-200 opacity-70';
     switch (submissionState) {
       case 'correct':
         return 'bg-green-50 border border-green-200';
@@ -103,7 +111,9 @@ export default function ErrorNoteCard({
           data-clickable-zone
           onClick={handleCardFocus}
           onBlur={onBlur}
-          className="mb-4 cursor-pointer transition-all hover:scale-[1.01]"
+          className={`mb-4 cursor-pointer transition-all hover:scale-[1.01] ${
+            isCorrect ? 'cursor-default hover:scale-100' : ''
+          }`}
         >
           <ProblemDisplay
             title={
@@ -118,29 +128,35 @@ export default function ErrorNoteCard({
           data-clickable-zone
           onClick={handleCardFocus}
           onBlur={onBlur}
-          className="mb-4 cursor-pointer transition-all hover:scale-[1.01]"
+          className={`mb-4 transition-all ${
+            isCorrect
+              ? 'cursor-not-allowed'
+              : 'cursor-pointer hover:scale-[1.01]'
+          }`}
         >
           <div data-problem-id={problem.id}>
             <AnswerSection
               value={userInput}
               onChange={handleInputChange}
               onSubmit={handleSubmitCorrection}
-              onNext={() => {}} // No next functionality in cards
+              onNext={() => {}}
               submitState={
-                submissionState === 'correct'
+                isCorrect
                   ? 'correct'
-                  : submissionState === 'incorrect'
-                    ? 'incorrect'
-                    : 'initial'
+                  : submissionState === 'correct'
+                    ? 'correct'
+                    : submissionState === 'incorrect'
+                      ? 'incorrect'
+                      : 'initial'
               }
               loading={submitCorrection.isPending}
-              disabled={
-                submitCorrection.isPending || submissionState === 'correct'
-              }
+              disabled={effectiveDisabled}
               placeholder={
-                submissionState === 'correct'
-                  ? '정답입니다!'
-                  : '정답을 다시 입력해보세요'
+                isCorrect
+                  ? '이미 정답 처리된 문제입니다'
+                  : submissionState === 'correct'
+                    ? '정답입니다!'
+                    : '정답을 다시 입력해보세요'
               }
             />
           </div>
@@ -158,17 +174,19 @@ export default function ErrorNoteCard({
               {problem.userAnswer || '없음'}
             </span>
           </div>
-          {submissionState === 'correct' && (
+
+          {(isCorrect || submissionState === 'correct') && (
             <div className="mt-2 border-t border-green-200 pt-2">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-green-600">✓</span>
                 <span className="text-sm font-medium text-green-700">
-                  정답을 맞혔습니다!
+                  정답 처리된 문제입니다
                 </span>
               </div>
             </div>
           )}
-          {submissionState === 'incorrect' && (
+
+          {!isCorrect && submissionState === 'incorrect' && (
             <div className="mt-2 border-t border-red-200 pt-2">
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-red-600">✗</span>

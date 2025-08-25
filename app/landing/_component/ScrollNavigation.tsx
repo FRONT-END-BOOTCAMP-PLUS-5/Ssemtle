@@ -49,7 +49,7 @@ export function ScrollNavigation({
               )}
 
               <motion.div
-                className="absolute top-1/2 -left-2 -translate-y-1/2 opacity-0 group-hover:opacity-100"
+                className="absolute top-1/2 -left-12 -translate-y-1/2 opacity-0 group-hover:opacity-100"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: isActive ? 1 : 0, x: isActive ? 0 : 10 }}
                 transition={{ duration: 0.2 }}

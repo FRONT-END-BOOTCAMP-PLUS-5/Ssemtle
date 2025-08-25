@@ -27,6 +27,7 @@ interface ErrorNoteCardProps {
   onSubmissionResult: (problemId: string, isCorrect: boolean) => void;
   /** 이미 맞은 문제면 true: 카드 흐리게/초록테두리 + 입력 비활성화 */
   isCorrect?: boolean;
+  readOnly?: boolean;
 }
 
 export default function ErrorNoteCard({
@@ -38,6 +39,7 @@ export default function ErrorNoteCard({
   submissionState = 'initial',
   onSubmissionResult,
   isCorrect = false,
+  readOnly = false,
 }: ErrorNoteCardProps) {
   // PUT hook for submitting corrections
   const submitCorrection = usePuts<
@@ -109,8 +111,8 @@ export default function ErrorNoteCard({
         {/* Problem Display - Clickable Zone */}
         <div
           data-clickable-zone
-          onClick={handleCardFocus}
-          onBlur={onBlur}
+          onClick={readOnly ? undefined : handleCardFocus}
+          onBlur={readOnly ? undefined : onBlur}
           className={`mb-4 cursor-pointer transition-all hover:scale-[1.01] ${
             isCorrect ? 'cursor-default hover:scale-100' : ''
           }`}
@@ -126,8 +128,8 @@ export default function ErrorNoteCard({
         {/* Answer Input - Clickable Zone */}
         <div
           data-clickable-zone
-          onClick={handleCardFocus}
-          onBlur={onBlur}
+          onClick={readOnly ? undefined : handleCardFocus}
+          onBlur={readOnly ? undefined : onBlur}
           className={`mb-4 transition-all ${
             isCorrect
               ? 'cursor-not-allowed'

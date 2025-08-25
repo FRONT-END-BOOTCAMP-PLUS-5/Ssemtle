@@ -399,6 +399,7 @@ export default function MyPageErrorNote() {
                       userInput={userInputs.get(p.id) || ''}
                       submissionState={submissionStates.get(p.id) || 'initial'}
                       onSubmissionResult={handleSubmissionResult}
+                      readOnly={!canEdit}
                     />
                   </div>
                   {!canEdit && (

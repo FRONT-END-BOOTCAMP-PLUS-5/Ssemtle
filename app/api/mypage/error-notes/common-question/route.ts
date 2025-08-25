@@ -24,9 +24,6 @@ export async function GET(req: NextRequest) {
     const date = searchParams.get('date') || undefined;
     const { date: validatedDate } = QuerySchema.parse({ date });
 
-    console.log('[CommonErrorNotes][API] session user id', session.user.id);
-    console.log('[CommonErrorNotes][API] date', validatedDate ?? '(전체)');
-
     const solveRepo = new PrErrorNotesSolveRepository();
     const usecase = new GetCommonErrorNotesUsecase(solveRepo);
     const result = await usecase.execute({
@@ -34,7 +31,6 @@ export async function GET(req: NextRequest) {
       date: validatedDate,
     });
 
-    console.log('[CommonErrorNotes][API] result', JSON.stringify(result));
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('[CommonErrorNotes][API] 오류', error);

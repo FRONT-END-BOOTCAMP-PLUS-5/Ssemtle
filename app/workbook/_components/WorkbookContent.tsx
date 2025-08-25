@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useRouter } from 'next/navigation'; // ✅ 추가
+import { useRouter } from 'next/navigation';
 import TestCard from '@/app/_components/cards/TestCard';
 import WorkbookInfiniteScroll from './WorkbookInfiniteScroll';
 import { SolveListItemDto } from '@/backend/solves/dtos/SolveDto';
@@ -87,7 +87,7 @@ export default function WorkbookContent({
               const toUrl =
                 `/error-note?date=${dateKst}` +
                 `&category=${encodeURIComponent(group.category)}` +
-                `&unitId=${group.unitId}` + // ✅ 추가
+                `&unitId=${group.unitId}` +
                 `&show=all`;
 
               return (
@@ -95,7 +95,7 @@ export default function WorkbookContent({
                   key={stableKey}
                   role="button"
                   tabIndex={0}
-                  onClick={() => router.push(toUrl)} // ✅ 라우팅
+                  onClick={() => router.push(toUrl)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') router.push(toUrl);
                   }}

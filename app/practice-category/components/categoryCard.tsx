@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
-type CategoryCardProps = {
+interface CategoryCardProps {
   /** 카드 제목 */
   title: string;
   /** 부가 설명 */
@@ -14,7 +14,13 @@ type CategoryCardProps = {
   unitName: string;
   /** 배경색/강조색 클래스 (tailwind) */
   accentClass?: string;
-};
+  /** 네비게이션 시작 콜백 (상위에서 로딩 상태 관리) */
+  onNavigateStart?: () => void;
+  /** 네비게이션 에러 콜백 (상위에서 로딩 상태 해제) */
+  onNavigateError?: () => void;
+  /** 카드 비활성화 여부 (중복 클릭 방지) */
+  isDisabled?: boolean;
+}
 
 /**
  * 카테고리 카드 컴포넌트
@@ -27,16 +33,27 @@ const CategoryCard = ({
   unitId,
   unitName,
   accentClass,
+  onNavigateStart,
+  onNavigateError,
+  isDisabled,
 }: CategoryCardProps) => {
   const router = useRouter();
 
   const handleClick = () => {
     try {
+      // 네비게이션 시작 알림 및 로딩 토스트 노출
+      onNavigateStart?.();
+      toast.loading('이동 중입니다... 잠시만 기다려주세요.', {
+        autoClose: 2500,
+        closeOnClick: false,
+        hideProgressBar: true,
+      });
       router.push(
         `/practice?unitId=${encodeURIComponent(unitId)}&unitName=${encodeURIComponent(unitName)}`
       );
     } catch (error) {
       console.error(error);
+      onNavigateError?.();
       toast.error('이동 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
@@ -45,7 +62,12 @@ const CategoryCard = ({
     <button
       type="button"
       onClick={handleClick}
-      className={`group relative flex h-48 w-full cursor-pointer flex-col justify-between rounded-3xl border border-gray-100 p-6 text-left shadow-sm transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-md ${accentClass ?? 'bg-white'}`}
+      disabled={isDisabled}
+      className={`group relative flex h-48 w-full flex-col justify-between rounded-3xl border border-gray-100 p-6 text-left shadow-sm transition-all duration-200 ease-out ${
+        isDisabled
+          ? 'cursor-not-allowed opacity-60'
+          : 'cursor-pointer hover:-translate-y-1 hover:shadow-md'
+      } ${accentClass ?? 'bg-white'}`}
     >
       <div className="text-lg font-semibold">{title}</div>
       {description ? (

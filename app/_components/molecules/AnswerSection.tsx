@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ButtonVariant } from '../atoms/Button';
 import HelpModal from './HelpModal';
 import MathInput from './MathInput';
@@ -95,11 +96,16 @@ export default function AnswerSection({
 
   return (
     <>
-      {/* Help Modal */}
-      <HelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-      />
+      {/* Help Modal - Rendered via portal to avoid positioning issues */}
+      {typeof window !== 'undefined' &&
+        isHelpModalOpen &&
+        createPortal(
+          <HelpModal
+            isOpen={isHelpModalOpen}
+            onClose={() => setIsHelpModalOpen(false)}
+          />,
+          document.body
+        )}
 
       <div className="mx-auto w-full">
         <div className="space-y-4">

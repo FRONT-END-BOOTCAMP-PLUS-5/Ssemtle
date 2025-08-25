@@ -55,6 +55,7 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     useState(false);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
+  const lastClickTargetRef = useRef<EventTarget | null>(null);
 
   // Use infinite scrolling for wrong problems
   const {
@@ -189,6 +190,7 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     blurTimeoutRef.current = setTimeout(() => {
       // Check if focus moved to virtual keyboard or another input within the same card
       const activeElement = document.activeElement;
+
       if (
         activeElement &&
         (activeElement.closest('[data-virtual-keyboard]') ||
@@ -204,39 +206,64 @@ export default function ErrorNoteInterface({}: ErrorNoteInterfaceProps) {
     }, 200);
   };
 
-  // Enhanced blur handler that also listens to document-level focus changes
+  // Enhanced focus handler that tracks both click targets and active elements
   useEffect(() => {
+    const handleDocumentClick = (e: Event) => {
+      // Store the actual click target before focus changes
+      lastClickTargetRef.current = e.target;
+    };
+
     const handleDocumentFocusChange = () => {
       // Small delay to let focus settle
       setTimeout(() => {
         const activeElement = document.activeElement;
+        const lastClickTarget = lastClickTargetRef.current as Element | null;
 
-        // If focus is not on any input or virtual keyboard, reset state
+        // Check if we should preserve focus based on activeElement (existing logic)
+        const shouldPreserveFocusFromActiveElement =
+          activeElement &&
+          (activeElement.closest('input[type="text"]') ||
+            activeElement.closest('[data-virtual-keyboard]') ||
+            activeElement.closest('[data-clickable-zone]'));
+
+        // Check if we should preserve focus based on where the user actually clicked
+        const shouldPreserveFocusFromClickTarget =
+          lastClickTarget &&
+          focusedProblemId &&
+          (lastClickTarget.closest(
+            `[data-problem-card="${focusedProblemId}"]`
+          ) ||
+            lastClickTarget.closest('[data-virtual-keyboard]'));
+
+        // Preserve focus if either condition is met
         if (
-          !activeElement ||
-          (!activeElement.closest('input[type="text"]') &&
-            !activeElement.closest('[data-virtual-keyboard]') &&
-            !activeElement.closest('[data-clickable-zone]'))
+          shouldPreserveFocusFromActiveElement ||
+          shouldPreserveFocusFromClickTarget
         ) {
-          setFocusedProblemId(null);
-          setIsVirtualKeyboardVisible(false);
-          if (blurTimeoutRef.current) {
-            clearTimeout(blurTimeoutRef.current);
-            blurTimeoutRef.current = null;
-          }
+          return;
+        }
+
+        // Reset focus state
+        setFocusedProblemId(null);
+        setIsVirtualKeyboardVisible(false);
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+          blurTimeoutRef.current = null;
         }
       }, 150);
     };
 
-    // Listen for focus changes on the document
+    // Listen for click and focus changes on the document
+    document.addEventListener('click', handleDocumentClick);
     document.addEventListener('focusin', handleDocumentFocusChange);
     document.addEventListener('click', handleDocumentFocusChange);
 
     return () => {
+      document.removeEventListener('click', handleDocumentClick);
       document.removeEventListener('focusin', handleDocumentFocusChange);
       document.removeEventListener('click', handleDocumentFocusChange);
     };
-  }, []);
+  }, [focusedProblemId]);
 
   const handleInputChange = (problemId: string, value: string) => {
     setUserInputs((prev) => new Map(prev).set(problemId, value));

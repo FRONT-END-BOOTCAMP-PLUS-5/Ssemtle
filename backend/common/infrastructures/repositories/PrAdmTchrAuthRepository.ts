@@ -141,4 +141,28 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
 
     return teacherAuth ? this.mapToEntity(teacherAuth) : null;
   }
+
+  async deleteUser(teacherId: string): Promise<void> {
+    try {
+      await this.prisma.user.delete({
+        where: { id: teacherId },
+      });
+    } catch (error) {
+      console.error('사용자 계정 삭제 실패:', { teacherId, error });
+      throw new Error('사용자 계정 삭제 중 오류가 발생했습니다.');
+    }
+  }
+
+  async getUserRole(teacherId: string): Promise<string | null> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: teacherId },
+        select: { role: true },
+      });
+      return user?.role || null;
+    } catch (error) {
+      console.error('사용자 role 조회 실패:', { teacherId, error });
+      throw new Error('사용자 정보 조회 중 오류가 발생했습니다.');
+    }
+  }
 }

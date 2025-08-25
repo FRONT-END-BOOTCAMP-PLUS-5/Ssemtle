@@ -43,8 +43,6 @@ export default function LandingLogo() {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center opacity-0">
-          {' '}
-          {/* opacity-0으로 숨김 */}
           <h1 className="mb-2 text-4xl font-bold text-gray-800">
             기초학력의 시작
           </h1>
@@ -56,7 +54,7 @@ export default function LandingLogo() {
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="relative flex h-80 w-full items-center justify-center">
+      <div className="hidden h-80 w-full items-center justify-center lg:relative lg:flex">
         {logos.map((logo, index) => {
           const linearPos = getLinearPosition(index, logos.length);
 
@@ -143,6 +141,39 @@ export default function LandingLogo() {
             </motion.div>
           );
         })}
+      </div>
+
+      <div className="flex h-48 w-full items-center justify-center px-4 sm:h-64 lg:hidden">
+        <div className="flex items-center justify-center gap-4 sm:gap-2">
+          {logos.map((logo, index) => (
+            <motion.div
+              key={index}
+              className="flex-none"
+              initial={{ y: -200 }}
+              animate={
+                animationPhase === 'complete' ? { y: [0, -8, 0] } : { y: 0 }
+              }
+              transition={{
+                duration: 1.2,
+                delay: index * 0.16,
+                repeat:
+                  animationPhase === 'complete' ? Number.POSITIVE_INFINITY : 0,
+                ease: 'easeInOut',
+              }}
+              whileHover={{ scale: 1.08 }}
+            >
+              <Image
+                src={logo.src}
+                alt={logo.alt}
+                width={100}
+                height={100}
+                style={{ width: 'clamp(40px, 12vw, 80px)', height: 'auto' }}
+                className="drop-shadow-lg"
+                priority={index < 3}
+              />
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <motion.div

@@ -49,7 +49,7 @@ export default function WorkbookContent({
 
       <div
         key={`${dateSort}-${JSON.stringify(filteredAndGroupedSolves.length)}`}
-        className="space-y-6 tablet:grid tablet:grid-cols-2 tablet:gap-6 tablet:space-y-0"
+        className="justify-items-center space-y-6 tablet:grid tablet:grid-cols-2 tablet:gap-6 tablet:space-y-0"
       >
         {isLoading && (
           <div className="flex justify-center py-12">

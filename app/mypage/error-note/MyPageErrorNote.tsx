@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
@@ -55,6 +55,17 @@ function toKstYmd(dLike: string | number | Date) {
 export default function MyPageErrorNote() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
+  const params = useParams();
+
+  // 열람 대상 사용자 ID (경로 /mypage/[id]/error-note 또는 ?userId=)
+  const pathUserId =
+    (params?.id as string | undefined) ??
+    searchParams.get('userId') ??
+    undefined;
+
+  const sessionUserId = session?.user?.userId;
+  const canEdit =
+    !!sessionUserId && (!!pathUserId ? pathUserId === sessionUserId : true);
 
   // 쿼리: 날짜 + 카테고리(또는 unitId)
   const filterDate = searchParams.get('date'); // YYYY-MM-DD
@@ -192,6 +203,7 @@ export default function MyPageErrorNote() {
 
   // 카드 포커스/블러 + 입력
   const handleCardFocus = (problemId: string) => {
+    if (!canEdit) return; // 🔒 내 문제가 아니면 편집 불가
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     setFocusedProblemId(problemId);
     setIsVirtualKeyboardVisible(true);
@@ -202,7 +214,9 @@ export default function MyPageErrorNote() {
       el?.focus();
     }, 100);
   };
+
   const handleCardBlur = () => {
+    if (!canEdit) return;
     blurTimeoutRef.current = setTimeout(() => {
       const active = document.activeElement;
       if (
@@ -217,22 +231,29 @@ export default function MyPageErrorNote() {
       blurTimeoutRef.current = null;
     }, 200);
   };
-  const handleInputChange = (id: string, v: string) =>
+
+  const handleInputChange = (id: string, v: string) => {
+    if (!canEdit) return;
     setUserInputs((prev) => new Map(prev).set(id, v));
+  };
+
   const handleNumberClick = (n: string) => {
-    if (!focusedProblemId) return;
+    if (!canEdit || !focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + n));
   };
+
   const handleOperatorClick = (op: string) => {
-    if (!focusedProblemId) return;
+    if (!canEdit || !focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + op));
   };
+
   const handleClear = () => {
-    if (!focusedProblemId) return;
+    if (!canEdit || !focusedProblemId) return;
     setUserInputs((p) => new Map(p).set(focusedProblemId, ''));
   };
+
   const handleSubmissionResult = (id: string, ok: boolean) =>
     setSubmissionStates((prev) =>
       new Map(prev).set(id, ok ? 'correct' : 'incorrect')
@@ -282,10 +303,17 @@ export default function MyPageErrorNote() {
     );
   }
 
-  // 렌더
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-32">
+        {/* 안내 배지: 읽기 전용 */}
+        {!canEdit && (
+          <div className="mx-4 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 tablet:mx-0">
+            이 페이지는 <b>읽기 전용</b>입니다. 내 문제가 아니므로 정답 수정이
+            비활성화됩니다.
+          </div>
+        )}
+
         {/* Mobile */}
         <div className="tablet:hidden">
           <div className="mb-6 px-4 text-center">
@@ -297,7 +325,7 @@ export default function MyPageErrorNote() {
 
           <div className="mb-6 px-4">
             <ContextualHelpSection
-              focusZone={focusedProblemId ? 'answer' : 'none'}
+              focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
               currentProblem={
                 focusedProblemId
                   ? displayProblems.find((p) => p.id === focusedProblemId)
@@ -309,16 +337,25 @@ export default function MyPageErrorNote() {
 
           <div className="space-y-6 px-4">
             {displayProblems.map((p) => (
-              <ErrorNoteCard
-                key={p.id}
-                problem={p}
-                onFocus={handleCardFocus}
-                onBlur={handleCardBlur}
-                onInputChange={handleInputChange}
-                userInput={userInputs.get(p.id) || ''}
-                submissionState={submissionStates.get(p.id) || 'initial'}
-                onSubmissionResult={handleSubmissionResult}
-              />
+              <div key={p.id} className="relative">
+                {!canEdit && (
+                  <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
+                )}
+                <div className={canEdit ? '' : 'pointer-events-none'}>
+                  <ErrorNoteCard
+                    problem={p}
+                    onFocus={handleCardFocus}
+                    onBlur={handleCardBlur}
+                    onInputChange={handleInputChange}
+                    userInput={userInputs.get(p.id) || ''}
+                    submissionState={submissionStates.get(p.id) || 'initial'}
+                    onSubmissionResult={handleSubmissionResult}
+                  />
+                </div>
+                {!canEdit && (
+                  <div className="mt-1 text-xs text-gray-500">읽기 전용</div>
+                )}
+              </div>
             ))}
 
             {isFetchingNextPage && (
@@ -349,16 +386,25 @@ export default function MyPageErrorNote() {
               </div>
 
               {displayProblems.map((p) => (
-                <ErrorNoteCard
-                  key={p.id}
-                  problem={p}
-                  onFocus={handleCardFocus}
-                  onBlur={handleCardBlur}
-                  onInputChange={handleInputChange}
-                  userInput={userInputs.get(p.id) || ''}
-                  submissionState={submissionStates.get(p.id) || 'initial'}
-                  onSubmissionResult={handleSubmissionResult}
-                />
+                <div key={p.id} className="relative">
+                  {!canEdit && (
+                    <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
+                  )}
+                  <div className={canEdit ? '' : 'pointer-events-none'}>
+                    <ErrorNoteCard
+                      problem={p}
+                      onFocus={handleCardFocus}
+                      onBlur={handleCardBlur}
+                      onInputChange={handleInputChange}
+                      userInput={userInputs.get(p.id) || ''}
+                      submissionState={submissionStates.get(p.id) || 'initial'}
+                      onSubmissionResult={handleSubmissionResult}
+                    />
+                  </div>
+                  {!canEdit && (
+                    <div className="mt-1 text-xs text-gray-500">읽기 전용</div>
+                  )}
+                </div>
               ))}
 
               {isFetchingNextPage && (
@@ -380,7 +426,7 @@ export default function MyPageErrorNote() {
           <div className="w-80 flex-shrink-0">
             <div className="sticky top-6">
               <ContextualHelpSection
-                focusZone={focusedProblemId ? 'answer' : 'none'}
+                focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
                 currentProblem={
                   focusedProblemId
                     ? displayProblems.find((p) => p.id === focusedProblemId)
@@ -393,11 +439,11 @@ export default function MyPageErrorNote() {
         </div>
 
         <VirtualKeyboard
-          isVisible={isVirtualKeyboardVisible}
+          isVisible={isVirtualKeyboardVisible && canEdit}
           onNumberClick={handleNumberClick}
           onOperatorClick={handleOperatorClick}
           onClear={handleClear}
-          disabled={false}
+          disabled={!canEdit}
         />
       </div>
     </div>

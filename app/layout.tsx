@@ -23,7 +23,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body className="flex min-h-screen flex-col">
         {/* Header + isOpen 상태 관리 */}
         <Providers>

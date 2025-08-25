@@ -43,7 +43,7 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
         if (mostVisibleSection) {
           const now = Date.now();
           // Throttle updates to prevent excessive calls
-          if (now - lastUpdateTime.current > 100) {
+          if (now - lastUpdateTime.current > 25) {
             lastUpdateTime.current = now;
             isUpdatingFromScroll.current = true;
             setActiveSection(mostVisibleSection);

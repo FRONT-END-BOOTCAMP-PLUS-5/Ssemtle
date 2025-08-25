@@ -83,7 +83,7 @@ export default function LandingLogoPage() {
       contactType: 'customer service',
       availableLanguage: 'Korean',
     },
-    foundingDate: '2024',
+    foundingDate: '2025',
     areaServed: {
       '@type': 'Country',
       name: 'South Korea',

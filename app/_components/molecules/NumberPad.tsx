@@ -51,7 +51,7 @@ export default function NumberPad({
 }: NumberPadProps) {
   const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
   const advancedOperators = ['√', '^', '(', ')'];
-  const variables = ['x', 'y', 'π'];
+  const variables = ['𝑥', 'y', 'π'];
 
   return (
     <div className="mx-auto w-full">

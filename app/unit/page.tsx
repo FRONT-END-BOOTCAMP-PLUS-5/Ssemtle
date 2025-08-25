@@ -1,17 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
 import { HiOutlineArrowRight } from 'react-icons/hi2';
+import { useMutation } from '@tanstack/react-query';
 
 // 단원평가 시작 페이지 컴포넌트
 // - 코드 입력값 유효성 검사 후, TanStack Query(POST 훅)로 검증/문제 조회 진행
 const UnitPage = () => {
   const [unitCode, setUnitCode] = useState('');
+  // 페이지 이동 중인지 여부(딤/비활성화/중복 클릭 방지)
+  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+
+  // 단원평가 코드 검증 뮤테이션 (시도기록 생성 없이 검증만 수행)
+  type VerifyResponse = {
+    success: boolean;
+    valid?: boolean;
+    error?: string;
+    alreadyAttempted?: boolean;
+    examData?: { id: number; teacherId: string; createdAt: string };
+  };
+
+  const verifyMutation = useMutation<VerifyResponse, Error, string>({
+    mutationFn: async (code: string): Promise<VerifyResponse> => {
+      const res = await fetch('/api/unit-exam/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      if (res.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err?.error || '코드 검증 중 오류가 발생했습니다.');
+      }
+      return (await res.json()) as VerifyResponse;
+    },
+  });
+
+  // 페이지 떠날 때(언마운트) 로딩 토스트 정리 → 이동 완료 시 토스트 제거 효과
+  useEffect(() => {
+    return () => {
+      try {
+        toast.dismiss();
+      } catch {}
+    };
+  }, []);
 
   // 입력창 변경 핸들러: 사용자가 단원평가 코드를 입력할 때 상태 업데이트
   const onChangeUnitCode = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +67,7 @@ const UnitPage = () => {
   // 2) 유효하면 /unit-exam?examCode=... 로 이동 (검증/문제 로딩은 대상 페이지에서 수행)
   const onClickUnitExam = async () => {
     try {
+      if (isNavigating) return; // 중복 클릭 방지
       const raw = unitCode?.trim();
       const code = raw?.toUpperCase();
       // 입력값 검증: ABCDEF-01~60 형식(총 9글자)
@@ -37,11 +77,44 @@ const UnitPage = () => {
         return;
       }
 
-      // 유효한 코드면 unit-exam 페이지로 이동 (검증/문제 로딩은 대상 페이지에서 처리)
+      // 1) 서버 검증 먼저 수행 (React Query)
+      setIsNavigating(true); // 검증 동안에도 중복 입력 방지/딤 처리
+      const data = await verifyMutation.mutateAsync(code);
+      if (!data?.success) {
+        toast.error(data?.error || '코드 검증에 실패했습니다.');
+        setIsNavigating(false);
+        return;
+      }
+      if (data?.alreadyAttempted) {
+        toast.warn('이미 응시한 내역입니다.');
+        setIsNavigating(false);
+        return;
+      }
+      if (!data?.valid) {
+        toast.warn('유효하지 않은 코드입니다.');
+        setIsNavigating(false);
+        return;
+      }
+
+      // 2) 검증에 성공하면 로딩 토스트를 띄우고 이동
+      toast.loading('페이지 이동 중입니다... 잠시만 기다려주세요.', {
+        autoClose: 2500,
+        closeOnClick: false,
+        hideProgressBar: true,
+      });
       router.push(`/unit-exam?examCode=${encodeURIComponent(code)}`);
     } catch (error) {
       console.error('단원평가 시작 처리 중 오류:', error);
-      toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      if ((error as Error)?.message === 'UNAUTHORIZED') {
+        toast.warn('로그인이 필요합니다.');
+        router.push('/signin');
+      } else {
+        toast.error(
+          (error as Error)?.message ||
+            '오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        );
+      }
+      setIsNavigating(false);
     }
   };
 
@@ -51,6 +124,7 @@ const UnitPage = () => {
   // - 세션의 내부 id 확인 후, 세션에 포함된 외부 식별자(userId)를 studentId로 전달
   const onClickViewAttemptedList = () => {
     try {
+      if (isNavigating) return; // 중복 클릭 방지
       if (!session?.user?.id) {
         toast.warn('로그인이 필요합니다.');
         router.push('/signin');
@@ -61,12 +135,18 @@ const UnitPage = () => {
         toast.error('사용자 정보를 불러오지 못했습니다. 다시 로그인해주세요.');
         return;
       }
+      setIsNavigating(true);
+      toast.loading('페이지 이동 중입니다... 잠시만 기다려주세요.', {
+        autoClose: 2500,
+        closeOnClick: false,
+        hideProgressBar: true,
+      });
       router.push(
         `/workbook/unit-exam?studentId=${encodeURIComponent(externalUserId)}`
       );
     } catch (error) {
-      console.error('응시한 단원평가 목록 이동 중 오류:', error);
-      toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      toast.error(`오류가 발생했습니다. 잠시 후 다시 시도해주세요.${error}`);
+      setIsNavigating(false);
     }
   };
 
@@ -111,7 +191,8 @@ const UnitPage = () => {
                 onChange={onChangeUnitCode}
                 placeholder="단원 평가 코드를 입력해주세요"
                 maxLength={9}
-                className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-center text-base ring-blue-300 transition outline-none focus:ring-2"
+                disabled={isNavigating}
+                className={`w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-center text-base ring-blue-300 transition outline-none focus:ring-2 ${isNavigating ? 'opacity-60' : ''}`}
               />
             </div>
 
@@ -119,7 +200,12 @@ const UnitPage = () => {
             <div className="mt-4">
               <button
                 onClick={onClickUnitExam}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-sm transition hover:bg-blue-700"
+                disabled={isNavigating}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white shadow-sm transition ${
+                  isNavigating
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'hover:bg-blue-700'
+                }`}
               >
                 <span>단원평가 시작</span>
                 <HiOutlineArrowRight className="h-5 w-5" />
@@ -143,7 +229,12 @@ const UnitPage = () => {
             <div className="mt-22">
               <button
                 onClick={onClickViewAttemptedList}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-white shadow-sm transition hover:bg-emerald-700"
+                disabled={isNavigating}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-white shadow-sm transition ${
+                  isNavigating
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'hover:bg-emerald-700'
+                }`}
               >
                 <span>응시한 단원평가 목록</span>
                 <HiOutlineArrowRight className="h-5 w-5" />
@@ -152,6 +243,14 @@ const UnitPage = () => {
           </section>
         </div>
       </div>
+      {/* 페이지 이동 중 딤 오버레이 */}
+      {isNavigating ? (
+        <div
+          className="fixed inset-0 z-[70] bg-black/30 backdrop-blur-[1px]"
+          aria-hidden="true"
+          aria-busy="true"
+        />
+      ) : null}
     </div>
   );
 };

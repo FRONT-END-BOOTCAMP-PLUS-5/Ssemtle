@@ -129,7 +129,10 @@ export default function MyPageErrorNote() {
 
   // 엔드포인트는 '/solves/list' (훅이 /api를 붙임)
   const endpoint = useMemo(
-    () => (effectiveUserId ? '/solves/list' : ''),
+    () =>
+      effectiveUserId
+        ? `/solves/list/${encodeURIComponent(effectiveUserId)}`
+        : '',
     [effectiveUserId]
   );
 

@@ -25,6 +25,7 @@ const ROLE_MAIN_PAGES = {
 export default auth((req) => {
   const pathname = req.nextUrl.pathname;
 
+  // 공개 경로들 처리
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) {
     return NextResponse.next();
   }
@@ -73,5 +74,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/((?!_next|api|signin|signup|favicon.ico).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|signin|signup|landing|logos).*)',
+  ],
 };

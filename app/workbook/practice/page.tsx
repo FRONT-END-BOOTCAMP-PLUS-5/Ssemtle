@@ -82,7 +82,6 @@ export default function ProblemSolvingPage() {
             title="문제집"
             description="기존에 푼 연습문제를 확인해 보세요!"
           />
-
           <WorkbookDataProvider
             selectedUnits={selectedUnits}
             dateSort={dateSort}

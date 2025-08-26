@@ -2,7 +2,7 @@ import TeacherSignUpForm from '@/app/_components/auth/TeacherSignUpForm';
 
 export default function TeacherSignUpPage() {
   return (
-    <div className="mx-auto flex">
+    <div className="flex w-full justify-center">
       <div className="flex min-h-[calc(100vh-3rem)] flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <div className="mb-8 text-center">
@@ -22,8 +22,8 @@ export default function TeacherSignUpPage() {
           </div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-          <div className="rounded-2xl bg-white/90 px-6 py-8 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+        <div className="mt-8 w-sm">
+          <div className="w-full rounded-2xl bg-white/90 px-6 py-8 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
             <TeacherSignUpForm />
           </div>
         </div>

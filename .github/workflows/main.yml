@@ -33,4 +33,4 @@ jobs:
 
     steps:
       - name: Deploy Next.js Project
-        run: /home/onesac/www/next-app-update.sh
+        run: echo "Deploy Next.js Project"

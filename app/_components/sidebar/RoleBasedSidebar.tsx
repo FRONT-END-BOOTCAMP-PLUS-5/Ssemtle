@@ -3,7 +3,6 @@
 import SidebarUser from '@/app/_components/sidebar/SidebarUser';
 import SidebarTeacher from '@/app/_components/sidebar/SidebarTeacher';
 import SidebarAdmin from '@/app/_components/sidebar/SidebarAdmin';
-import RoleConsole from './RoleConsole';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -37,27 +36,7 @@ export default function RoleBasedSidebar() {
   const rawRole = session?.user?.role;
   const normalizedRole = rawRole?.toString().trim().toLowerCase();
 
-  // 브라우저 콘솔에도 세션 원본 출력
-  const Console = <RoleConsole />;
-
-  if (normalizedRole === 'teacher')
-    return (
-      <>
-        {Console}
-        <SidebarTeacher />
-      </>
-    );
-  if (normalizedRole === 'admin')
-    return (
-      <>
-        {Console}
-        <SidebarAdmin />
-      </>
-    );
-  return (
-    <>
-      {Console}
-      <SidebarUser />
-    </>
-  );
+  if (normalizedRole === 'teacher') return <SidebarTeacher />;
+  if (normalizedRole === 'admin') return <SidebarAdmin />;
+  return <SidebarUser />;
 }

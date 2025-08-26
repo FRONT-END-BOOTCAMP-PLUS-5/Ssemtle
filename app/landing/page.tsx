@@ -2,6 +2,7 @@ import React from 'react';
 import LandingLogo from './landing-logo/LandingLogo';
 import { ScrollNavigation } from './_component/ScrollNavigation';
 import type { Metadata } from 'next';
+import { ProblemSolvingSphere } from './landing-sphere/ProblemSolvingSphere';
 
 export const metadata: Metadata = {
   title: 'SSemtle - 기초학력의 수학 ',
@@ -64,6 +65,7 @@ export const metadata: Metadata = {
 
 const sections = [
   { id: 'hero', label: '홈', icon: '🏠' },
+  { id: 'problem-solving', label: '문제해결', icon: '💡' },
   { id: 'features', label: '기능', icon: '⭐' },
   { id: 'about', label: '소개', icon: 'ℹ️' },
   { id: 'contact', label: '연락처', icon: '📞' },
@@ -110,7 +112,15 @@ export default function LandingLogoPage() {
       >
         <LandingLogo />
       </section>
-
+      <section
+        id="problem-solving"
+        className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100"
+        style={{ scrollSnapAlign: 'start' }}
+      >
+        <div className="flex h-screen w-screen text-center">
+          <ProblemSolvingSphere />
+        </div>
+      </section>
       <section
         id="features"
         className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100"

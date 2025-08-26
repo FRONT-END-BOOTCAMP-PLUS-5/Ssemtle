@@ -12,7 +12,7 @@ interface NumberPadProps {
 interface KeypadButtonProps {
   children: ReactNode;
   onClick: () => void;
-  variant?: 'number' | 'operator' | 'clear';
+  variant?: 'number' | 'operator' | 'clear' | 'variable';
   disabled?: boolean;
 }
 
@@ -29,6 +29,8 @@ function KeypadButton({
     number: 'bg-gray-100 text-gray-800 hover:bg-gray-200 shadow-sm',
     operator:
       'bg-violet-100 text-primary hover:bg-violet-200 shadow-sm font-semibold',
+    variable:
+      'bg-violet-100 text-primary hover:bg-violet-200 shadow-sm font-semibold italic',
     clear: 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm',
   };
 
@@ -51,7 +53,7 @@ export default function NumberPad({
 }: NumberPadProps) {
   const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
   const advancedOperators = ['√', '^', '(', ')'];
-  const variables = ['𝑥', '𝑦', 'π'];
+  const variables = ['x', 'y', 'π'];
 
   return (
     <div className="mx-auto w-full">
@@ -122,7 +124,7 @@ export default function NumberPad({
           variant="operator"
           disabled={disabled}
         >
-          ×
+          *
         </KeypadButton>
         <KeypadButton
           onClick={() => onOperatorClick('/')}
@@ -149,7 +151,7 @@ export default function NumberPad({
           <KeypadButton
             key={variable}
             onClick={() => onOperatorClick(variable)}
-            variant="operator"
+            variant="variable"
             disabled={disabled}
           >
             {variable}

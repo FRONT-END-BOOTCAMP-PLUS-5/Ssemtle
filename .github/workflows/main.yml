@@ -12,7 +12,7 @@ jobs:
   # 첫번째 단계 : 빌드
   build:
      # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
-    runs-on: [self-hosted, new-cafe-next15]
+    runs-on: [self-hosted, Ssemtle]
 
     steps:
       - name: Build Next.js Project
@@ -20,7 +20,7 @@ jobs:
 
   # 두번째 단계: 테스트
   test:
-    runs-on: [self-hosted, new-cafe-next15]
+    runs-on: [self-hosted, Ssemtle]
 
     steps:
       - name: Test Next.js Project
@@ -29,8 +29,8 @@ jobs:
   # 세번째 단계: 배포
   deploy:
      # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
-    runs-on: [self-hosted, new-cafe-next15]
+    runs-on: [self-hosted, Ssemtle]
 
     steps:
       - name: Deploy Next.js Project
-        run: echo "Deploy Next.js Project"
+        run: /home/Ssemtle/www/next-app-update.sh

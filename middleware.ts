@@ -8,7 +8,6 @@ interface NextAuthRequest extends NextRequest {
 const PUBLIC_PREFIXES = [
   '/signin',
   '/signup',
-  '/landing',
   '/api/auth',
   '/_next',
   '/favicon.ico',
@@ -26,11 +25,7 @@ const ROLE_MAIN_PAGES = {
 export default auth((req) => {
   const pathname = req.nextUrl.pathname;
 
-  // 랜딩 페이지는 완전히 공개 접근 가능
-  if (pathname === '/landing' || pathname.startsWith('/landing')) {
-    return NextResponse.next();
-  }
-
+  // 공개 경로들 처리
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p))) {
     return NextResponse.next();
   }
@@ -79,5 +74,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/((?!_next|api|signin|signup|favicon.ico).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|signin|signup|landing|logos).*)',
+  ],
 };

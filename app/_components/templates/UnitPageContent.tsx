@@ -7,6 +7,8 @@ import { usePosts } from '@/hooks/usePosts';
 import AnswerSection from '@/app/_components/molecules/AnswerSection';
 import NumberPad from '@/app/_components/molecules/NumberPad';
 import ExamCountdown from '@/app/unit-exam/_components/ExamCountdown';
+import { toast } from 'react-toastify';
+import { confirmToast } from '@/utils/toast/confirmToast';
 
 interface Problem {
   id: string;
@@ -42,22 +44,6 @@ interface SubmitExamResponse {
   success: boolean;
   saved: number;
   error?: string;
-}
-
-interface VerifyExamRequest {
-  code: string;
-}
-
-interface VerifyExamResponse {
-  success: boolean;
-  valid?: boolean;
-  examData?: {
-    id: number;
-    teacherId: string;
-    createdAt: Date;
-  };
-  error?: string;
-  alreadyAttempted?: boolean;
 }
 
 // Unit exam specific interfaces will be handled inline
@@ -97,27 +83,48 @@ export default function UnitExamPageContent() {
   const [isVerified, setIsVerified] = useState(false);
   const [verificationAttempted, setVerificationAttempted] = useState(false);
 
+  // toast utilities
+  const warnToast = (body: string, handleClose?: () => void) =>
+    toast.warn(body, { onClose: handleClose });
+
+  const alertToast = (message: string): Promise<void> => {
+    return new Promise((resolve) => {
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-3">
+            <div className="text-sm whitespace-pre-line">{message}</div>
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  resolve();
+                  t.closeToast?.();
+                }}
+                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          position: 'top-center',
+        }
+      );
+    });
+  };
+
+  const errorToast = (message: string) => {
+    toast.error(message, {
+      position: 'top-center',
+      autoClose: 5000,
+    });
+  };
+
   // Setup usePosts hooks
-  const verifyExamMutation = usePosts<VerifyExamRequest, VerifyExamResponse>({
-    onSuccess: (data) => {
-      setVerificationAttempted(true); // Mark verification as attempted regardless of result
-
-      if (data.success && data.valid) {
-        setIsVerified(true);
-        // After successful verification, fetch questions
-        fetchExamQuestions();
-      } else if (data.alreadyAttempted) {
-        alert('이미 응시한 시험입니다.');
-        router.push('/');
-      } else {
-        router.push('/');
-      }
-    },
-    onError: () => {
-      router.push('/');
-    },
-  });
-
   const fetchQuestionsMutation = usePosts<
     FetchQuestionsRequest,
     FetchQuestionsResponse
@@ -131,17 +138,38 @@ export default function UnitExamPageContent() {
         const firstProblem = convertExamQuestionToProblem(data.questions[0]);
         setCurrentProblem(firstProblem);
       } else {
-        console.error('No exam questions found');
+        const errorMsg = !data.success
+          ? '유효하지 않은 코드입니다.'
+          : '이 시험에는 문제가 없습니다.';
+        errorToast(errorMsg);
         setCurrentProblem(null);
         setExamQuestions([]);
         setCurrentQuestionIndex(0);
+        router.push('/');
       }
     },
-    onError: (error) => {
+    onError: async (error) => {
       console.error('Error fetching exam questions:', error);
+
+      // Handle case where attempt was already created (backend race condition)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('이미 응시한') ||
+        errorMessage.includes('already attempted')
+      ) {
+        await alertToast('이미 응시한 시험입니다. 결과 페이지로 이동합니다.');
+        router.push('/');
+        return;
+      }
+
+      // Handle other errors
+      errorToast('문제를 불러오는 중 오류가 발생했습니다.');
       setCurrentProblem(null);
       setExamQuestions([]);
       setCurrentQuestionIndex(0);
+      router.push('/');
+      return;
     },
   });
 
@@ -150,14 +178,12 @@ export default function UnitExamPageContent() {
       router.push(redirectURL); // Redirect to home or results page
     },
     onError: (error) => {
-      console.error('Error submitting exam:', error);
-      alert(
+      errorToast(
         `시험 제출 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
       );
+      router.push('/');
     },
   });
-
-  // No need for unit or video data in exam mode
 
   // Helper function to convert exam question to Problem interface
   const convertExamQuestionToProblem = useCallback(
@@ -188,15 +214,6 @@ export default function UnitExamPageContent() {
     [examQuestions, convertExamQuestionToProblem]
   );
 
-  const verifyExamCode = useCallback(() => {
-    if (!examCode || !baseCode) return;
-
-    verifyExamMutation.mutate({
-      postData: { code: examCode },
-      path: '/unit-exam/verify',
-    });
-  }, [examCode, baseCode, verifyExamMutation]);
-
   const fetchExamQuestions = useCallback(() => {
     if (!examCode || !baseCode) return;
 
@@ -205,8 +222,6 @@ export default function UnitExamPageContent() {
       path: '/unit-exam/questions',
     });
   }, [examCode, baseCode, fetchQuestionsMutation]);
-
-  // No need for handleSaveAnswer - answers are saved directly via UI interaction
 
   // Navigation handlers
   const handleNext = useCallback(() => {
@@ -225,9 +240,9 @@ export default function UnitExamPageContent() {
 
   // Submit all exam answers
   const handleSubmitExam = useCallback(
-    (forceSubmit = false) => {
+    async (forceSubmit = false) => {
       if (!examCode || !session?.user?.id) {
-        alert('로그인 정보가 없습니다.');
+        await alertToast('로그인 정보가 없습니다.');
         return;
       }
 
@@ -244,14 +259,16 @@ export default function UnitExamPageContent() {
       }
 
       if (!forceSubmit && answers.length === 0) {
-        alert('제출할 답안이 없습니다.');
+        await alertToast('제출할 답안이 없습니다.');
         return;
       }
 
       // Confirm submission
       if (
         !forceSubmit &&
-        !confirm(`답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.`)
+        !(await confirmToast(
+          '답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.'
+        ))
       ) {
         return;
       }
@@ -277,27 +294,27 @@ export default function UnitExamPageContent() {
   // Handle time expiry with auto-submit
   const handleTimeUp = useCallback(() => {
     // Show warning and auto-submit
-    alert('시험 시간이 만료되었습니다. 자동으로 답안을 제출합니다.');
+    warnToast('시험 시간이 만료되었습니다. 자동으로 답안을 제출합니다.');
 
     handleSubmitExam(true); // Pass true to force submit behavior
   }, [handleSubmitExam]);
 
-  // Verify exam code first, then fetch questions
+  // Skip verification (already done in unit/page.tsx) and directly fetch questions
   useEffect(() => {
     if (
       examCode &&
       !verificationAttempted &&
-      !verifyExamMutation.isPending &&
       !fetchQuestionsMutation.isPending
     ) {
-      verifyExamCode();
+      setVerificationAttempted(true);
+      setIsVerified(true);
+      fetchExamQuestions();
     }
   }, [
     examCode,
     verificationAttempted,
-    verifyExamMutation.isPending,
     fetchQuestionsMutation.isPending,
-    verifyExamCode,
+    fetchExamQuestions,
   ]);
 
   // Reset verification states when exam code changes
@@ -334,18 +351,7 @@ export default function UnitExamPageContent() {
     );
   }
 
-  // Show loading state for verification and questions
-  if (verifyExamMutation.isPending) {
-    return (
-      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
-          <p className="text-gray-600">시험 코드를 확인하는 중...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Show loading state for questions
   if (fetchQuestionsMutation.isPending) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">

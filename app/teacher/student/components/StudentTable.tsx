@@ -58,7 +58,7 @@ export default function StudentTable({
                 onClick={() => onViewWorkbook(student.userId)}
                 className="flex h-2 w-8 cursor-pointer items-center justify-center rounded bg-indigo-400 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-indigo-500 sm:h-3 sm:w-12 sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
               >
-                <span className="hidden sm:inline lg:inline">문제집</span>
+                <span className="hidden sm:inline lg:inline">단원평가</span>
               </button>
             </div>
 
@@ -100,7 +100,7 @@ export default function StudentTable({
                 onClick={() => onViewWorkbook(student.id)}
                 className="flex-1 cursor-pointer rounded bg-indigo-400 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
               >
-                문제집
+                단원평가
               </button>
             </div>
           </div>

@@ -98,6 +98,9 @@ export default function UnitExamPageContent() {
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationAttempted, setVerificationAttempted] = useState(false);
+  const [dismissConfirmToast, setDismissConfirmToast] = useState<
+    (() => void) | null
+  >(null);
 
   // toast utilities
   const warnToast = (body: string, handleClose?: () => void) =>
@@ -282,13 +285,20 @@ export default function UnitExamPageContent() {
       }
 
       // Confirm submission
-      if (
-        !forceSubmit &&
-        !(await confirmToast(
-          '답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.'
-        ))
-      ) {
-        return;
+      if (!forceSubmit) {
+        const confirmed = await confirmToast(
+          '답안을 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.',
+          {
+            onCancel: (dismiss) => setDismissConfirmToast(() => dismiss),
+          }
+        );
+
+        // Clear the dismiss function after confirmation is resolved
+        setDismissConfirmToast(null);
+
+        if (!confirmed) {
+          return;
+        }
       }
 
       submitExamMutation.mutate({
@@ -311,11 +321,17 @@ export default function UnitExamPageContent() {
 
   // Handle time expiry with auto-submit
   const handleTimeUp = useCallback(() => {
+    // Dismiss any active confirmation toast first
+    if (dismissConfirmToast) {
+      dismissConfirmToast();
+      setDismissConfirmToast(null);
+    }
+
     // Show warning and auto-submit
     warnToast('시험 시간이 만료되었습니다. 자동으로 답안을 제출합니다.');
 
     handleSubmitExam(true); // Pass true to force submit behavior
-  }, [handleSubmitExam]);
+  }, [handleSubmitExam, dismissConfirmToast]);
 
   // Verify exam code first, then fetch questions
   useEffect(() => {

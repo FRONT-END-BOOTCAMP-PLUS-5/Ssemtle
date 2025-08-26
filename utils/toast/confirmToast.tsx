@@ -11,10 +11,13 @@ export function confirmToast(
     confirmText?: string;
     cancelText?: string;
     toastOptions?: ToastOptions;
+    onCancel?: (dismissToast: () => void) => void;
   }
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    toast(
+    let isResolved = false;
+
+    const toastId = toast(
       (t) => (
         <div className="flex flex-col gap-3">
           <div className="text-sm whitespace-pre-line">{message}</div>
@@ -22,6 +25,8 @@ export function confirmToast(
             <button
               type="button"
               onClick={() => {
+                if (isResolved) return;
+                isResolved = true;
                 resolve(false);
                 t.closeToast?.();
               }}
@@ -32,6 +37,8 @@ export function confirmToast(
             <button
               type="button"
               onClick={() => {
+                if (isResolved) return;
+                isResolved = true;
                 resolve(true);
                 t.closeToast?.();
               }}
@@ -49,5 +56,15 @@ export function confirmToast(
         ...options?.toastOptions,
       }
     );
+
+    // Provide dismissal mechanism to caller
+    if (options?.onCancel) {
+      options.onCancel(() => {
+        if (isResolved) return;
+        isResolved = true;
+        resolve(false);
+        toast.dismiss(toastId);
+      });
+    }
   });
 }

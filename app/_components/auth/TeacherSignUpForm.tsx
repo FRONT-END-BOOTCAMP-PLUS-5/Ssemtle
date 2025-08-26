@@ -100,7 +100,7 @@ export default function TeacherSignUpForm() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label

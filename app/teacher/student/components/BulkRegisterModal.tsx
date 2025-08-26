@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { usePosts } from '@/hooks/usePosts';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import FormModal from '@/app/_components/admin-modal/FormModal';
+import { toast } from 'react-toastify';
 
 interface BulkRegisterRequest {
   studentNames: string;
@@ -35,26 +36,26 @@ export default function BulkRegisterModal({
     StudentDto
   >({
     onSuccess: (data) => {
-      console.log('일괄 등록 성공:', data);
-      alert(`성공: ${data.successCount}명, 실패: ${data.failureCount}명`);
+      toast.success(
+        `일괄 등록 완료: 성공 ${data.successCount}명, 실패 ${data.failureCount}명`
+      );
       onSuccess();
       onClose();
       setStudentNames('');
     },
-    onError: (err) => {
-      console.error('일괄 등록 실패:', err);
-      alert('일괄 등록에 실패했습니다.');
+    onError: () => {
+      toast.error('일괄 등록에 실패했습니다.');
     },
   });
 
   const handleSubmit = () => {
     if (!session?.user?.id) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       return;
     }
 
     if (!studentNames.trim()) {
-      alert('학생 이름을 입력해주세요.');
+      toast.error('학생 이름을 입력해주세요.');
       return;
     }
 

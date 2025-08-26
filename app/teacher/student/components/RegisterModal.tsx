@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { usePuts } from '@/hooks/usePuts';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
 import FormModal from '@/app/_components/admin-modal/FormModal';
+import { toast } from 'react-toastify';
 
 interface RegisterRequest {
   userId: string;
@@ -34,27 +35,25 @@ export default function RegisterModal({
     RegisterRequest,
     StudentDto
   >({
-    onSuccess: (data) => {
-      console.log('학생 등록 성공:', data);
-      alert('학생이 성공적으로 등록되었습니다.');
+    onSuccess: () => {
+      toast.success('학생이 성공적으로 등록되었습니다.');
       onSuccess();
       onClose();
       setUserId('');
     },
-    onError: (err) => {
-      console.error('학생 등록 실패:', err);
-      alert('학생 등록에 실패했습니다.');
+    onError: () => {
+      toast.error('학생 등록에 실패했습니다.');
     },
   });
 
   const handleSubmit = () => {
     if (!session?.user?.id) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       return;
     }
 
     if (!userId.trim()) {
-      alert('사용자 ID를 입력해주세요.');
+      toast.error('사용자 ID를 입력해주세요.');
       return;
     }
 

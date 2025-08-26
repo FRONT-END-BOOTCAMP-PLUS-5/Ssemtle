@@ -303,8 +303,13 @@ export default function ErrorNoteInterface() {
       <div className="mx-auto pt-6 tablet:px-32">
         {/* Mobile */}
         <div className="tablet:hidden">
-          <div className="mb-6 px-4 text-center">
-            <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-bold text-gray-800">내가 푼 문제들</h1>
+            {showAll && (
+              <p className="mt-2 text-sm text-gray-500">
+                맞은 문제는 흐리게 표시됩니다
+              </p>
+            )}
           </div>
 
           <div className="mb-6 px-4">
@@ -363,7 +368,9 @@ export default function ErrorNoteInterface() {
           <div className="max-h-full flex-1 overflow-y-auto pr-4">
             <div className="space-y-6">
               <div className="mb-6 text-center">
-                <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  내가 푼 문제들
+                </h1>
                 {showAll && (
                   <p className="mt-2 text-sm text-gray-500">
                     맞은 문제는 흐리게 표시됩니다
@@ -387,6 +394,7 @@ export default function ErrorNoteInterface() {
                         submissionStates.get(problem.id) || 'initial'
                       }
                       onSubmissionResult={handleSubmissionResult}
+                      isCorrect={solve.isCorrect}
                     />
                   </div>
                 );

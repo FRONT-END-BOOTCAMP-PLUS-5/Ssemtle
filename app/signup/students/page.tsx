@@ -43,8 +43,8 @@ export default async function StudentSignUpPage({
           </div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-          <div className="rounded-2xl bg-white/90 px-6 py-8 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
+        <div className="mt-8 w-sm">
+          <div className="w-full rounded-2xl bg-white/90 px-6 py-8 shadow-lg outline-1 outline-offset-[-1px] outline-zinc-300 backdrop-blur-[2px]">
             <SignUpMessage searchParams={params} />
             <SignUpForm />
           </div>

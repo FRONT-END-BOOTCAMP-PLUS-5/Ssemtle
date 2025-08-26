@@ -47,7 +47,6 @@ export async function GET(
     const repository = new PrSolveRepository();
     const useCase = new GetCalendarSolvesUseCase(repository);
     const result = await useCase.execute(request);
-    console.log('[calendar:user]', { slug: id, internalId: user.id, result });
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching calendar solves:', error);

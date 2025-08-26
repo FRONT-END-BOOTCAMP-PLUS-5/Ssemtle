@@ -1,3 +1,9 @@
+import InteractiveLanding from './landing-trial/InteractiveLanding';
+
 export default function Home() {
-  return <>셈틀 홈페이지</>;
+  return (
+    <>
+      <InteractiveLanding />
+    </>
+  );
 }

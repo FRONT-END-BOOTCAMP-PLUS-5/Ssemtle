@@ -7,7 +7,6 @@ export async function GET(
 ) {
   // Promise에서 꺼내기
   const { id } = await params;
-  console.log('✅ helpText 조회 요청:', id);
 
   const idNum = Number(id);
   if (!Number.isInteger(idNum)) {

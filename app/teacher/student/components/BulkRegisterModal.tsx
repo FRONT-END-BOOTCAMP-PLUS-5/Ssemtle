@@ -35,7 +35,6 @@ export default function BulkRegisterModal({
     StudentDto
   >({
     onSuccess: (data) => {
-      console.log('일괄 등록 성공:', data);
       alert(`성공: ${data.successCount}명, 실패: ${data.failureCount}명`);
       onSuccess();
       onClose();

@@ -26,16 +26,10 @@ export class GetCommonErrorNotesUsecase {
   ): Promise<GetErrorNotesResponseDto> {
     if (!request.userId) throw new Error('유효하지 않은 사용자입니다.');
 
-    console.log('[CommonErrorNotes] 요청 파라미터', request);
     const hasDate = Boolean(request.date);
     const range = hasDate
       ? this.getDateRange(request.date as string)
       : undefined;
-    if (hasDate) {
-      console.log('[CommonErrorNotes] 날짜 범위', range);
-    } else {
-      console.log('[CommonErrorNotes] 날짜 미지정 → 전체 기간 조회');
-    }
 
     const dailySolveCount = await this.solveRepository.countByUserAndDate(
       request.userId,

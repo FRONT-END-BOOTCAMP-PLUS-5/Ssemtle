@@ -26,16 +26,10 @@ export class GetUnitEvalErrorNotesUsecase {
   ): Promise<GetErrorNotesResponseDto> {
     if (!request.userId) throw new Error('유효하지 않은 사용자입니다.');
 
-    console.log('[UnitEvalErrorNotes] 요청 파라미터', request);
     const hasDate = Boolean(request.date);
     const range = hasDate
       ? this.getDateRange(request.date as string)
       : undefined;
-    if (hasDate) {
-      console.log('[UnitEvalErrorNotes] 날짜 범위', range);
-    } else {
-      console.log('[UnitEvalErrorNotes] 날짜 미지정 → 전체 기간 조회');
-    }
 
     const dailyUnitSolveCount =
       await this.unitSolveRepository.countByUserAndDate(

@@ -34,8 +34,7 @@ export default function RegisterModal({
     RegisterRequest,
     StudentDto
   >({
-    onSuccess: (data) => {
-      console.log('학생 등록 성공:', data);
+    onSuccess: () => {
       alert('학생이 성공적으로 등록되었습니다.');
       onSuccess();
       onClose();

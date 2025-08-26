@@ -18,8 +18,7 @@ export default function DeleteStudentIcon({
   const { data: session } = useSession();
 
   const { mutate: deleteStudent, isPending } = useDeletes<unknown, StudentDto>({
-    onSuccess: (data) => {
-      console.log('학생 삭제 성공:', data);
+    onSuccess: () => {
       alert(`${student.name} 학생이 성공적으로 삭제되었습니다.`);
       onSuccess();
     },

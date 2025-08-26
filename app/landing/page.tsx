@@ -105,7 +105,7 @@ export default function LandingLogoPage() {
 
       <section
         id="hero"
-        className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+        className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
         style={{ scrollSnapAlign: 'start' }}
       >
         <LandingLogo />
@@ -113,7 +113,7 @@ export default function LandingLogoPage() {
 
       <section
         id="features"
-        className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100"
+        className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100"
         style={{ scrollSnapAlign: 'start' }}
       >
         <div className="max-w-4xl px-8 text-center">
@@ -150,7 +150,7 @@ export default function LandingLogoPage() {
 
       <section
         id="about"
-        className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100"
+        className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100"
         style={{ scrollSnapAlign: 'start' }}
       >
         <div className="max-w-4xl px-8 text-center">
@@ -193,7 +193,7 @@ export default function LandingLogoPage() {
 
       <section
         id="contact"
-        className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-orange-50 to-red-100"
+        className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-orange-50 to-red-100"
         style={{ scrollSnapAlign: 'start' }}
       >
         <div className="max-w-4xl px-8 text-center">

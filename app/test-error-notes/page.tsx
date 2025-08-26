@@ -52,7 +52,6 @@ export default function TestErrorNotesPage() {
         throw new Error(errMsg);
       }
       const data: ApiResponse = await r.json();
-      console.log('[ErrorNotes][Page] COMMON result', data);
       setResCommon(data);
     } catch (e: unknown) {
       const message =
@@ -82,7 +81,6 @@ export default function TestErrorNotesPage() {
         throw new Error(errMsg);
       }
       const data: ApiResponse = await r.json();
-      console.log('[ErrorNotes][Page] UNIT result', data);
       setResUnit(data);
     } catch (e: unknown) {
       const message =

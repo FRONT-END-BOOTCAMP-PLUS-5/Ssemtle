@@ -15,6 +15,13 @@ const PUBLIC_PREFIXES = [
   '/assets',
 ];
 
+// 역할별 메인 페이지 매핑
+const ROLE_MAIN_PAGES = {
+  student: '/practice-category',
+  teacher: '/teacher/student',
+  admin: '/admin/teacher-approval',
+};
+
 export default auth((req) => {
   const pathname = req.nextUrl.pathname;
 
@@ -42,6 +49,14 @@ export default auth((req) => {
 
   // role 우선순위: user.role, token.role
   const role = authInfo.user?.role ?? authInfo.token?.role ?? '';
+
+  // 루트 경로('/')로 접근 시 역할별 메인 페이지로 리다이렉트
+  if (pathname === '/') {
+    const mainPage = ROLE_MAIN_PAGES[role as keyof typeof ROLE_MAIN_PAGES];
+    if (mainPage) {
+      return NextResponse.redirect(new URL(mainPage, req.nextUrl.origin));
+    }
+  }
 
   // role 기반 접근 제어
   if (pathname.startsWith('/admin') && role !== 'admin') {

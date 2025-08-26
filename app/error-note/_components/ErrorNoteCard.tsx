@@ -118,9 +118,7 @@ export default function ErrorNoteCard({
           }`}
         >
           <ProblemDisplay
-            title={
-              problem.unitName ? `오답노트 - ${problem.unitName}` : '오답노트'
-            }
+            title={problem.unitName ? `${problem.unitName}` : '문제'}
             equation={problem.question}
           />
         </div>

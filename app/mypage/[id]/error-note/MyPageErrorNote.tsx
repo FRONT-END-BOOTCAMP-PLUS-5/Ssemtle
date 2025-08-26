@@ -344,9 +344,6 @@ export default function MyPageErrorNote() {
         <div className="tablet:hidden">
           <div className="mb-6 px-4 text-center">
             <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-            <p className="mt-2 text-gray-600">
-              선택한 조건의 오답만 표시됩니다
-            </p>
           </div>
 
           <div className="mb-6 px-4">

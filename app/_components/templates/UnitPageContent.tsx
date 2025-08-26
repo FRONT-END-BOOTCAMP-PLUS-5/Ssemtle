@@ -40,6 +40,22 @@ interface SubmitExamRequest {
   }>;
 }
 
+interface VerifyExamRequest {
+  code: string;
+}
+
+interface VerifyExamResponse {
+  success: boolean;
+  valid?: boolean;
+  examData?: {
+    id: number;
+    teacherId: string;
+    createdAt: Date;
+  };
+  error?: string;
+  alreadyAttempted?: boolean;
+}
+
 interface SubmitExamResponse {
   success: boolean;
   saved: number;
@@ -87,36 +103,6 @@ export default function UnitExamPageContent() {
   const warnToast = (body: string, handleClose?: () => void) =>
     toast.warn(body, { onClose: handleClose });
 
-  const alertToast = (message: string): Promise<void> => {
-    return new Promise((resolve) => {
-      toast(
-        (t) => (
-          <div className="flex flex-col gap-3">
-            <div className="text-sm whitespace-pre-line">{message}</div>
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  resolve();
-                  t.closeToast?.();
-                }}
-                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-              >
-                확인
-              </button>
-            </div>
-          </div>
-        ),
-        {
-          autoClose: false,
-          closeOnClick: false,
-          draggable: false,
-          position: 'top-center',
-        }
-      );
-    });
-  };
-
   const errorToast = (message: string) => {
     toast.error(message, {
       position: 'top-center',
@@ -125,6 +111,29 @@ export default function UnitExamPageContent() {
   };
 
   // Setup usePosts hooks
+  const verifyExamMutation = usePosts<VerifyExamRequest, VerifyExamResponse>({
+    onSuccess: (data) => {
+      setVerificationAttempted(true);
+
+      if (data.success && data.valid) {
+        setIsVerified(true);
+        // Chain to questions after successful verification
+        fetchExamQuestions();
+      } else if (data.alreadyAttempted) {
+        warnToast('이미 응시한 시험입니다.');
+        router.push('/');
+      } else {
+        warnToast('유효하지 않은 코드입니다.');
+        router.push('/');
+      }
+    },
+    onError: () => {
+      setVerificationAttempted(true);
+      warnToast('코드 검증 중 오류가 발생했습니다.');
+      router.push('/');
+    },
+  });
+
   const fetchQuestionsMutation = usePosts<
     FetchQuestionsRequest,
     FetchQuestionsResponse
@@ -158,7 +167,7 @@ export default function UnitExamPageContent() {
         errorMessage.includes('이미 응시한') ||
         errorMessage.includes('already attempted')
       ) {
-        await alertToast('이미 응시한 시험입니다. 결과 페이지로 이동합니다.');
+        warnToast('이미 응시한 시험입니다. 결과 페이지로 이동합니다.');
         router.push('/');
         return;
       }
@@ -214,6 +223,15 @@ export default function UnitExamPageContent() {
     [examQuestions, convertExamQuestionToProblem]
   );
 
+  const verifyExamCode = useCallback(() => {
+    if (!examCode || !baseCode) return;
+
+    verifyExamMutation.mutate({
+      postData: { code: examCode },
+      path: '/unit-exam/verify',
+    });
+  }, [examCode, baseCode, verifyExamMutation]);
+
   const fetchExamQuestions = useCallback(() => {
     if (!examCode || !baseCode) return;
 
@@ -242,7 +260,7 @@ export default function UnitExamPageContent() {
   const handleSubmitExam = useCallback(
     async (forceSubmit = false) => {
       if (!examCode || !session?.user?.id) {
-        await alertToast('로그인 정보가 없습니다.');
+        warnToast('로그인 정보가 없습니다.');
         return;
       }
 
@@ -259,7 +277,7 @@ export default function UnitExamPageContent() {
       }
 
       if (!forceSubmit && answers.length === 0) {
-        await alertToast('제출할 답안이 없습니다.');
+        warnToast('제출할 답안이 없습니다.');
         return;
       }
 
@@ -299,22 +317,22 @@ export default function UnitExamPageContent() {
     handleSubmitExam(true); // Pass true to force submit behavior
   }, [handleSubmitExam]);
 
-  // Skip verification (already done in unit/page.tsx) and directly fetch questions
+  // Verify exam code first, then fetch questions
   useEffect(() => {
     if (
       examCode &&
       !verificationAttempted &&
+      !verifyExamMutation.isPending &&
       !fetchQuestionsMutation.isPending
     ) {
-      setVerificationAttempted(true);
-      setIsVerified(true);
-      fetchExamQuestions();
+      verifyExamCode();
     }
   }, [
     examCode,
     verificationAttempted,
+    verifyExamMutation.isPending,
     fetchQuestionsMutation.isPending,
-    fetchExamQuestions,
+    verifyExamCode,
   ]);
 
   // Reset verification states when exam code changes
@@ -351,7 +369,18 @@ export default function UnitExamPageContent() {
     );
   }
 
-  // Show loading state for questions
+  // Show loading state for verification and questions
+  if (verifyExamMutation.isPending) {
+    return (
+      <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-violet-500"></div>
+          <p className="text-gray-600">시험 코드를 확인하는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (fetchQuestionsMutation.isPending) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">

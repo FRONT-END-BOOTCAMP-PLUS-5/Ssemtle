@@ -1,5 +1,5 @@
 # 워크 플로우 이름 : 우분투 서버에서 빌드와 배포를 위한 워크 플로우
-name: "Build and Deploy to Ubuntu Server Run"
+name: 'Build and Deploy to Ubuntu Server Run'
 
 # master 브랜치에 push 가 발생하면 jobs가 실행되도록 이벤트 설정
 on:
@@ -11,7 +11,7 @@ on:
 jobs:
   # 첫번째 단계 : 빌드
   build:
-     # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
+    # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
     runs-on: [self-hosted, Ssemtle]
 
     steps:
@@ -28,9 +28,9 @@ jobs:
 
   # 세번째 단계: 배포
   deploy:
-     # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
+    # new-cafe-next15는 여러분의 프로젝트명으로 수정할 것.
     runs-on: [self-hosted, Ssemtle]
 
     steps:
       - name: Deploy Next.js Project
-        run: /home/Ssemtle/www/next-app-update.sh
+        run: /home/onesac/www/next-app-update.sh

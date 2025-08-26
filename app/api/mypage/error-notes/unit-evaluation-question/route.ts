@@ -25,9 +25,6 @@ export async function GET(req: NextRequest) {
     const date = searchParams.get('date') || undefined;
     const { date: validatedDate } = QuerySchema.parse({ date });
 
-    console.log('[UnitEvalErrorNotes][API] session user id', session.user.id);
-    console.log('[UnitEvalErrorNotes][API] date', validatedDate ?? '(전체)');
-
     const unitSolveRepo = new PrUnitSolveRepository(prisma);
     const usecase = new GetUnitEvalErrorNotesUsecase(unitSolveRepo);
     const result = await usecase.execute({
@@ -35,7 +32,6 @@ export async function GET(req: NextRequest) {
       date: validatedDate,
     });
 
-    console.log('[UnitEvalErrorNotes][API] result', JSON.stringify(result));
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('[UnitEvalErrorNotes][API] 오류', error);

@@ -10,20 +10,7 @@ import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
 import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
 import ContextualHelpSection from '@/app/error-note/_components/ContextualHelpSection';
 
-type SubmissionState = 'initial' | 'correct' | 'incorrect';
-
-interface ErrorNoteProblem {
-  id: string;
-  question: string;
-  userAnswer: string;
-  correctAnswer: string;
-  helpText: string;
-  instruction?: string;
-  unitName?: string;
-  videoUrl?: string;
-}
-
-interface SolveItem {
+interface SolveListItemDto {
   id: number;
   question: string;
   answer: string;
@@ -37,10 +24,20 @@ interface SolveItem {
 }
 
 interface UnitVideoResponse {
-  data: {
-    id: number;
-    vidUrl: string;
-  };
+  data: { id: number; vidUrl: string };
+}
+
+type SubmissionState = 'initial' | 'correct' | 'incorrect';
+
+interface ErrorNoteProblem {
+  id: string;
+  question: string;
+  userAnswer: string;
+  correctAnswer: string;
+  helpText: string;
+  instruction?: string;
+  unitName?: string;
+  videoUrl?: string;
 }
 
 function toKstYmd(dLike: string | number | Date) {
@@ -52,29 +49,43 @@ function toKstYmd(dLike: string | number | Date) {
   }).format(new Date(dLike));
 }
 
+// YYYY-MM-DD → KST 하루 → UTC Z
+function ymdToUtcZ(ymd: string, asEnd: boolean) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const h = asEnd ? 23 : 0,
+    min = asEnd ? 59 : 0,
+    s = asEnd ? 59 : 0,
+    ms = asEnd ? 999 : 0;
+  const utcMs =
+    Date.UTC(y, (m ?? 1) - 1, d ?? 1, h, min, s, ms) - 9 * 60 * 60 * 1000;
+  return new Date(utcMs).toISOString();
+}
+
 export default function MyPageErrorNote() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const params = useParams();
 
-  // 열람 대상 사용자 ID: /mypage/[id]/error-note 또는 ?userId=...
-  const targetUserId =
-    (params?.id as string | undefined) ??
-    searchParams.get('userId') ??
-    undefined;
+  // ✅ 우선순위: 쿼리 userId > 경로 [id] (세션으로 덮지 않음)
+  const queryUserId = searchParams.get('userId') || undefined;
+  const pathUserId = (params?.id as string | undefined) || undefined;
 
-  // 세션의 로그인 아이디
+  const effectiveUserId = useMemo(() => {
+    const raw = queryUserId ?? pathUserId ?? '';
+    return raw ? decodeURIComponent(raw).trim() : '';
+  }, [queryUserId, pathUserId]);
+
+  // 편집 가능(내 페이지면 true). 데이터 조회는 위 effectiveUserId 기준.
   const sessionUserId = session?.user?.userId;
-
-  // ✨ 편집 가능 여부 (내 페이지일 때만 true)
   const canEdit =
-    !!sessionUserId && (!!targetUserId ? targetUserId === sessionUserId : true);
+    !!sessionUserId &&
+    (!!effectiveUserId ? effectiveUserId === sessionUserId : true);
 
-  // 쿼리: 날짜 + 카테고리(또는 unitId)
+  // 필터
   const filterDate = searchParams.get('date'); // YYYY-MM-DD
-  const startDate = searchParams.get('start');
-  const endDate = searchParams.get('end');
-  const category = searchParams.get('category');
+  const startDate = searchParams.get('start'); // YYYY-MM-DD or ISO
+  const endDate = searchParams.get('end'); // YYYY-MM-DD or ISO
+  const category = searchParams.get('category') || undefined;
   const unitIdStr = searchParams.get('unitId');
   const unitId = unitIdStr ? Number(unitIdStr) : null;
 
@@ -90,22 +101,42 @@ export default function MyPageErrorNote() {
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // 서버 쿼리(가능한 범위로 선필터)
+  // 서버 요청 쿼리 (DTO: userId, from, to, only, limit)
   const qs = useMemo(() => {
-    const base: Record<string, string> = { only: 'wrong', limit: '20' };
+    const base: Record<string, string> = {
+      userId: effectiveUserId, // ← 반드시 포함
+      only: 'wrong',
+      limit: '20',
+      sortDirection: 'newest',
+    };
     if (filterDate) {
-      base.start = filterDate;
-      base.end = filterDate;
+      base.from = ymdToUtcZ(filterDate, false);
+      base.to = ymdToUtcZ(filterDate, true);
     } else {
-      if (startDate) base.start = startDate;
-      if (endDate) base.end = endDate;
+      if (startDate)
+        base.from = /^\d{4}-\d{2}-\d{2}$/.test(startDate)
+          ? ymdToUtcZ(startDate, false)
+          : startDate;
+      if (endDate)
+        base.to = /^\d{4}-\d{2}-\d{2}$/.test(endDate)
+          ? ymdToUtcZ(endDate, true)
+          : endDate;
     }
     if (category) base.category = category;
     if (unitId != null && !Number.isNaN(unitId)) base.unitId = String(unitId);
     return base;
-  }, [filterDate, startDate, endDate, category, unitId]);
+  }, [effectiveUserId, filterDate, startDate, endDate, category, unitId]);
 
-  // 무한 스크롤 로드 (오답 전용)
+  // 엔드포인트는 '/solves/list' (훅이 /api를 붙임)
+  const endpoint = useMemo(
+    () =>
+      effectiveUserId
+        ? `/solves/list/${encodeURIComponent(effectiveUserId)}`
+        : '',
+    [effectiveUserId]
+  );
+
+  // 무한 로드
   const {
     data: wrongSolves,
     isLoading,
@@ -113,17 +144,24 @@ export default function MyPageErrorNote() {
     fetchNextPage,
     isFetchingNextPage,
     isError,
-  } = useInfiniteGets<SolveItem>(
-    ['mypage-wrong-solves', filterDate, startDate, endDate, category, unitId],
-    '/solves/mode/wrong',
-    !!session?.user?.id,
+  } = useInfiniteGets<SolveListItemDto>(
+    [
+      'mypage-wrong-solves',
+      effectiveUserId,
+      filterDate,
+      startDate,
+      endDate,
+      category,
+      unitId,
+    ],
+    endpoint,
+    !!effectiveUserId,
     qs
   );
 
-  // 클라 최종 필터: 날짜 + (unitId 우선, 없으면 category)
+  // 클라 보정 필터
   const filteredSolves = useMemo(() => {
     let list = wrongSolves;
-
     if (filterDate || startDate || endDate) {
       list = list.filter((s) => {
         const ymd = toKstYmd(s.createdAt);
@@ -134,29 +172,24 @@ export default function MyPageErrorNote() {
         return true;
       });
     }
-
     if (unitId != null && !Number.isNaN(unitId)) {
       list = list.filter((s) => s.unitId === unitId);
     } else if (category) {
       list = list.filter((s) => s.category === category);
     }
-
     return list;
   }, [wrongSolves, filterDate, startDate, endDate, unitId, category]);
 
-  // 포커스된 문제(동영상 로딩)
   const focusedProblem = focusedProblemId
     ? filteredSolves.find((s) => s.id.toString() === focusedProblemId)
     : null;
 
-  // 유닛 영상
   const { data: videoData } = useGets<UnitVideoResponse>(
     ['unitVideo', focusedProblem?.unitId],
     `/unitvidurl/${focusedProblem?.unitId}`,
     !!focusedProblem?.unitId
   );
 
-  // 렌더 데이터
   const displayProblems: ErrorNoteProblem[] = filteredSolves.map((s) => ({
     id: s.id.toString(),
     question: s.question || 'No question available',
@@ -204,7 +237,7 @@ export default function MyPageErrorNote() {
     }
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 카드 포커스/블러 + 입력 (canEdit 가드)
+  // 입력(읽기전용 가드)
   const handleCardFocus = (problemId: string) => {
     if (!canEdit) return;
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
@@ -217,7 +250,6 @@ export default function MyPageErrorNote() {
       el?.focus();
     }, 100);
   };
-
   const handleCardBlur = () => {
     if (!canEdit) return;
     blurTimeoutRef.current = setTimeout(() => {
@@ -226,50 +258,42 @@ export default function MyPageErrorNote() {
         active &&
         (active.closest('[data-virtual-keyboard]') ||
           active.closest('[data-clickable-zone]'))
-      ) {
+      )
         return;
-      }
       setFocusedProblemId(null);
       setIsVirtualKeyboardVisible(false);
       blurTimeoutRef.current = null;
     }, 200);
   };
-
   const handleInputChange = (id: string, v: string) => {
     if (!canEdit) return;
     setUserInputs((prev) => new Map(prev).set(id, v));
   };
-
   const handleNumberClick = (n: string) => {
     if (!canEdit || !focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + n));
   };
-
   const handleOperatorClick = (op: string) => {
     if (!canEdit || !focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + op));
   };
-
   const handleClear = () => {
     if (!canEdit || !focusedProblemId) return;
     setUserInputs((p) => new Map(p).set(focusedProblemId, ''));
   };
-
   const handleSubmissionResult = (id: string, ok: boolean) =>
     setSubmissionStates((prev) =>
       new Map(prev).set(id, ok ? 'correct' : 'incorrect')
     );
 
-  // 클린업
-  useEffect(() => {
-    return () => {
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
-    };
-  }, []);
+  useEffect(
+    () => () => {
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    },
+    []
+  );
 
   // 상태 분기
   if (status === 'loading' || isLoading) {
@@ -291,7 +315,7 @@ export default function MyPageErrorNote() {
       </div>
     );
   }
-  if (!isLoading && displayProblems.length === 0) {
+  if (!isLoading && filteredSolves.length === 0) {
     return (
       <div className="mx-auto flex items-center justify-center bg-[var(--color-background)]">
         <div className="text-center">
@@ -309,7 +333,6 @@ export default function MyPageErrorNote() {
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-32">
-        {/* 안내 배지: 읽기 전용 */}
         {!canEdit && (
           <div className="mx-4 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 tablet:mx-0">
             이 페이지는 <b>읽기 전용</b>입니다. 내 문제가 아니므로 정답 수정이

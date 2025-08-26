@@ -5,7 +5,7 @@ name: "Build and Deploy to Ubuntu Server Run"
 on:
   push:
     branches:
-      - master # master 브랜치에 push 가 발생하면
+      - main # main 브랜치에 push 가 발생하면
 
 # 위에 설정된 push 이벤트를 실행할 job들의 순서를 정한다.
 jobs:

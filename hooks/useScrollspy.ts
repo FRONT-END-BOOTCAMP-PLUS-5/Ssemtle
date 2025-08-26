@@ -14,6 +14,8 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
   const isUpdatingFromScroll = useRef(false);
   const lastUpdateTime = useRef(0);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const targetSection = useRef<string>('');
+  const targetClearTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToElementSmoothly = useCallback((element: HTMLElement) => {
     element.scrollIntoView({
@@ -45,8 +47,24 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
           // Throttle updates to prevent excessive calls
           if (now - lastUpdateTime.current > 25) {
             lastUpdateTime.current = now;
-            isUpdatingFromScroll.current = true;
-            setActiveSection(mostVisibleSection);
+
+            // Smart navigation logic: only update if no target or we've reached the target
+            if (
+              !targetSection.current ||
+              mostVisibleSection === targetSection.current
+            ) {
+              // Clear target when we reach it
+              if (targetSection.current === mostVisibleSection) {
+                targetSection.current = '';
+                // Clear the fallback timeout since we reached the target
+                if (targetClearTimeoutRef.current) {
+                  clearTimeout(targetClearTimeoutRef.current);
+                  targetClearTimeoutRef.current = null;
+                }
+              }
+              isUpdatingFromScroll.current = true;
+              setActiveSection(mostVisibleSection);
+            }
           }
         }
       },
@@ -67,6 +85,9 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
 
     return () => {
       observerRef.current?.disconnect();
+      if (targetClearTimeoutRef.current) {
+        clearTimeout(targetClearTimeoutRef.current);
+      }
     };
   }, [sectionIds, offset]);
 
@@ -125,13 +146,27 @@ export function useScrollspy({ sectionIds, offset = 0 }: UseScrollspyOptions) {
   const scrollToSection = useCallback(
     (sectionId: string) => {
       if (sectionIds.includes(sectionId)) {
+        // Clear any existing target timeout
+        if (targetClearTimeoutRef.current) {
+          clearTimeout(targetClearTimeoutRef.current);
+        }
+
+        // Set target section for smart navigation
+        targetSection.current = sectionId;
         isUpdatingFromScroll.current = false; // This is intentional navigation
+
         const element = document.getElementById(sectionId);
         if (element) {
-          scrollToElementSmoothly(element);
-          // Update the URL immediately for navigation clicks
-          window.history.replaceState(null, '', `${pathname}#${sectionId}`);
+          // Update state and URL immediately for responsive navigation
           setActiveSection(sectionId);
+          window.history.replaceState(null, '', `${pathname}#${sectionId}`);
+          scrollToElementSmoothly(element);
+
+          // Fallback: Clear target after 1 second if observer doesn't detect it
+          targetClearTimeoutRef.current = setTimeout(() => {
+            targetSection.current = '';
+            targetClearTimeoutRef.current = null;
+          }, 1000);
         }
       }
     },

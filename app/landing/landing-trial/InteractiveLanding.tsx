@@ -2,29 +2,38 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import type { JSX, MouseEvent } from 'react';
-import PracticeInterface from '@/app/_components/organisms/PracticeInterface';
+
+// 업로드해둔 컴포넌트들
+import ProblemDisplay from '@/app/_components/molecules/ProblemDisplay';
+import AnswerSection, {
+  SubmitState,
+} from '@/app/_components/molecules/AnswerSection';
+import NumberPad from '@/app/_components/molecules/NumberPad';
+import HelpSection from '@/app/_components/molecules/HelpSection';
+
+// 마스코트/컨페티
 import MascotCuteLavender from './Mascot';
 import ConfettiBurst from './ConfettiBurst';
 
 type EyeTarget = { x: number; y: number }; // -1 ~ 1
 type Mood = 'neutral' | 'happy' | 'sad';
 
-// PracticeInterface 에 맞춘 문제 타입(간단 버전)
 type Problem = {
   id: string;
   question: string;
   answer: string;
   helpText: string;
+  instruction?: string;
 };
 
 export default function InteractiveLanding(): JSX.Element {
   // ===== 마스코트 상태 =====
   const [mood, setMood] = useState<Mood>('neutral');
   const [eyeTarget, setEyeTarget] = useState<EyeTarget>({ x: 0, y: 0 });
-  const [isShaking, setIsShaking] = useState<boolean>(false);
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // ===== 데모용 문제 5개 (원하면 여기만 교체) =====
+  // ===== 문제/입력/제출 상태 =====
   const problems: Problem[] = useMemo(
     () => [
       {
@@ -55,59 +64,92 @@ export default function InteractiveLanding(): JSX.Element {
     ],
     []
   );
-  const [idx, setIdx] = useState<number>(0);
+  const [idx, setIdx] = useState(0);
   const current = problems[idx];
 
-  // 포인터에 따라 눈동자 이동
-  const handlePointerMove = useCallback(
-    (e: MouseEvent<HTMLDivElement>): void => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = (e.clientX - cx) / (rect.width / 2);
-      const dy = (e.clientY - cy) / (rect.height / 2);
-      const clamp = (v: number): number => Math.max(-1, Math.min(1, v));
-      setEyeTarget({ x: clamp(dx), y: clamp(dy) });
-    },
-    []
+  const [userInput, setUserInput] = useState('');
+  const [submitState, setSubmitState] = useState<SubmitState>('initial');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wasAnswerCorrect, setWasAnswerCorrect] = useState<boolean | undefined>(
+    undefined
   );
 
-  // 정답 제출 처리: 맞으면 행복 + 폭죽, 틀리면 잠깐 흔들림
-  const handleSubmitAnswer = useCallback(
-    async (userInput: string): Promise<{ isCorrect: boolean }> => {
+  // 포인터에 따라 눈동자 이동
+  const handlePointerMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+    setEyeTarget({ x: clamp(dx), y: clamp(dy) });
+  }, []);
+
+  // 입력/버튼 핸들러
+  const handleInputChange = (value: string) => {
+    setUserInput(value);
+    if (submitState !== 'initial') setSubmitState('initial');
+  };
+  const handleNumberClick = (number: string) => {
+    if (submitState === 'initial') setUserInput((prev) => prev + number);
+  };
+  const handleOperatorClick = (operator: string) => {
+    if (submitState === 'initial') setUserInput((prev) => prev + operator);
+  };
+  const handleClear = () => {
+    setUserInput('');
+    if (submitState !== 'initial') setSubmitState('initial');
+  };
+
+  // 제출 로직 (마스코트 반응 + 컨페티)
+  const handleSubmit = async () => {
+    if (!userInput.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
       const ok = userInput.trim() === current.answer;
+      setWasAnswerCorrect(ok);
+      setSubmitState(ok ? 'correct' : 'incorrect');
+
       if (ok) {
         setMood('happy');
         setIsShaking(false);
         setShowConfetti(true);
-        // 짧게 축포 보여주고 종료
         window.setTimeout(() => setShowConfetti(false), 1200);
       } else {
         setMood('sad');
         setIsShaking(true);
         window.setTimeout(() => setIsShaking(false), 500);
       }
-      return { isCorrect: ok };
-    },
-    [current.answer]
-  );
 
-  // 다음 문제: 5개를 순환
-  const handleNext = useCallback((): void => {
+      // 1.5초 뒤 '다음' 상태로 전환
+      window.setTimeout(() => setSubmitState('next'), 1500);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 다음 문제
+  const handleNext = () => {
     setMood('neutral');
     setIdx((prev) => (prev + 1) % problems.length);
-  }, [problems.length]);
+    setUserInput('');
+    setSubmitState('initial');
+    setWasAnswerCorrect(undefined);
+  };
+
+  // 비디오(선택)
+  const videoUrl = undefined; // 필요 시 유튜브 ID 넣기
 
   return (
     <section
       className="mx-auto w-full max-w-6xl px-4 py-8 md:py-12"
       onMouseMove={handlePointerMove}
     >
-      {/* 레이아웃: 모바일=세로 / 데스크탑=좌우. 마스코트는 오른쪽 고정 높이 */}
-      <div className="flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start">
-        {/* 마스코트(오른쪽) */}
-        <div className="order-1 flex justify-center md:order-2 md:self-start">
-          <div className="relative">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[1fr_380px] md:items-start">
+        {/* ✅ 캐릭터 영역 - 모바일에서 먼저, 데스크탑에선 오른쪽 고정 */}
+        <aside className="order-1 mx-auto md:sticky md:top-1/2 md:order-2 md:mx-0 md:-translate-y-1/2">
+          <div className="relative overflow-visible">
             <MascotCuteLavender
               mood={mood}
               eyeTarget={eyeTarget}
@@ -120,22 +162,47 @@ export default function InteractiveLanding(): JSX.Element {
               </div>
             )}
           </div>
-        </div>
+        </aside>
 
-        {/* 문제 인터페이스(왼쪽) */}
+        {/* ✅ 문제/답안/패드/해설 */}
         <div className="order-2 md:order-1">
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
-            <PracticeInterface
-              userName="체험모드"
-              unitName="쌤틀 체험 문제"
-              currentProblem={current}
-              videoUrl={undefined}
-              loading={false}
-              onSubmitAnswer={async (userInput) =>
-                handleSubmitAnswer(userInput)
-              }
-              onGenerateNext={handleNext}
+          <div className="mx-auto flex w-full flex-col space-y-6">
+            {/* Problem Display */}
+            <ProblemDisplay
+              title={`체험모드 - 쌤틀 체험 문제`}
+              equation={current.question}
             />
+
+            {/* Answer Input */}
+            <AnswerSection
+              value={userInput}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+              onNext={handleNext}
+              submitState={submitState}
+              wasAnswerCorrect={wasAnswerCorrect}
+              loading={isSubmitting}
+              disabled={false}
+            />
+
+            {/* Number Pad */}
+            <NumberPad
+              onNumberClick={handleNumberClick}
+              onOperatorClick={handleOperatorClick}
+              onClear={handleClear}
+              disabled={isSubmitting || submitState !== 'initial'}
+            />
+
+            {/* Help Section - 초기엔 자리 차지하지 않도록 조건부 렌더 */}
+            {(submitState !== 'initial' || !!videoUrl) && (
+              <HelpSection
+                answerText={current.answer}
+                helpText={current.helpText}
+                videoUrl={videoUrl}
+                unitName={'쌤틀 체험 문제'}
+                submitState={submitState}
+              />
+            )}
           </div>
         </div>
       </div>

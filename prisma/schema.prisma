@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pet {
+  id     Int    @id @default(autoincrement())
+  name   String
+  imgUrl String @map("img_url")
+  stage  String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  ownPets OwnPet[]
+  stores  Store[]
+  
+  @@map("pets")
+}
+
+model OwnPet {
+  id     Int @id @default(autoincrement())
+  userId String @map("user_id")
+  petId  Int @map("pet_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user User @relation(fields: [userId], references: [id])
+  pet  Pet  @relation(fields: [petId], references: [id])
+  
+  @@map("own_pets")
+}
+
+model User {
+  id       String @id @default(uuid())
+  userId   String @unique @map("user_id")
+  password String
+  name     String
+  role     String
+  point    Int    @default(0)
+  streak   Int    @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  ownPets                OwnPet[]
+  teacherAuthorizations  TeacherAuthorization[]
+  unitQuestions          UnitQuestion[]
+  solves                 Solve[]
+  unitSolves             UnitSolve[]
+  teacherStudentsAsTeacher TeacherStudent[] @relation("TeacherStudentTeacher")
+  teacherStudentsAsStudent TeacherStudent[] @relation("TeacherStudentStudent")
+  unitExams              UnitExam[] @relation("UnitExamTeacher")
+  
+  @@map("users")
+}
+
+model Store {
+  id     Int    @id @default(autoincrement())
+  name   String
+  imgUrl String @map("img_url")
+  price  Int
+  petId  Int    @map("pet_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  pet Pet @relation(fields: [petId], references: [id])
+  
+  @@map("stores")
+}
+
+model TeacherAuthorization {
+  id        Int      @id @default(autoincrement())
+  teacherId String   @map("teacher_id")
+  name      String   
+  imgUrl    String   @map("img_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  teacher User @relation(fields: [teacherId], references: [id])
+  
+  @@map("teacher_authorizations")
+}
+
+model TeacherStudent {
+  id        Int      @id @default(autoincrement())
+  teacherId String      @map("teacher_id")
+  studentId String      @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  teacher User @relation("TeacherStudentTeacher", fields: [teacherId], references: [id])
+  student User @relation("TeacherStudentStudent", fields: [studentId], references: [id])
+  
+  @@unique([teacherId, studentId])
+  @@map("teacher_students")
+}
+
+model Unit {
+  id        Int      @id @default(autoincrement())
+  name      String   
+  vidUrl    String   @map("vid_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  unitQuestions UnitQuestion[]
+  solves        Solve[]
+  
+  @@map("unit")
+}
+
+model UnitQuestion {
+  id         Int      @id @default(autoincrement())
+  unitCode   String   @map("unit_code")
+  question   String
+  answer     String
+  helpText   String   @map("help_text")
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  unitId Int  @map("unit_id")
+  unit   Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  userId String  @map("user_id")
+  user   User @relation(fields: [userId], references: [id])
+  
+  unitSolves UnitSolve[]
+  
+  @@map("unit_questions")
+}
+
+model UnitExam {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  teacherId String      @map("teacher_id")
+  
+  teacher User @relation("UnitExamTeacher", fields: [teacherId], references: [id])
+  unitExamAttempts UnitExamAttempt[]
+  
+  @@map("unit_exam")
+}
+
+model UnitExamAttempt {
+  id        Int      @id @default(autoincrement())
+  unitCode  String   @map("unit_code")
+  studentId String      @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  unitExamId Int      @map("unit_exam_id")
+  unitExam   UnitExam @relation(fields: [unitExamId], references: [id])
+  
+  @@map("unit_exam_attempts")
+}
+
+model Solve {
+  id         Int      @id @default(autoincrement())
+  question   String
+  answer     String
+  helpText   String   @map("help_text")
+  userInput  String   @map("user_input")
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+  unitId Int      @map("unit_id")
+  userId     String      @map("user_id")
+  
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  
+  @@index([createdAt(sort: Desc), id(sort: Desc)], name: "solves_created_id_desc_idx")
+  @@index([isCorrect, createdAt(sort: Desc), id(sort: Desc)], name: "solves_isCorrect_created_id_desc_idx")
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], name: "solves_user_created_id_desc_idx")
+  @@map("solves")
+}
+
+model UnitSolve {
+  id         Int      @id @default(autoincrement())
+  userInput  String   @map("user_input")
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+  questionId Int      @map("question_id")
+  userId     String      @map("user_id")
+  
+  question UnitQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("unit_solves")
+}

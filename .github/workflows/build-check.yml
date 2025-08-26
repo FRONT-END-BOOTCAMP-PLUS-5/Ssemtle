@@ -2,7 +2,7 @@ name: Build Check
 
 on:
   pull_request:
-    branches:   
+    branches:
       - main
       - dev
 
@@ -18,14 +18,14 @@ jobs:
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: 📦 Install dependencies
-        run: npm install --frozen-lockfile
+        run: npm ci
 
       - name: 🛠️ Build project
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: npm build
+        run: npm run build

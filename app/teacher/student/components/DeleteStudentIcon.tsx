@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useDeletes } from '@/hooks/useDeletes';
 import type { StudentDto } from '@/backend/admin/students/dtos/StudentDto';
+import { toast } from 'react-toastify';
 
 interface DeleteStudentIconProps {
   student: StudentDto;
@@ -19,18 +20,17 @@ export default function DeleteStudentIcon({
 
   const { mutate: deleteStudent, isPending } = useDeletes<unknown, StudentDto>({
     onSuccess: () => {
-      alert(`${student.name} 학생이 성공적으로 삭제되었습니다.`);
+      toast.success(`${student.name} 학생이 성공적으로 삭제되었습니다.`);
       onSuccess();
     },
-    onError: (err) => {
-      console.error('학생 삭제 실패:', err);
-      alert('학생 삭제에 실패했습니다.');
+    onError: () => {
+      toast.error('학생 삭제에 실패했습니다.');
     },
   });
 
   const handleDelete = () => {
     if (!session?.user?.id) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       return;
     }
 

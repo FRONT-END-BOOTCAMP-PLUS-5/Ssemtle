@@ -99,7 +99,7 @@ export default function WorkbookContent({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') router.push(toUrl);
                   }}
-                  className="outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                  className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
                 >
                   <TestCard solves={group.solves} category={group.category} />
                 </div>

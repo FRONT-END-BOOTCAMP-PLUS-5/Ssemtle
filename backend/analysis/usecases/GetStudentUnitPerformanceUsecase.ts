@@ -80,8 +80,6 @@ export class GetStudentUnitPerformanceUseCase {
       correct: r.correct,
     }));
 
-    // console.log('📊 단원별 풀이 성과:', units);
-
     return {
       studentId: req.userId,
       range: { from: toYMD(fromDate), to: toYMD(toDate) },

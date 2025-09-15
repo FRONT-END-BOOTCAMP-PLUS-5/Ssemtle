@@ -25,10 +25,6 @@ export class DeleteTeacherAuthUsecase {
 
       if (userRole && userRole !== 'teacher') {
         await this.teacherAuthRepository.deleteUser(teacherAuth.teacherId);
-        console.log(
-          '승인되지 않은 교사 계정이 삭제되었습니다:',
-          teacherAuth.teacherId
-        );
       }
 
       return deletedAuth;

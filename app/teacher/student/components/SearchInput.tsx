@@ -24,7 +24,7 @@ export default function SearchInput({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="absolute top-[9px] left-[23px] h-8 w-full bg-transparent text-left text-[20px] font-semibold placeholder-neutral-400 focus:text-neutral-700 focus:outline-none sm:w-64"
+            className="absolute top-[9px] left-[23px] h-8 w-full bg-transparent text-left text-xl font-semibold placeholder-neutral-400 focus:text-neutral-700 focus:outline-none sm:w-64"
           />
 
           <div className="absolute top-[9px] right-[23px] flex h-8 w-8 items-center justify-center">

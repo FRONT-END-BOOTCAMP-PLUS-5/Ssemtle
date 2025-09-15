@@ -138,7 +138,7 @@ export default function CalendarComponent({
       </div>
 
       {/* Weekdays */}
-      <div className="mb-1 grid grid-cols-7 text-center text-[11px] text-gray-500">
+      <div className="mb-1 grid grid-cols-7 text-center text-sm-xs text-gray-500">
         {['월', '화', '수', '목', '금', '토', '일'].map((d, i) => (
           <div
             key={d}
@@ -178,7 +178,7 @@ export default function CalendarComponent({
               onFocus={() => onDayHover?.(d)} // 🟣 키보드 포커스
               onBlur={() => onDayHover?.(null)} // 🟣 포커스 아웃
               className={[
-                'relative grid h-10 w-10 grid-cols-2 grid-rows-2 gap-[2px] rounded-lg border border-gray-200 p-1 text-[10px]',
+                'relative grid h-10 w-10 grid-cols-2 grid-rows-2 gap-[2px] rounded-lg border border-gray-200 p-1 text-xs-alt',
                 !inMonth ? 'text-gray-300' : 'text-gray-900',
                 selected ? 'ring-2 ring-purple-600' : 'hover:bg-gray-50',
                 isToday && !selected ? 'bg-purple-200' : '',
@@ -210,7 +210,7 @@ export default function CalendarComponent({
 
               {/* 맞은/전체 */}
               {showRatio && (
-                <div className="self-end justify-self-end text-[9px]">
+                <div className="self-end justify-self-end text-xs-sm">
                   <span className="font-bold text-green-600">{correct}</span>
                   <span className="text-black">/{total}</span>
                 </div>

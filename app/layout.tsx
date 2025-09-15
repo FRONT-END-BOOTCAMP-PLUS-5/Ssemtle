@@ -5,6 +5,7 @@ import RoleBasedSidebar from './_components/sidebar/RoleBasedSidebar';
 import LayoutClient from './_components/layoutclient/LayoutClient';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MainContainer from '@/app/_components/layoutclient/MainContainer';
 
 export const metadata: Metadata = {
   title: 'Ssemtle',
@@ -32,22 +33,15 @@ export default async function RootLayout({
               className="flex w-full"
               style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
             >
-              {/* 모바일 전용(≤430px): 기본 hidden → isOpen일 때 hidden 제거 */}
-              <div
-                id="mobile-sidebar"
-                className="fixed inset-y-0 left-0 z-[60] hidden overflow-y-auto bg-[var(--color-sidebar,_#fff)] shadow-xl min-[431px]:hidden"
-              >
-                <RoleBasedSidebar />
-              </div>
-              {/* 데스크톱 전용(≥431px): 항상 보임 */}
+              {/* 데스크톱 전용(≥1181px): 항상 보임 */}
               <aside
-                className="sticky top-[var(--header-h,0px)] hidden self-start min-[431px]:block"
+                className="sticky top-[var(--header-h,0px)] hidden self-start min-[1181px]:block"
                 style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
               >
                 <RoleBasedSidebar />
               </aside>
               {/* 메인 콘텐츠 영역 */}
-              <main className="flex-1 overflow-y-auto">
+              <MainContainer>
                 <ToastContainer
                   position="top-center"
                   limit={1}
@@ -56,16 +50,9 @@ export default async function RootLayout({
                   hideProgressBar={false}
                 />
                 {children}
-              </main>
+              </MainContainer>
             </div>
           </LayoutClient>
-
-          {/* (선택) 모바일 오버레이: 기본 hidden → isOpen일 때 hidden 제거 */}
-          <div
-            id="mobile-overlay"
-            className="fixed inset-0 z-[55] hidden bg-black/40 min-[431px]:hidden"
-            aria-hidden="true"
-          />
         </Providers>
       </body>
     </html>

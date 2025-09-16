@@ -232,7 +232,9 @@ export default function MyPage() {
         >
           <PerformanceChart data={radarData} />
         </div>
-
+        <label className="mt-6 block text-center text-2xl font-semibold">
+          오답노트
+        </label>
         {/* 캘린더 + (데스크톱) 우측 패널 */}
         <div className="w/full mx-auto mt-6 flex max-w-6xl justify-center rounded-2xl bg-white p-4 shadow-sm outline-none focus:outline-none">
           <div className="flex w-full flex-row gap-6">

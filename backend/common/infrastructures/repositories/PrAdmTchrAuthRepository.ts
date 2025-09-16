@@ -14,6 +14,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
       id: data.id,
       teacherId: data.teacherId,
       name: data.name,
+      email: data.email,
       imgUrl: data.imgUrl,
       createdAt: data.createdAt,
     };
@@ -22,6 +23,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
   async create(
     teacherId: string,
     name: string,
+    email: string,
     imgUrl: string
   ): Promise<TeacherAuthorization> {
     try {
@@ -45,6 +47,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
         data: {
           teacherId,
           name,
+          email,
           imgUrl,
         },
       });
@@ -53,6 +56,7 @@ export class PrAdmTchrAuthRepository implements IAdmTchrAuthRepository {
     } catch (error) {
       console.error('교사 인증 요청 생성 실패', {
         teacherId,
+        email,
         imgUrl,
         error,
       });

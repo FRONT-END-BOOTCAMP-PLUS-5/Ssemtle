@@ -4,6 +4,7 @@ export interface IAdmTchrAuthRepository {
   create(
     teacherId: string,
     name: string,
+    email: string,
     imgUrl: string
   ): Promise<TeacherAuthorization>;
   findAll(): Promise<TeacherAuthorization[]>;

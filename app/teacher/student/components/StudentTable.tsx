@@ -33,13 +33,13 @@ export default function StudentTable({
             className="grid grid-cols-5 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
           >
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {student.name}
               </span>
             </div>
 
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {student.userId}
               </span>
             </div>
@@ -47,7 +47,7 @@ export default function StudentTable({
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <button
                 onClick={() => onViewAnalysis(student.userId)}
-                className="flex h-2 w-8 cursor-pointer items-center justify-center rounded bg-slate-500 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-slate-600 sm:h-[16px] sm:w-[68px] sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
+                className="flex h-2 w-8 cursor-pointer items-center justify-center rounded bg-slate-500 px-1 py-0.5 text-2xs font-medium text-white transition-colors hover:bg-slate-600 sm:h-[16px] sm:w-[68px] sm:px-2 sm:py-1 sm:text-xs-sm md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
               >
                 <span className="hidden sm:inline lg:inline">평가분석</span>
               </button>
@@ -56,7 +56,7 @@ export default function StudentTable({
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <button
                 onClick={() => onViewWorkbook(student.userId)}
-                className="flex h-2 w-8 cursor-pointer items-center justify-center rounded bg-indigo-400 px-1 py-0.5 text-[6px] font-medium text-white transition-colors hover:bg-indigo-500 sm:h-3 sm:w-12 sm:px-2 sm:py-1 sm:text-[8px] md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
+                className="flex h-2 w-8 cursor-pointer items-center justify-center rounded bg-indigo-400 px-1 py-0.5 text-2xs font-medium text-white transition-colors hover:bg-indigo-500 sm:h-3 sm:w-12 sm:px-2 sm:py-1 sm:text-xs-sm md:h-auto md:w-auto md:px-6 md:text-xs lg:h-auto lg:w-auto lg:px-6 lg:text-xs"
               >
                 <span className="hidden sm:inline lg:inline">단원평가</span>
               </button>

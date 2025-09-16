@@ -38,28 +38,28 @@ export default function UnitExamCodeTable({
             className="grid grid-cols-6 border-b-2 border-neutral-200/70 transition-colors hover:bg-gray-50"
           >
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {item.code}
               </span>
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {item.problemCount}
               </span>
             </div>
             <div className="flex items-start px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="text-[8px] font-bold break-words whitespace-pre-wrap text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="text-xs-sm font-bold break-words whitespace-pre-wrap text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {item.category}
               </span>
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
-              <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+              <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                 {item.timerMinutes ? `${item.timerMinutes}분` : '-'}
               </span>
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <button
-                className="rounded-md border border-neutral-300 px-2 py-1 text-[10px] font-semibold text-neutral-700 hover:bg-neutral-50 md:text-xs"
+                className="rounded-md border border-neutral-300 px-2 py-1 text-xs-alt font-semibold text-neutral-700 hover:bg-neutral-50 md:text-xs"
                 onClick={() => onOpenProblems?.(item.code)}
                 aria-label="시험지 보기"
               >
@@ -68,7 +68,7 @@ export default function UnitExamCodeTable({
             </div>
             <div className="flex items-center px-2 py-2 sm:px-4 sm:py-3 md:px-6 lg:px-6">
               <div className="flex w-full items-center justify-between gap-2">
-                <span className="truncate text-[8px] font-bold text-neutral-700 sm:text-[10px] md:text-xs lg:text-xs">
+                <span className="truncate text-xs-sm font-bold text-neutral-700 sm:text-xs-alt md:text-xs lg:text-xs">
                   {item.createdAt}
                 </span>
                 <button

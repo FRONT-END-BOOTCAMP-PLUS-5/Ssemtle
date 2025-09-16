@@ -12,7 +12,7 @@ import {
   CalendarFilters,
   DaySolvesResult,
 } from '@/backend/common/domains/repositories/SolveRepository';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/app/generated/prisma/client';
 
 export class PrSolveRepository implements ISolveRepository {
   async aggregateByUnit(

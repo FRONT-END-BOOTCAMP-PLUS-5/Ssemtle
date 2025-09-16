@@ -2,7 +2,7 @@ import {
   PrismaClient,
   type User as PrismaUser,
   type TeacherStudent as PrismaTeacherStudent,
-} from '@prisma/client';
+} from '@/app/generated/prisma/client';
 import type { ITeacherStudentRepository } from '../../domains/repositories/ITeacherStudentRepository';
 import type { User } from '../../domains/entities/User';
 import type { TeacherStudent } from '../../domains/entities/TeacherStudent';

@@ -1,7 +1,7 @@
 // ABOUTME: Prisma implementation of authentication repository
 // ABOUTME: Handles user authentication with database using bcrypt password verification
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import bcrypt from 'bcryptjs';
 import { IAuthRepository } from '../../domains/repositories/IAuthRepository';
 import { AuthenticationResult } from '@/backend/auth/dtos/UserDto';

@@ -1,7 +1,7 @@
 // ABOUTME: Prisma를 사용한 UnitExam Repository 구현체
 // ABOUTME: 실제 데이터베이스 연산을 수행하는 인프라스트럭처 계층
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import {
   IUnitExamRepository,
   CreateUnitExamData,

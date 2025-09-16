@@ -1,5 +1,5 @@
 // backend/common/infrastructures/repositories/PrUnitExamAnalysisRepository.ts
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/app/generated/prisma/client';
 import {
   UnitExamAnalysisRepository,
   UnitExamAggregationFilter,

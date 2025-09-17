@@ -122,12 +122,8 @@ export default function UnitExamDataProvider({
     undefined,
     undefined,
     {
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      refetchOnWindowFocus: false,
+      // 항상 최신 데이터로 간주하여 마운트 시 재조회되도록 설정
       staleTime: 0,
-      gcTime: 5 * 60 * 1000,
-      placeholderData: undefined,
     }
   );
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePosts } from '@/hooks/usePosts';
@@ -69,7 +68,6 @@ export default function UnitExamPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
 
   const examCodeParam = searchParams.get('examCode');
   const examCode = examCodeParam?.trim().toUpperCase() || null;
@@ -188,13 +186,7 @@ export default function UnitExamPageContent() {
   });
 
   const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
-    onSuccess: async () => {
-      // Optimistically ensure the solves list reflects the just-submitted attempt
-      // Invalidate and refetch unit-exam solves cache immediately
-      const key = ['unit-exam-solves', session?.user?.id];
-      queryClient.invalidateQueries({ queryKey: key });
-      // Small await to let refetch start before navigation
-      await Promise.resolve();
+    onSuccess: () => {
       router.push(redirectURL);
     },
     onError: (error) => {

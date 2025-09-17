@@ -13,6 +13,7 @@ const PUBLIC_PREFIXES = [
   '/favicon.ico',
   '/public',
   '/assets',
+  '/signup/teacher/pending',
 ];
 
 // 역할별 메인 페이지 매핑
@@ -50,6 +51,16 @@ export default auth((req) => {
 
   // role 우선순위: user.role, token.role
   const role = authInfo.user?.role ?? authInfo.token?.role ?? '';
+
+  // role이 pending_teacher인 경우 대기 페이지로 리다이렉트
+  if (
+    role === 'pending_teacher' &&
+    !pathname.startsWith('/signup/teacher/pending')
+  ) {
+    return NextResponse.redirect(
+      new URL('/signup/teacher/pending', req.nextUrl.origin)
+    );
+  }
 
   // 루트 경로('/')로 접근 시 역할별 메인 페이지로 리다이렉트
   if (pathname === '/') {

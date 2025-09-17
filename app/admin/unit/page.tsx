@@ -110,7 +110,7 @@ export default function UnitManagementPage() {
           </h1>
           <button
             onClick={handleOpenModal}
-            className="h-10 w-40 cursor-pointer rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 lg:h-[42px] lg:w-[160px] lg:bg-[#8979FF] lg:text-sm-alt lg:tracking-[0.13px] lg:hover:bg-[#7A6AFF]"
+            className="h-10 w-40 cursor-pointer rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 lg:h-[42px] lg:w-[160px] lg:bg-[#6366F1] lg:text-sm-alt lg:tracking-[0.13px] lg:hover:bg-[#5855EB]"
           >
             과목등록
           </button>

@@ -48,7 +48,7 @@ export default function ApprovalListPage() {
             >
               <div className="flex flex-col items-center">
                 <div className="mb-4 w-full md:mt-16 lg:pl-3 xl:ml-16">
-                  <div className="mb-8 text-center text-4xl text-[32px] font-semibold tracking-tight text-neutral-500 md:text-[36px] lg:pl-3 xl:ml-8 xl:text-left xl:text-[32px]">
+                  <div className="mb-8 text-center text-4xl text-3xl-alt font-semibold tracking-tight text-neutral-500 md:text-4xl lg:pl-3 xl:ml-8 xl:text-left xl:text-3xl-alt">
                     선생님 승인
                   </div>
                 </div>

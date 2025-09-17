@@ -15,9 +15,26 @@ html {
 body {
   background-color: #f8f5ff;
 }
+
 :root {
   --sidebar-w: 120px;
 }
+
+/* 화면 전체 높이 - 헤더 - 하단 안전영역 */
+.h-screen-dvh-minus-header-safe {
+  height: calc(100dvh - var(--header-h, 0px) - env(safe-area-inset-bottom, 0px));
+}
+
+/* 상단 안전영역 패딩 */
+.pt-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 하단 안전영역 패딩 */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Design System Tokens as CSS Variables */
 @theme {
   /* Color Tokens */
@@ -35,6 +52,31 @@ body {
   --color-sidebar-button: #eaddff;
   --color-sidebar-icon: #6750a4;
   --color-card-background: #f2e8fe;
+  
+  /* Font Size Tokens - Override Tailwind defaults with 20% increased sizes */
+  /* Standard Tailwind font sizes - increased by 20%, rounded appropriately */
+  --text-xs: 14px;     /* Override default 12px */
+  --text-sm: 16px;     /* Override default 14px */
+  --text-base: 20px;   /* Override default 16px */
+  --text-lg: 20px;     /* Override default 18px */
+  --text-xl: 24px;     /* Override default 20px */
+  --text-2xl: 28px;    /* Override default 24px */
+  --text-3xl: 36px;    /* Override default 30px */
+  --text-4xl: 44px;    /* Override default 36px */
+  --text-5xl: 56px;    /* Override default 48px */
+  --text-6xl: 72px;    /* Override default 60px */
+  --text-7xl: 88px;    /* Override default 72px */
+  --text-8xl: 116px;   /* Override default 96px */
+  --text-9xl: 156px;   /* Override default 128px */
+
+  /* Custom font sizes for arbitrary values found in codebase */
+  --text-2xs: 8px;     /* Custom: was 6px */
+  --text-xs-sm: 10px;  /* Custom: was 8px, 9px */
+  --text-xs-alt: 12px; /* Custom: was 10px */
+  --text-sm-xs: 14px;  /* Custom: was 11px */
+  --text-sm-alt: 16px; /* Custom: was 13px */
+  --text-3xl-alt: 40px; /* Custom: was 32px */
+
   /* Spacing Tokens */
   --spacing-0: 0px;
   --spacing-1: 4px;

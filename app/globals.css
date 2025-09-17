@@ -20,6 +20,21 @@ body {
   --sidebar-w: 120px;
 }
 
+/* 화면 전체 높이 - 헤더 - 하단 안전영역 */
+.h-screen-dvh-minus-header-safe {
+  height: calc(100dvh - var(--header-h, 0px) - env(safe-area-inset-bottom, 0px));
+}
+
+/* 상단 안전영역 패딩 */
+.pt-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 하단 안전영역 패딩 */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Design System Tokens as CSS Variables */
 @theme {
   /* Color Tokens */

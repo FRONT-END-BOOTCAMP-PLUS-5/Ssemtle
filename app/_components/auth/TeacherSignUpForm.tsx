@@ -18,6 +18,7 @@ export default function TeacherSignUpForm() {
     confirmPassword: '',
     name: '',
     teacherName: '',
+    email: '',
     imgUrl: '',
   });
   const [errors, setErrors] = useState<Partial<SignUpTeacherFormData>>({});
@@ -74,6 +75,7 @@ export default function TeacherSignUpForm() {
         password: formData.password,
         name: formData.name,
         teacherName: formData.teacherName,
+        email: formData.email,
         imgUrl: formData.imgUrl,
       });
 
@@ -234,6 +236,32 @@ export default function TeacherSignUpForm() {
             />
             {errors.teacherName && (
               <p className="mt-2 text-sm text-red-600">{errors.teacherName}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm leading-6 font-medium text-gray-900"
+          >
+            이메일
+          </label>
+          <div className="mt-2">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-600 focus:ring-inset sm:text-sm sm:leading-6"
+              placeholder="이메일을 입력하세요"
+              disabled={isLoading}
+            />
+            {errors.email && (
+              <p className="mt-2 text-sm text-red-600">{errors.email}</p>
             )}
           </div>
         </div>

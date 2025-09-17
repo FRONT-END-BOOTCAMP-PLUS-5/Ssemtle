@@ -7,7 +7,7 @@ import { normalizeDateQueryForSchema } from '@/utils/normalizeDateParams';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
 import { ListSolvesRequestDto } from '@/backend/solves/dtos/SolveDto';
 import { ListSolvesUseCase } from '@/backend/solves/usecases/SolvesUsecases';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 
 const prisma = new PrismaClient();
 

@@ -126,7 +126,7 @@ export default function UnitManagementPage() {
           emptyMessage="등록된 과목이 없습니다"
         >
           <>
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
+            <div className="grid grid-cols-2 gap-6 pt-10 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
               {currentData.map((unit) => (
                 <UnitCard
                   key={unit.id}

@@ -50,7 +50,7 @@ export default function ApprovalListPage() {
           errorMessage="데이터를 불러오는데 실패했습니다"
           emptyMessage="승인 대기 중인 선생님이 없습니다"
         >
-          <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 md:gap-6 md:px-6 lg:grid-cols-4 lg:gap-8 xl:px-8">
+          <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 md:gap-6 md:px-6 lg:grid-cols-4 lg:gap-8 lg:pt-20 xl:px-8">
             {currentData.map((teacherAuth) => (
               <TeacherAuthCard
                 key={teacherAuth.id}

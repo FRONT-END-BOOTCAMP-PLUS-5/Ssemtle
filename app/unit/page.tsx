@@ -151,15 +151,14 @@ const UnitPage = () => {
   };
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col min-[1181px]:pl-15">
       {/* 상단 헤더: 타이틀, 부제목 */}
-      <div className="w-full px-6 pt-8 sm:px-10">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold sm:text-3xl">단원 평가</h1>
+      <div className="mt-10 flex w-full justify-center p-6 sm:p-10">
+        <div className="flex flex-col items-center gap-3">
+          <p className="mt-2 text-2xl font-bold sm:text-3xl">
+            단원별 실력을 평가하고 학습 성과를 확인해보세요!
+          </p>
         </div>
-        <p className="mt-2 text-sm text-gray-500 sm:text-base">
-          단원별 실력을 평가하고 학습 성과를 확인해보세요!
-        </p>
       </div>
 
       {/* 본문: 좌우 카드 레이아웃 */}
@@ -171,10 +170,10 @@ const UnitPage = () => {
             <div className="flex items-center gap-4">
               <div>
                 <h2 className="text-3xl font-bold text-blue-700">
-                  새로운 단원평가
+                  단원평가 응시하기
                 </h2>
                 <p className="mt-1 text-lg text-blue-700/80">
-                  단원 평가 코드를 입력하여 시작하세요
+                  단원평가 코드를 입력하여 시작하세요
                 </p>
               </div>
             </div>
@@ -220,8 +219,8 @@ const UnitPage = () => {
                 <h2 className="text-3xl font-bold text-emerald-700">
                   평가 기록
                 </h2>
-                <p className="mt-1 text-lg text-emerald-700/80">
-                  이전에 응시한 단원평가 결과를 확인하세요
+                <p className="mt-3 text-lg text-emerald-700/80">
+                  응시했던 단원평가 결과를 확인하세요
                 </p>
               </div>
             </div>

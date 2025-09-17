@@ -332,7 +332,7 @@ export default function MyPageErrorNote() {
 
   return (
     <div className="mx-auto w-full">
-      <div className="mx-auto pt-6 tablet:px-32">
+      <div className="mx-auto pt-6 tablet:px-16 desktop:px-24">
         {!canEdit && (
           <div className="mx-4 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 tablet:mx-0">
             이 페이지는 <b>읽기 전용</b>입니다. 내 문제가 아니므로 정답 수정이

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import { TeacherAuthorization } from '@/backend/common/domains/entities/TeacherAuthorization';
 import { IAdmTchrAuthRepository } from '@/backend/common/domains/repositories/IAdmTchrAuthRepository';
 

@@ -15,9 +15,11 @@ html {
 body {
   background-color: #f8f5ff;
 }
+
 :root {
   --sidebar-w: 120px;
 }
+
 /* Design System Tokens as CSS Variables */
 @theme {
   /* Color Tokens */
@@ -35,6 +37,7 @@ body {
   --color-sidebar-button: #eaddff;
   --color-sidebar-icon: #6750a4;
   --color-card-background: #f2e8fe;
+  
   /* Font Size Tokens - Override Tailwind defaults with 20% increased sizes */
   /* Standard Tailwind font sizes - increased by 20%, rounded appropriately */
   --text-xs: 14px;     /* Override default 12px */

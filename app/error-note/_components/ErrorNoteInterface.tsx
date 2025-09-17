@@ -300,7 +300,7 @@ export default function ErrorNoteInterface() {
   // 렌더
   return (
     <div className="mx-auto w-full">
-      <div className="mx-auto pt-6 tablet:px-32">
+      <div className="mx-auto pt-6 tablet:px-16 desktop:px-24">
         {/* Mobile */}
         <div className="tablet:hidden">
           <div className="mb-6 text-center">

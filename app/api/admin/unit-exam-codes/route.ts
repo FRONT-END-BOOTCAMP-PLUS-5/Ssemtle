@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/libs/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/app/generated/prisma/client';
 
 // GET /api/admin/unit-exam-codes
 // 현재 로그인한 교사의 단원평가 코드 목록과 카테고리(단원명) 집계를 반환

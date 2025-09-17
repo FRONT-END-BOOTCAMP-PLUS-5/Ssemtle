@@ -1,10 +1,10 @@
 // ABOUTME: Prisma를 사용한 UnitSolve Repository 구현체
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import {
   CreateUnitSolveData,
   IUnitSolveRepository,
 } from '../../domains/repositories/IUnitSolveRepository';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/app/generated/prisma/client';
 
 export class PrUnitSolveRepository implements IUnitSolveRepository {
   private prisma: PrismaClient;

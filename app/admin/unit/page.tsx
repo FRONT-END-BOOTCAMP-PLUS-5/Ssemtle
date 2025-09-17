@@ -104,13 +104,13 @@ export default function UnitManagementPage() {
   return (
     <div className="min-h-screen w-full bg-[#F8F5FF]">
       <div className="w-full px-4 py-8 sm:px-6 lg:mx-auto lg:max-w-[970px] lg:px-8 lg:py-16">
-        <div className="mb-8 flex flex-col items-center sm:flex-row sm:justify-between">
+        <div className="mb-8 flex flex-col items-center sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-4xl font-semibold tracking-tight text-neutral-500">
             과목 관리
           </h1>
           <button
             onClick={handleOpenModal}
-            className="h-10 w-40 cursor-pointer rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 lg:h-[42px] lg:w-[160px] lg:bg-[#8979FF] lg:text-sm-alt lg:tracking-[0.13px] lg:hover:bg-[#7A6AFF]"
+            className="mt-4 h-10 w-40 cursor-pointer rounded bg-indigo-400 text-xs font-semibold tracking-tight text-white shadow-[0px_4px_10px_0px_rgba(16,156,241,0.24)] transition-all hover:bg-indigo-500 sm:mt-0 lg:h-[42px] lg:w-[160px] lg:bg-[#6366F1] lg:text-sm-alt lg:tracking-[0.13px] lg:hover:bg-[#5855EB]"
           >
             과목등록
           </button>
@@ -126,7 +126,7 @@ export default function UnitManagementPage() {
           emptyMessage="등록된 과목이 없습니다"
         >
           <>
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
+            <div className="grid grid-cols-2 gap-6 pt-10 sm:grid-cols-3 md:grid-cols-4 md:gap-[30px] lg:mt-10">
               {currentData.map((unit) => (
                 <UnitCard
                   key={unit.id}

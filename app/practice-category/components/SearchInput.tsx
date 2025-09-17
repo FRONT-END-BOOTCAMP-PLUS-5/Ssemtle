@@ -31,12 +31,12 @@ const SearchInput = ({
       <div className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2">
         <input
           type="text"
-          placeholder={placeholder ?? '카테고리 검색'}
+          placeholder={placeholder ?? '단원 검색'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           className="w-64 bg-transparent text-base outline-none max-[420px]:w-44"
-          aria-label="카테고리 검색"
+          aria-label="단원 검색"
         />
       </div>
       <button

@@ -10,7 +10,7 @@ import prisma from '@/libs/prisma';
 export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
-    const { teacherId, name, imgUrl } = requestBody;
+    const { teacherId, name, email, imgUrl } = requestBody;
 
     const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
     const createTeacherAuthUseCase = new CreateTeacherAuthUsecase(
@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     const teacherAuth = await createTeacherAuthUseCase.execute({
       teacherId,
       name,
+      email,
       imgUrl,
     });
 
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
           id: teacherAuth.id,
           teacherId: teacherAuth.teacherId,
           name: teacherAuth.name,
+          email: teacherAuth.email,
           imgUrl: teacherAuth.imgUrl,
           createdAt: teacherAuth.createdAt,
         },
@@ -61,6 +63,7 @@ export async function GET() {
           id: auth.id,
           teacherId: auth.teacherId,
           name: auth.name,
+          email: auth.email,
           imgUrl: auth.imgUrl,
           createdAt: auth.createdAt,
         })),

@@ -25,6 +25,7 @@ export interface TeacherAuthResponse {
     id: number;
     teacherId: string;
     name: string;
+    email: string;
     imgUrl: string;
     createdAt: string;
   };
@@ -71,6 +72,7 @@ export async function registerTeacher(
     const teacherAuthResponse = await axios.post('/api/admin/teachers', {
       teacherId: userResponse.data.user.id,
       name: data.teacherName,
+      email: data.email,
       imgUrl: data.imgUrl,
     });
 

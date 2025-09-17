@@ -1,7 +1,7 @@
 // ABOUTME: Prisma를 사용한 Unit Repository 구현체
 // ABOUTME: 단원(Unit) 생성에 대한 인프라스트럭처 계층
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import { IUnitRepository } from '../../domains/repositories/IUnitRepository';
 import { Unit } from '../../domains/entities/Unit';
 import prisma from '@/libs/prisma';

@@ -1,7 +1,7 @@
 // ABOUTME: Prisma를 사용한 UnitExamAttempt Repository 구현체
 // ABOUTME: 학생의 단원평가 시도 기록 데이터베이스 연산
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/app/generated/prisma/client';
 import {
   IUnitExamAttemptRepository,
   CreateUnitExamAttemptData,

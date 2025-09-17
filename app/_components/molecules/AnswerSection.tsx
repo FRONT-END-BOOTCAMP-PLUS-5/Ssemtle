@@ -13,6 +13,7 @@ interface AnswerSectionProps {
   onChange: (value: string) => void;
   onSubmit?: () => void;
   onNext: () => void;
+  onBlur?: () => void;
   submitState: SubmitState;
   wasAnswerCorrect?: boolean;
   loading?: boolean;
@@ -54,6 +55,7 @@ export default function AnswerSection({
   onChange,
   onSubmit,
   onNext,
+  onBlur,
   submitState,
   wasAnswerCorrect,
   loading = false,
@@ -117,6 +119,7 @@ export default function AnswerSection({
             disabled={disabled || loading}
             onSubmit={onSubmit ? handleButtonClick : undefined}
             onHelp={() => setIsHelpModalOpen(true)}
+            onBlur={onBlur}
             submitDisabled={isDisabled}
             submitLoading={loading}
             submitText={config.text}

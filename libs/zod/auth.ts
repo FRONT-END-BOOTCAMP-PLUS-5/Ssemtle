@@ -41,6 +41,9 @@ export const signUpTeacherSchema = object({
   teacherName: string({ message: '교사명을 입력해주세요' })
     .min(2, '교사명은 2자 이상이어야 합니다')
     .max(20, '교사명은 20자 이하로 입력해주세요'),
+  email: string({ message: '이메일을 입력해주세요' }).email(
+    '올바른 이메일 형식을 입력해주세요'
+  ),
   imgUrl: string({ message: '증명서 이미지를 업로드해주세요' }).min(
     1,
     '증명서 이미지를 업로드해주세요'
@@ -68,5 +71,6 @@ export type SignUpTeacherFormData = {
   confirmPassword: string;
   name: string;
   teacherName: string;
+  email: string;
   imgUrl: string;
 };

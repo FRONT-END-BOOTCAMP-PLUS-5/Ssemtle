@@ -12,20 +12,29 @@ export class CreateTeacherAuthUsecase {
   async execute(teacherAuthData: {
     teacherId: string;
     name: string;
+    email: string;
     imgUrl: string;
   }): Promise<TeacherAuthorization> {
     if (
       !teacherAuthData.teacherId ||
       !teacherAuthData.name ||
+      !teacherAuthData.email ||
       !teacherAuthData.imgUrl
     ) {
-      throw new Error('교사 ID, 이름, 인증 이미지를 모두 입력해주세요.');
+      throw new Error(
+        '교사 ID, 이름, 이메일, 인증 이미지를 모두 입력해주세요.'
+      );
     }
 
     try {
       new URL(teacherAuthData.imgUrl);
     } catch {
       throw new Error('올바른 형식의 이미지 URL을 입력해주세요.');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(teacherAuthData.email)) {
+      throw new Error('올바른 이메일 형식을 입력해주세요.');
     }
 
     const existingRequest = await this.teacherAuthRepository.findByTeacherId(
@@ -39,6 +48,7 @@ export class CreateTeacherAuthUsecase {
       return await this.teacherAuthRepository.create(
         teacherAuthData.teacherId.trim(),
         teacherAuthData.name.trim(),
+        teacherAuthData.email.trim(),
         teacherAuthData.imgUrl.trim()
       );
     } catch (error) {

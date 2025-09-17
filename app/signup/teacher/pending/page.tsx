@@ -33,6 +33,7 @@ export default function TeacherPendingPage() {
                 <h3 className="mb-2 font-medium text-blue-900">다음 단계</h3>
                 <ul className="space-y-2 text-left text-blue-700">
                   <li>• 관리자 승인 대기 (보통 1-2일 소요)</li>
+                  <li>• 승인/거절 시 이메일 알림 발송</li>
                   <li>• 승인 후 모든 교사 기능 이용 가능</li>
                 </ul>
               </div>

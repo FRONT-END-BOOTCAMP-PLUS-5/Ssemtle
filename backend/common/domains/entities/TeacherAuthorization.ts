@@ -7,6 +7,7 @@ export interface TeacherAuthorization {
   readonly id: number;
   readonly teacherId: string;
   readonly name: string;
+  readonly email: string;
   readonly imgUrl: string;
   readonly createdAt: Date;
 

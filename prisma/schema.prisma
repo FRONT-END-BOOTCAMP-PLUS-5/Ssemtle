@@ -74,12 +74,13 @@ model Store {
 model TeacherAuthorization {
   id        Int      @id @default(autoincrement())
   teacherId String   @map("teacher_id")
-  name      String   
+  name      String
+  email     String
   imgUrl    String   @map("img_url")
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   teacher User @relation(fields: [teacherId], references: [id])
-  
+
   @@map("teacher_authorizations")
 }
 

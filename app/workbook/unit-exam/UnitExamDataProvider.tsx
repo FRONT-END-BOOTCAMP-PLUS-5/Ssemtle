@@ -118,7 +118,17 @@ export default function UnitExamDataProvider({
   } = useGets<UnitExamSolvesResponse>(
     ['unit-exam-solves', userId || session?.user?.id],
     `/unit-exam/solves${queryParams}`,
-    !!session?.user?.id
+    !!session?.user?.id,
+    undefined,
+    undefined,
+    {
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: false,
+      staleTime: 0,
+      gcTime: 5 * 60 * 1000,
+      placeholderData: undefined,
+    }
   );
 
   // Fetch units data for filtering

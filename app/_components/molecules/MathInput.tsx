@@ -13,6 +13,7 @@ interface MathInputProps {
   className?: string;
   onSubmit?: () => void;
   onHelp?: () => void;
+  onBlur?: () => void;
   submitDisabled?: boolean;
   submitLoading?: boolean;
   submitText?: string;
@@ -27,6 +28,7 @@ export default function MathInput({
   className = '',
   onSubmit,
   onHelp,
+  onBlur,
   submitDisabled = false,
   submitLoading = false,
   submitText = '제출',
@@ -70,6 +72,16 @@ export default function MathInput({
     }
   };
 
+  const handleInputFocus = () => {
+    // Focus event handled - no additional action needed for readonly input
+  };
+
+  const handleInputBlur = () => {
+    if (onBlur) {
+      onBlur();
+    }
+  };
+
   const getSubmitButtonStyles = () => {
     const baseStyles =
       'px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none';
@@ -98,9 +110,12 @@ export default function MathInput({
             value={value}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             placeholder={placeholder}
             disabled={disabled}
             readOnly
+            data-clickable-zone
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
           />
           {value && (

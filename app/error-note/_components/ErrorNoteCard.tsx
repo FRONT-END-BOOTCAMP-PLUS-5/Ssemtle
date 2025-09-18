@@ -112,7 +112,6 @@ export default function ErrorNoteCard({
         <div
           data-clickable-zone
           onClick={readOnly ? undefined : handleCardFocus}
-          onBlur={readOnly ? undefined : onBlur}
           className={`mb-4 cursor-pointer transition-all hover:scale-[1.01] ${
             isCorrect ? 'cursor-default hover:scale-100' : ''
           }`}
@@ -127,7 +126,6 @@ export default function ErrorNoteCard({
         <div
           data-clickable-zone
           onClick={readOnly ? undefined : handleCardFocus}
-          onBlur={readOnly ? undefined : onBlur}
           className={`mb-4 transition-all ${
             isCorrect
               ? 'cursor-not-allowed'
@@ -140,6 +138,7 @@ export default function ErrorNoteCard({
               onChange={handleInputChange}
               onSubmit={handleSubmitCorrection}
               onNext={() => {}}
+              onBlur={readOnly ? undefined : onBlur}
               submitState={
                 isCorrect
                   ? 'correct'

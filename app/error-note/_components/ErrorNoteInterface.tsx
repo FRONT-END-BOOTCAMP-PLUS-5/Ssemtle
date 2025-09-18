@@ -149,6 +149,24 @@ export default function ErrorNoteInterface() {
     !!focusedProblem?.unitId
   );
 
+  // Preserve focus when video data loads and causes re-render
+  useEffect(() => {
+    if (videoData && focusedProblemId) {
+      // Small delay to ensure DOM is updated after re-render
+      setTimeout(() => {
+        const el = document.querySelector(
+          `[data-problem-card="${focusedProblemId}"]`
+        );
+        const input = el?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement | null;
+        if (input && document.activeElement !== input) {
+          input.focus();
+        }
+      }, 10);
+    }
+  }, [videoData, focusedProblemId]);
+
   // 렌더용 매핑
   const displayProblems: ErrorNoteProblem[] = filteredSolves.map((solve) => ({
     id: solve.id.toString(),

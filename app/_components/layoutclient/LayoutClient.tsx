@@ -25,7 +25,7 @@ export default function LayoutClient({
     return !(isAuth || isLanding);
   }, [pathname]);
 
-  // ✅ 사이드바 열리면 body 스크롤 막기
+  // 사이드바 열릴 때 body 스크롤 잠금
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -37,6 +37,17 @@ export default function LayoutClient({
     };
   }, [isOpen]);
 
+  const handleSidebarClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+
+    // 링크/버튼/명시적 닫기 타깃이면 닫기
+    const clickable = target.closest('a[href], button, [data-close-sidebar]');
+    if (clickable) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <>
       <Header
@@ -45,21 +56,23 @@ export default function LayoutClient({
         onHamburgerClick={isSidebarEnabled ? toggle : undefined}
       />
 
-      {/* 모바일 전용 사이드바 및 오버레이 */}
       {isSidebarEnabled && (
         <>
-          {/* 사이드바 */}
           <div
             id="mobile-sidebar"
-            className={`fixed inset-y-0 left-0 z-[60] overflow-y-auto bg-[var(--color-sidebar,_#fff)] shadow-xl transition-transform duration-300 min-[1181px]:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            className={`fixed inset-y-0 left-0 z-[60] overflow-y-auto bg-[var(--color-sidebar,_#fff)] shadow-xl transition-transform duration-300 min-[1181px]:hidden ${
+              isOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+            onClick={handleSidebarClick}
           >
             <RoleBasedSidebar />
           </div>
 
-          {/* 오버레이 */}
           <div
             id="mobile-overlay"
-            className={`fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300 min-[1181px]:hidden ${isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+            className={`fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300 min-[1181px]:hidden ${
+              isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+            } `}
             aria-hidden="true"
             onClick={() => setIsOpen(false)}
           />

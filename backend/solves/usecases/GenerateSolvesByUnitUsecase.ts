@@ -110,6 +110,10 @@ export class GenerateSolvesByUnitUseCase {
         // 필수값이 없으면 스킵
         continue;
       }
+      console.log('==== 문제 ====');
+      console.log('question:', question, '| length:', question.length);
+      console.log('answer:', answerRaw, '| length:', answerRaw.length);
+      console.log('helpText length:', (help ?? '').length);
 
       out.push({
         question,

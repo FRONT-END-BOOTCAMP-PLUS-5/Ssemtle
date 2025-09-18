@@ -152,7 +152,13 @@ export default function ErrorNoteInterface() {
   // Preserve focus when video data loads and causes re-render
   useEffect(() => {
     if (videoData && focusedProblemId) {
-      // Small delay to ensure DOM is updated after re-render
+      // Clear any pending blur timeout since we're actively managing focus
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
+
+      // Longer delay to ensure DOM is updated after re-render and avoid timing conflicts
       setTimeout(() => {
         const el = document.querySelector(
           `[data-problem-card="${focusedProblemId}"]`
@@ -163,7 +169,7 @@ export default function ErrorNoteInterface() {
         if (input && document.activeElement !== input) {
           input.focus();
         }
-      }, 10);
+      }, 150); // Increased delay to avoid timing conflicts
     }
   }, [videoData, focusedProblemId]);
 
@@ -231,59 +237,122 @@ export default function ErrorNoteInterface() {
     }
     setFocusedProblemId(problemId);
     setIsVirtualKeyboardVisible(true);
-    setTimeout(() => {
-      const el = document.querySelector(`[data-problem-card="${problemId}"]`);
-      const input = el?.querySelector(
-        'input[type="text"]'
-      ) as HTMLInputElement | null;
-      input?.focus();
-    }, 100);
+
+    // Use requestAnimationFrame for more reliable timing
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const el = document.querySelector(`[data-problem-card="${problemId}"]`);
+        const input = el?.querySelector(
+          'input[type="text"]'
+        ) as HTMLInputElement | null;
+        if (input) {
+          input.focus();
+        }
+      }, 50); // Shorter delay since we're using requestAnimationFrame
+    });
   };
   const handleCardBlur = () => {
+    // Shorter timeout since we have global click handler as backup
     blurTimeoutRef.current = setTimeout(() => {
       const active = document.activeElement;
+
+      // Only blur if focus moved completely away from any relevant elements
       if (
-        active &&
-        (active.closest('[data-virtual-keyboard]') ||
-          active.closest('[data-clickable-zone]'))
+        !active ||
+        (!active.closest('[data-virtual-keyboard]') &&
+          !active.closest('[data-clickable-zone]'))
       ) {
-        return;
+        setFocusedProblemId(null);
+        setIsVirtualKeyboardVisible(false);
+        blurTimeoutRef.current = null;
       }
-      setFocusedProblemId(null);
-      setIsVirtualKeyboardVisible(false);
-      blurTimeoutRef.current = null;
-    }, 200);
+    }, 100); // Reduced timeout since global click handler handles most cases
   };
 
   // 입력/제출 상태
   const handleInputChange = (problemId: string, value: string) => {
     setUserInputs((prev) => new Map(prev).set(problemId, value));
+
+    // 사용자가 입력을 변경하면 submission state를 초기화하여 다시 시도할 수 있게 함
+    const currentState = submissionStates.get(problemId);
+    if (currentState === 'incorrect') {
+      setSubmissionStates((prev) => new Map(prev).set(problemId, 'initial'));
+    }
   };
   const handleNumberClick = (n: string) => {
     if (!focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + n));
+
+    // 가상 키보드로 입력할 때도 submission state를 리셋
+    const currentState = submissionStates.get(focusedProblemId);
+    if (currentState === 'incorrect') {
+      setSubmissionStates((prev) =>
+        new Map(prev).set(focusedProblemId, 'initial')
+      );
+    }
   };
   const handleOperatorClick = (op: string) => {
     if (!focusedProblemId) return;
     const cur = userInputs.get(focusedProblemId) || '';
     setUserInputs((p) => new Map(p).set(focusedProblemId, cur + op));
+
+    // 가상 키보드로 입력할 때도 submission state를 리셋
+    const currentState = submissionStates.get(focusedProblemId);
+    if (currentState === 'incorrect') {
+      setSubmissionStates((prev) =>
+        new Map(prev).set(focusedProblemId, 'initial')
+      );
+    }
   };
   const handleClear = () => {
     if (!focusedProblemId) return;
     setUserInputs((p) => new Map(p).set(focusedProblemId, ''));
+
+    // 입력 필드를 클리어할 때도 submission state를 리셋
+    const currentState = submissionStates.get(focusedProblemId);
+    if (currentState === 'incorrect') {
+      setSubmissionStates((prev) =>
+        new Map(prev).set(focusedProblemId, 'initial')
+      );
+    }
   };
   const handleSubmissionResult = (problemId: string, isCorrect: boolean) => {
     setSubmissionStates((prev) =>
       new Map(prev).set(problemId, isCorrect ? 'correct' : 'incorrect')
     );
+
+    // 틀린 답안인 경우 입력 필드를 클리어하여 새로운 시도를 유도
+    if (!isCorrect) {
+      setUserInputs((prev) => new Map(prev).set(problemId, ''));
+    }
   };
 
+  // Global click handler to detect clicks outside keyboard/input areas
   useEffect(() => {
+    const handleGlobalClick = (event: MouseEvent) => {
+      if (!isVirtualKeyboardVisible) return;
+
+      const target = event.target as Element;
+      const isOnKeyboard = target.closest('[data-virtual-keyboard]');
+      const isOnClickableZone = target.closest('[data-clickable-zone]');
+
+      if (!isOnKeyboard && !isOnClickableZone) {
+        setFocusedProblemId(null);
+        setIsVirtualKeyboardVisible(false);
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+          blurTimeoutRef.current = null;
+        }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick, true);
     return () => {
+      document.removeEventListener('click', handleGlobalClick, true);
       if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     };
-  }, []);
+  }, [isVirtualKeyboardVisible]);
 
   // 상태 렌더
   if (status === 'loading' || isLoading) {

@@ -103,7 +103,7 @@ export default function MathInput({
     <div className={`space-y-3 ${className}`}>
       {/* Input row with buttons */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+        <div className="relative flex-1" data-clickable-zone>
           <input
             ref={inputRef}
             type="text"
@@ -115,7 +115,6 @@ export default function MathInput({
             placeholder={placeholder}
             disabled={disabled}
             readOnly
-            data-clickable-zone
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
           />
           {value && (

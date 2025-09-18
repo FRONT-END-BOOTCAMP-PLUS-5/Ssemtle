@@ -369,8 +369,9 @@ export default function MyPageErrorNote() {
       const target = event.target as Element;
       const isOnKeyboard = target.closest('[data-virtual-keyboard]');
       const isOnClickableZone = target.closest('[data-clickable-zone]');
+      const isOnModal = target.closest('[data-modal]');
 
-      if (!isOnKeyboard && !isOnClickableZone) {
+      if (!isOnKeyboard && !isOnClickableZone && !isOnModal) {
         setFocusedProblemId(null);
         setIsVirtualKeyboardVisible(false);
         if (blurTimeoutRef.current) {

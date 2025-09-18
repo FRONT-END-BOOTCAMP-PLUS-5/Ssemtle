@@ -142,7 +142,11 @@ export default function MathInput({
         {/* Help button */}
         {onHelp && (
           <button
-            onClick={onHelp}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onHelp();
+            }}
             disabled={disabled}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="도움말"

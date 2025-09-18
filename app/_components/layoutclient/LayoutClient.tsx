@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Header from '@/app/_components/header/Header';
 import { usePathname } from 'next/navigation';
 import RoleBasedSidebar from '@/app/_components/sidebar/RoleBasedSidebar';
@@ -14,7 +14,6 @@ export default function LayoutClient({
   const pathname = usePathname();
   const toggle = () => setIsOpen((v) => !v);
 
-  // 인증/랜딩 페이지에서는 사이드바 기능 비활성화
   const isSidebarEnabled = useMemo(() => {
     const isAuth =
       pathname?.startsWith('/signin') || pathname?.startsWith('/signup');
@@ -23,23 +22,9 @@ export default function LayoutClient({
     return !(isAuth || isLanding);
   }, [pathname]);
 
-  // 사이드바 열릴 때 body 스크롤 잠금
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
   const handleSidebarClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     const target = e.target as HTMLElement | null;
     if (!target) return;
-
-    // 링크/버튼/명시적 닫기 타깃이면 닫기
     const clickable = target.closest('a[href], button, [data-close-sidebar]');
     if (clickable) {
       setIsOpen(false);
@@ -47,7 +32,7 @@ export default function LayoutClient({
   };
 
   return (
-    <>
+    <div className={isOpen ? 'overflow-hidden' : ''}>
       <Header
         logoSrc="/logos/Ssemtle_logo.png"
         logoHref="/"
@@ -78,6 +63,6 @@ export default function LayoutClient({
       )}
 
       {children}
-    </>
+    </div>
   );
 }

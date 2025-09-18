@@ -12,8 +12,6 @@ export default function LayoutClient({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-
-  // 모바일 사이드바 열고/닫기 토글
   const toggle = () => setIsOpen((v) => !v);
 
   // 인증/랜딩 페이지에서는 사이드바 기능 비활성화

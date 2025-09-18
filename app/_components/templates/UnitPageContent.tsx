@@ -187,7 +187,7 @@ export default function UnitExamPageContent() {
 
   const submitExamMutation = usePosts<SubmitExamRequest, SubmitExamResponse>({
     onSuccess: () => {
-      router.push(redirectURL); // Redirect to home or results page
+      router.push(redirectURL);
     },
     onError: (error) => {
       errorToast(

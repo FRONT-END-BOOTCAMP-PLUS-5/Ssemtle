@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { asciiToLatex } from '@/libs/asciiToLatex';
@@ -18,6 +18,7 @@ interface MathInputProps {
   submitLoading?: boolean;
   submitText?: string;
   submitVariant?: 'submit' | 'correct' | 'incorrect' | 'next';
+  isFocused?: boolean; // Controlled focus state from parent
 }
 
 export default function MathInput({
@@ -33,9 +34,11 @@ export default function MathInput({
   submitLoading = false,
   submitText = '제출',
   submitVariant = 'submit',
+  isFocused = false,
 }: MathInputProps) {
   const renderRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [internalFocused, setInternalFocused] = useState(false);
 
   useEffect(() => {
     if (!renderRef.current) return;
@@ -73,14 +76,18 @@ export default function MathInput({
   };
 
   const handleInputFocus = () => {
-    // Focus event handled - no additional action needed for readonly input
+    setInternalFocused(true);
   };
 
   const handleInputBlur = () => {
+    setInternalFocused(false);
     if (onBlur) {
       onBlur();
     }
   };
+
+  // Determine if input should appear focused (either from controlled prop or internal state)
+  const isVisuallyFocused = isFocused || internalFocused;
 
   const getSubmitButtonStyles = () => {
     const baseStyles =
@@ -115,7 +122,11 @@ export default function MathInput({
             placeholder={placeholder}
             disabled={disabled}
             readOnly
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 font-mono text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500"
+            className={`w-full rounded-xl border bg-white px-4 py-3 font-mono text-sm transition-all duration-200 focus:outline-none disabled:bg-gray-50 disabled:text-gray-500 ${
+              isVisuallyFocused
+                ? 'border-violet-500 ring-2 ring-violet-100'
+                : 'border-gray-200'
+            }`}
           />
           {value && (
             <button

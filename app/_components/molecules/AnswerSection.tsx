@@ -19,6 +19,7 @@ interface AnswerSectionProps {
   loading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  isFocused?: boolean;
 }
 
 const submitStateConfig: Record<
@@ -61,6 +62,7 @@ export default function AnswerSection({
   loading = false,
   disabled = false,
   placeholder = '답을 입력해 주세요',
+  isFocused = false,
 }: AnswerSectionProps) {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const config = submitStateConfig[submitState];
@@ -124,6 +126,7 @@ export default function AnswerSection({
             submitLoading={loading}
             submitText={config.text}
             submitVariant={mathInputVariant}
+            isFocused={isFocused}
           />
         </div>
       </div>

@@ -429,6 +429,7 @@ export default function ErrorNoteInterface() {
                     }
                     onSubmissionResult={handleSubmissionResult}
                     isCorrect={solve.isCorrect}
+                    isFocused={focusedProblemId === problem.id}
                   />
                 </div>
               );
@@ -482,6 +483,7 @@ export default function ErrorNoteInterface() {
                       }
                       onSubmissionResult={handleSubmissionResult}
                       isCorrect={solve.isCorrect}
+                      isFocused={focusedProblemId === problem.id}
                     />
                   </div>
                 );

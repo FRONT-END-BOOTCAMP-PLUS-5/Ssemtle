@@ -43,9 +43,7 @@ export default function LayoutClient({
         <>
           <div
             id="mobile-sidebar"
-            className={`fixed inset-y-0 left-0 z-[60] overflow-y-auto bg-[var(--color-sidebar,_#fff)] shadow-xl transition-transform duration-300 min-[1181px]:hidden ${
-              isOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
+            className={`fixed inset-y-0 left-0 z-[60] overflow-y-auto bg-[var(--color-sidebar,_#fff)] shadow-xl transition-transform duration-300 min-[1181px]:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
             onClick={handleSidebarClick}
           >
             <RoleBasedSidebar />
@@ -53,9 +51,7 @@ export default function LayoutClient({
 
           <div
             id="mobile-overlay"
-            className={`fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300 min-[1181px]:hidden ${
-              isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-            } `}
+            className={`fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300 min-[1181px]:hidden ${isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
             aria-hidden="true"
             onClick={() => setIsOpen(false)}
           />

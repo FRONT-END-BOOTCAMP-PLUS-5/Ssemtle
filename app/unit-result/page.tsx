@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // 단원평가 결과 아이템 타입
+// 결과 항목 타입: 미응시 여부는 선택 필드로 내려옴
 type UnitSolveItem = {
   id: number;
   question: string;
@@ -13,6 +14,7 @@ type UnitSolveItem = {
   userInput: string;
   isCorrect: boolean;
   createdAt: string;
+  isUnanswered?: boolean;
 };
 
 // 사용자 단원평가 결과 조회 함수 (React Query용)
@@ -38,6 +40,7 @@ async function fetchMyUnitSolves(
     userInput: string;
     isCorrect: boolean;
     createdAt: string | number | Date;
+    isUnanswered?: boolean;
   }> = Array.isArray(data?.solves) ? data.solves : [];
   const items = list.map((s) => ({
     id: s.id,
@@ -47,6 +50,7 @@ async function fetchMyUnitSolves(
     userInput: s.userInput,
     isCorrect: Boolean(s.isCorrect),
     createdAt: new Date(s.createdAt).toISOString(),
+    isUnanswered: Boolean(s.isUnanswered),
   }));
   return { items, codeExists: Boolean(data?.codeExists) };
 }
@@ -300,7 +304,11 @@ const UnitResultContent = () => {
                   <span
                     className={`rounded px-2 py-1 text-sm ${it.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}
                   >
-                    {it.isCorrect ? '정답' : '오답'}
+                    {it.isCorrect
+                      ? '정답'
+                      : it.isUnanswered
+                        ? '미응시'
+                        : '오답'}
                   </span>
                   <span className="font-medium text-gray-800">
                     문제: {it.question}
@@ -327,7 +335,7 @@ const UnitResultContent = () => {
                       <div className="rounded border bg-white p-3 text-sm">
                         <div className="text-gray-500">내 답안</div>
                         <div className="font-semibold">
-                          {it.userInput || '-'}
+                          {it.isUnanswered ? '미응시' : it.userInput || '-'}
                         </div>
                       </div>
                       <div className="rounded border bg-white p-3 text-sm">

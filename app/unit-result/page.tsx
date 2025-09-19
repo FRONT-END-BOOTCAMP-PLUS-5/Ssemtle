@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 // 단원평가 결과 아이템 타입
 // 결과 항목 타입: 미응시 여부는 선택 필드로 내려옴
 type UnitSolveItem = {
+  questionId: number;
   id: number;
   question: string;
   answer: string;
@@ -33,6 +34,7 @@ async function fetchMyUnitSolves(
   }
   const data = await res.json();
   const list: Array<{
+    questionId: number;
     id: number;
     question: string;
     answer: string;
@@ -43,6 +45,7 @@ async function fetchMyUnitSolves(
     isUnanswered?: boolean;
   }> = Array.isArray(data?.solves) ? data.solves : [];
   const items = list.map((s) => ({
+    questionId: s.questionId,
     id: s.id,
     question: s.question,
     answer: s.answer,
@@ -125,13 +128,13 @@ const UnitResultContent = () => {
   }, [query.isSuccess, query.isError, query.data]);
 
   // 단일/전체 토글 핸들러
-  const toggleOne = (id: number) => {
+  const toggleOne = (qid: number) => {
     setOpenIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
+      if (next.has(qid)) {
+        next.delete(qid);
       } else {
-        next.add(id);
+        next.add(qid);
       }
       return next;
     });
@@ -284,16 +287,16 @@ const UnitResultContent = () => {
           </div>
         )}
         {items.map((it, idx) => {
-          const isOpen = openIds.has(it.id);
+          const isOpen = openIds.has(it.questionId);
           return (
             <div
-              key={it.id}
+              key={it.questionId}
               className={`overflow-hidden rounded-xl border ${it.isCorrect ? 'border-emerald-200' : 'border-rose-200'}`}
             >
               {/* 헤더 */}
               <button
                 className="flex w-full items-center justify-between bg-white p-4 text-left hover:bg-gray-50"
-                onClick={() => toggleOne(it.id)}
+                onClick={() => toggleOne(it.questionId)}
               >
                 <div className="flex items-center gap-3">
                   <span

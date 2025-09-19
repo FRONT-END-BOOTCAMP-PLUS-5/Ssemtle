@@ -111,6 +111,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         if (s) {
           return {
             id: s.id,
+            questionId: q.id,
             question: q.question,
             answer: q.answer,
             helpText: q.helpText ?? undefined,
@@ -120,7 +121,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           };
         }
         return {
-          id: -q.id, // 미응시 항목은 음수 id로 구분
+          id: q.id, // 미응시는 문제 ID를 그대로 사용하여 음수 ID 사용 제거
+          questionId: q.id,
           question: q.question,
           answer: q.answer,
           helpText: q.helpText ?? undefined,

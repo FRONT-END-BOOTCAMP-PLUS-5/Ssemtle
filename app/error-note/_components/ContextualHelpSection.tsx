@@ -19,12 +19,14 @@ interface ContextualHelpSectionProps {
   focusZone: FocusZone;
   currentProblem?: ErrorNoteProblem;
   isDraggable?: boolean;
+  onExpansionChange?: (isExpanded: boolean) => void;
 }
 
 export default function ContextualHelpSection({
   focusZone,
   currentProblem,
   isDraggable = false,
+  onExpansionChange,
 }: ContextualHelpSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,7 +44,7 @@ export default function ContextualHelpSection({
       return {
         title: isExpanded ? '도움말 접기' : '도움말 펼치기',
         content:
-          '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n여기를 클릭하면 접힙니다.\n길게 클릭하면 옮길 수 있습니다.',
+          '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n여기를 클릭하면 접습니다.\n길게 클릭하면 옮길 수 있습니다.',
         videoUrl: undefined,
         showContent: false,
       };
@@ -68,7 +70,7 @@ export default function ContextualHelpSection({
         return {
           title: isExpanded ? '도움말 접기' : '도움말 펼치기',
           content:
-            '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n 여기를 클릭하면 접힙니다.\n길게 클릭하면 옮길 수 있습니다.',
+            '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n 여기를 클릭하면 접습니다.\n길게 클릭하면 옮길 수 있습니다.',
           videoUrl: undefined,
           showContent: false,
         };
@@ -94,10 +96,12 @@ export default function ContextualHelpSection({
 
   const handleClick = useCallback(() => {
     if (!isLongPressRef.current) {
-      setIsExpanded(!isExpanded);
+      const newExpanded = !isExpanded;
+      setIsExpanded(newExpanded);
+      onExpansionChange?.(newExpanded);
     }
     isLongPressRef.current = false;
-  }, [isExpanded]);
+  }, [isExpanded, onExpansionChange]);
 
   // Gesture detection and draggable functionality
   useEffect(() => {

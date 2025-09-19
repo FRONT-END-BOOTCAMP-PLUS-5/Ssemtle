@@ -11,12 +11,38 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
+      <div
+        data-modal
+        className="fixed inset-0 z-50 bg-black/50"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
+      />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        data-modal
+        className="fixed inset-0 z-60 flex items-center justify-center p-4"
+        onClick={(e) => {
+          // Only close if clicking the container itself (gray area), not its children
+          if (e.target === e.currentTarget) {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }
+        }}
+      >
         <div className="relative w-full max-w-md">
-          <div className="overflow-hidden rounded-xl bg-white shadow-lg">
+          <div
+            data-modal
+            className="overflow-hidden rounded-xl bg-white shadow-lg"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
             {/* Header */}
             <div className="bg-gradient-to-r from-violet-500 to-violet-600 p-4">
               <div className="flex items-center justify-between">

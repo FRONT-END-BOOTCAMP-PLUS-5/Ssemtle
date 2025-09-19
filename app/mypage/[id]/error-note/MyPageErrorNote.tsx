@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
+import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 
 import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
 import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
@@ -62,6 +63,8 @@ function ymdToUtcZ(ymd: string, asEnd: boolean) {
 }
 
 export default function MyPageErrorNote() {
+  useKeyboardDetection();
+
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const params = useParams();

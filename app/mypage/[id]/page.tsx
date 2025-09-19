@@ -206,7 +206,7 @@ export default function MyPage() {
   const { data: session } = useSession();
 
   return (
-    <main className="min-h-[calc(100vh-64px)] w-full bg-[#f6f7fb]">
+    <div className="flex min-h-[calc(100vh-64px)] w-full justify-center min-[1181px]:pl-[var(--sidebar-w,_120px)]">
       <div className="mx-auto w-full max-w-6xl px-4 py-6">
         {/* 타이틀 */}
         <div className="w-full text-center">
@@ -372,7 +372,7 @@ export default function MyPage() {
                   <div
                     key={category}
                     role="button"
-                    onClick={() => goErrorNotePage(category)} // ✅ 여기
+                    onClick={() => goErrorNotePage(category)}
                     className="mx-auto my-2 flex w-full max-w-md cursor-pointer items-center justify-center transition-transform hover:scale-[1.01]"
                   >
                     <TestCard solves={solves} category={category} />
@@ -383,6 +383,6 @@ export default function MyPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

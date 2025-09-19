@@ -28,6 +28,7 @@ interface ErrorNoteCardProps {
   /** 이미 맞은 문제면 true: 카드 흐리게/초록테두리 + 입력 비활성화 */
   isCorrect?: boolean;
   readOnly?: boolean;
+  isFocused?: boolean;
 }
 
 export default function ErrorNoteCard({
@@ -40,6 +41,7 @@ export default function ErrorNoteCard({
   onSubmissionResult,
   isCorrect = false,
   readOnly = false,
+  isFocused = false,
 }: ErrorNoteCardProps) {
   // PUT hook for submitting corrections
   const submitCorrection = usePuts<
@@ -157,6 +159,7 @@ export default function ErrorNoteCard({
                     ? '정답입니다!'
                     : '정답을 다시 입력해보세요'
               }
+              isFocused={isFocused}
             />
           </div>
         </div>

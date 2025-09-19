@@ -110,7 +110,6 @@ export class GenerateSolvesByUnitUseCase {
         // 필수값이 없으면 스킵
         continue;
       }
-
       out.push({
         question,
         answer: stripAnswerSpaces(answerRaw),

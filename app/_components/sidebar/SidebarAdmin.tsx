@@ -33,10 +33,7 @@ export default function SidebarAdmin() {
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div
-      className="h-screen-dvh-minus-header-safe pt-safe-top pb-safe sticky top-[var(--header-h,50px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]"
-      style={{ height: 'calc(100vh - var(--header-h, 0px))' }}
-    >
+    <div className="h-screen-dvh-minus-header-safe pt-safe-top pb-safe sticky top-[var(--header-h,50px)] flex w-30 shrink-0 flex-col items-center justify-start gap-10 bg-[var(--color-sidebar)]">
       <HeaderSizeObserver />
 
       {NAV.map((item) =>

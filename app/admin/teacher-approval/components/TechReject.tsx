@@ -18,10 +18,21 @@ export default function TechReject({
 }: TechRejectProps) {
   const rejectMutation = useDeletes<
     TeacherAuthApprovalRequestDto,
-    TeacherAuthApprovalResponseDto
+    TeacherAuthApprovalResponseDto & {
+      data: {
+        id: number;
+        teacherId: string;
+        emailSent?: boolean;
+      };
+    }
   >({
     onSuccess: (data) => {
       toast.success(data.message);
+      if (data.data.emailSent === true) {
+        toast.success('거절 알림 이메일이 발송되었습니다.');
+      } else if (data.data.emailSent === false) {
+        toast.warn('거절 알림 이메일 발송에 실패했습니다.');
+      }
       onSuccess?.();
     },
     onError: () => {

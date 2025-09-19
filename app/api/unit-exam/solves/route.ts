@@ -55,22 +55,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       base
         ? prisma.unitExam.count({ where: { code: base } }).then((n) => n > 0)
         : Promise.resolve(false),
-      code
-        ? prisma.unitQuestion.count({ where: { unitCode: code } })
-        : Promise.resolve(0),
-      base
-        ? prisma.unitQuestion.count({ where: { unitCode: base } })
-        : Promise.resolve(0),
-      code
-        ? prisma.unitSolve.count({
-            where: { userId: targetUserId, question: { unitCode: code } },
-          })
-        : Promise.resolve(0),
-      base
-        ? prisma.unitSolve.count({
-            where: { userId: targetUserId, question: { unitCode: base } },
-          })
-        : Promise.resolve(0),
     ]);
 
     // debug logs removed
@@ -82,9 +66,77 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         { status: 400 }
       );
     }
+
+    // 코드가 있는 경우: 전체 문제 목록과 사용자의 제출 내역을 병합하여 미응시를 포함시킴
+    let merged:
+      | Array<{
+          id: number;
+          question: string;
+          answer: string;
+          helpText?: string;
+          userInput: string;
+          isCorrect: boolean;
+          createdAt: Date | string | number;
+          isUnanswered?: boolean;
+        }>
+      | undefined;
+
+    if (code) {
+      type UsecaseSolve = {
+        id: number;
+        questionId: number;
+        question: string;
+        answer: string;
+        helpText?: string;
+        userInput: string;
+        isCorrect: boolean;
+        createdAt: Date;
+        unitCode: string;
+      };
+      const questions = await prisma.unitQuestion.findMany({
+        where: { unitCode: code },
+        orderBy: { id: 'asc' },
+        select: { id: true, question: true, answer: true, helpText: true },
+      });
+
+      const solveByQid = new Map<number, UsecaseSolve>(
+        (result.solves as unknown as UsecaseSolve[]).map((s) => [
+          s.questionId,
+          s,
+        ])
+      );
+
+      merged = questions.map((q) => {
+        const s = solveByQid.get(q.id);
+        if (s) {
+          return {
+            id: s.id,
+            questionId: q.id,
+            question: q.question,
+            answer: q.answer,
+            helpText: q.helpText ?? undefined,
+            userInput: s.userInput,
+            isCorrect: s.isCorrect,
+            createdAt: s.createdAt,
+          };
+        }
+        return {
+          id: q.id, // 미응시는 문제 ID를 그대로 사용하여 음수 ID 사용 제거
+          questionId: q.id,
+          question: q.question,
+          answer: q.answer,
+          helpText: q.helpText ?? undefined,
+          userInput: '',
+          isCorrect: false, // 통계상 오답 처리
+          createdAt: new Date(),
+          isUnanswered: true,
+        };
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      solves: result.solves,
+      solves: merged ?? result.solves,
       codeExists,
     });
   } catch (error) {

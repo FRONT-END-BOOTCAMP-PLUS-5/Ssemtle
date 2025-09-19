@@ -13,11 +13,13 @@ interface AnswerSectionProps {
   onChange: (value: string) => void;
   onSubmit?: () => void;
   onNext: () => void;
+  onBlur?: () => void;
   submitState: SubmitState;
   wasAnswerCorrect?: boolean;
   loading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  isFocused?: boolean;
 }
 
 const submitStateConfig: Record<
@@ -54,11 +56,13 @@ export default function AnswerSection({
   onChange,
   onSubmit,
   onNext,
+  onBlur,
   submitState,
   wasAnswerCorrect,
   loading = false,
   disabled = false,
   placeholder = '답을 입력해 주세요',
+  isFocused = false,
 }: AnswerSectionProps) {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const config = submitStateConfig[submitState];
@@ -117,10 +121,12 @@ export default function AnswerSection({
             disabled={disabled || loading}
             onSubmit={onSubmit ? handleButtonClick : undefined}
             onHelp={() => setIsHelpModalOpen(true)}
+            onBlur={onBlur}
             submitDisabled={isDisabled}
             submitLoading={loading}
             submitText={config.text}
             submitVariant={mathInputVariant}
+            isFocused={isFocused}
           />
         </div>
       </div>

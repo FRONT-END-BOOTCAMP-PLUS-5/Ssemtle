@@ -3,6 +3,7 @@ import { CreateTeacherAuthUsecase } from '@/backend/admin/teachers/usecases/Crea
 import { SelectTeacherAuthListUsecase } from '@/backend/admin/teachers/usecases/SelectTeacherAuthListUsecase';
 import { DeleteTeacherAuthUsecase } from '@/backend/admin/teachers/usecases/DeleteTeacherAuthUsecase';
 import { PrAdmTchrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAdmTchrAuthRepository';
+import { ResendEmailService } from '@/backend/common/infrastructures/services/ResendEmailService';
 import { ApproveTeacherAuthUsecase } from '@/backend/admin/teachers/usecases/ApproveTeacherAuthUsecase';
 import prisma from '@/libs/prisma';
 
@@ -84,8 +85,10 @@ export async function DELETE(request: NextRequest) {
     const { id } = await request.json();
 
     const teacherAuthRepository = new PrAdmTchrAuthRepository(prisma);
+    const emailService = new ResendEmailService();
     const deleteTeacherAuthUseCase = new DeleteTeacherAuthUsecase(
-      teacherAuthRepository
+      teacherAuthRepository,
+      emailService
     );
 
     const deletedAuth = await deleteTeacherAuthUseCase.execute(id);

@@ -35,10 +35,16 @@ function KeypadButton({
     clear: 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm',
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick();
+  };
+
   return (
     <button
       className={`${baseClasses} ${variantClasses[variant]}`}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
     >
       {children}
@@ -57,9 +63,14 @@ export default function VirtualKeyboard({
   const advancedOperators = ['√', '^', '(', ')'];
   const variables = ['x', 'y', 'π'];
 
+  const handleKeyboardClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent global click handler from hiding keyboard
+  };
+
   return (
     <div
       data-virtual-keyboard
+      onClick={handleKeyboardClick}
       className={`fixed right-0 bottom-0 left-0 z-50 mx-auto w-full max-w-2xl transform transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}

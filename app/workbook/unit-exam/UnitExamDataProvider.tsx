@@ -118,7 +118,13 @@ export default function UnitExamDataProvider({
   } = useGets<UnitExamSolvesResponse>(
     ['unit-exam-solves', userId || session?.user?.id],
     `/unit-exam/solves${queryParams}`,
-    !!session?.user?.id
+    !!session?.user?.id,
+    undefined,
+    undefined,
+    {
+      // 항상 최신 데이터로 간주하여 마운트 시 재조회되도록 설정
+      staleTime: 0,
+    }
   );
 
   // Fetch units data for filtering

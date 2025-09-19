@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
+import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 
 import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
 import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
@@ -41,6 +42,8 @@ interface UnitVideoResponse {
 }
 
 export default function ErrorNoteInterface() {
+  useKeyboardDetection();
+
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
 
@@ -70,6 +73,7 @@ export default function ErrorNoteInterface() {
   >(new Map());
   const [isVirtualKeyboardVisible, setIsVirtualKeyboardVisible] =
     useState(false);
+  const [helpSectionExpanded, setHelpSectionExpanded] = useState(false);
 
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ✅ 타입 안전
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -236,7 +240,8 @@ export default function ErrorNoteInterface() {
       blurTimeoutRef.current = null;
     }
     setFocusedProblemId(problemId);
-    setIsVirtualKeyboardVisible(true);
+    // Only show keyboard if help section is not expanded
+    setIsVirtualKeyboardVisible(!helpSectionExpanded);
 
     // Use requestAnimationFrame for more reliable timing
     requestAnimationFrame(() => {
@@ -247,8 +252,14 @@ export default function ErrorNoteInterface() {
         ) as HTMLInputElement | null;
         if (input) {
           input.focus();
+          // Auto-scroll focused card into view above keyboard area
+          el?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+          });
         }
-      }, 50); // Shorter delay since we're using requestAnimationFrame
+      }, 100); // Shorter delay since we're using requestAnimationFrame
     });
   };
   const handleCardBlur = () => {
@@ -267,6 +278,15 @@ export default function ErrorNoteInterface() {
         blurTimeoutRef.current = null;
       }
     }, 100); // Reduced timeout since global click handler handles most cases
+  };
+
+  // Help section expansion handler
+  const handleHelpExpansionChange = (isExpanded: boolean) => {
+    setHelpSectionExpanded(isExpanded);
+    // Update keyboard visibility based on help section state and focus
+    if (focusedProblemId) {
+      setIsVirtualKeyboardVisible(!isExpanded);
+    }
   };
 
   // 입력/제출 상태
@@ -409,10 +429,16 @@ export default function ErrorNoteInterface() {
                   : undefined
               }
               isDraggable
+              onExpansionChange={handleHelpExpansionChange}
             />
           </div>
 
-          <div className="space-y-6 px-4">
+          <div
+            className="space-y-6 px-4 transition-all duration-100"
+            style={{
+              paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
+            }}
+          >
             {filteredSolves.map((solve) => {
               const problem = displayProblems.find(
                 (p) => p.id === solve.id.toString()
@@ -455,7 +481,12 @@ export default function ErrorNoteInterface() {
         {/* Tablet+ */}
         <div className="mx-auto hidden w-full gap-12 tablet:flex">
           <div className="max-h-full flex-1 overflow-y-auto pr-4">
-            <div className="space-y-6">
+            <div
+              className="space-y-6 transition-all duration-100"
+              style={{
+                paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
+              }}
+            >
               <div className="mb-6 text-center">
                 <h1 className="text-2xl font-bold text-gray-800">
                   내가 푼 문제들
@@ -516,6 +547,7 @@ export default function ErrorNoteInterface() {
                     : undefined
                 }
                 isDraggable={false}
+                onExpansionChange={handleHelpExpansionChange}
               />
             </div>
           </div>

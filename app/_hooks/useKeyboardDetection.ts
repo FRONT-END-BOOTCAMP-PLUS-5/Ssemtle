@@ -49,13 +49,7 @@ export function useKeyboardDetection() {
       }
 
       lastNotificationRef.current = now;
-      toast.info('이 페이지에서는 키보드를 사용하지 않습니다', {
-        position: 'top-center',
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
+      toast.info('이 페이지에서는 키보드를 사용하지 않습니다');
     };
 
     document.addEventListener('keydown', handleKeyDown);

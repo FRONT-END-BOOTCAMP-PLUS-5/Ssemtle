@@ -19,14 +19,16 @@ interface ContextualHelpSectionProps {
   focusZone: FocusZone;
   currentProblem?: ErrorNoteProblem;
   isDraggable?: boolean;
+  onExpansionChange?: (isExpanded: boolean) => void;
 }
 
 export default function ContextualHelpSection({
   focusZone,
   currentProblem,
   isDraggable = false,
+  onExpansionChange,
 }: ContextualHelpSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDragModeEnabled, setIsDragModeEnabled] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -40,8 +42,9 @@ export default function ContextualHelpSection({
   const getHelpContent = () => {
     if (!currentProblem || focusZone === 'none') {
       return {
-        title: '오답노트',
-        content: '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.',
+        title: isExpanded ? '도움말 접기' : '도움말 펼치기',
+        content:
+          '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n여기를 클릭하면 접습니다.\n길게 클릭하면 옮길 수 있습니다.',
         videoUrl: undefined,
         showContent: false,
       };
@@ -57,7 +60,7 @@ export default function ContextualHelpSection({
         };
       case 'answer':
         return {
-          title: '풀이 도움말',
+          title: isExpanded ? '도움말 접기' : '도움말 펼치기',
           content:
             currentProblem.helpText || '이 문제에 대한 자세한 설명이 없습니다.',
           videoUrl: currentProblem.videoUrl,
@@ -65,8 +68,9 @@ export default function ContextualHelpSection({
         };
       default:
         return {
-          title: '오답노트',
-          content: '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.',
+          title: isExpanded ? '도움말 접기' : '도움말 펼치기',
+          content:
+            '문제나 답안 영역을 클릭하면 관련 도움말이 표시됩니다.\n 여기를 클릭하면 접습니다.\n길게 클릭하면 옮길 수 있습니다.',
           videoUrl: undefined,
           showContent: false,
         };
@@ -92,10 +96,12 @@ export default function ContextualHelpSection({
 
   const handleClick = useCallback(() => {
     if (!isLongPressRef.current) {
-      setIsExpanded(!isExpanded);
+      const newExpanded = !isExpanded;
+      setIsExpanded(newExpanded);
+      onExpansionChange?.(newExpanded);
     }
     isLongPressRef.current = false;
-  }, [isExpanded]);
+  }, [isExpanded, onExpansionChange]);
 
   // Gesture detection and draggable functionality
   useEffect(() => {
@@ -373,7 +379,7 @@ export default function ContextualHelpSection({
       <div
         ref={elementRef}
         className={`mx-auto w-full tablet:min-w-sm ${
-          isDraggable ? 'fixed top-0 left-0 max-w-sm' : ''
+          isDraggable ? 'fixed top-12 left-0 max-w-sm' : ''
         } ${isDragModeEnabled && !isDragging ? 'wiggle-animation' : ''} ${
           isDragModeEnabled
             ? 'ring-opacity-50 rounded-xl ring-2 ring-blue-300'
@@ -483,7 +489,7 @@ export default function ContextualHelpSection({
                     )}
                   </div>
                 ) : (
-                  <p className="animate-in fade-in leading-relaxed text-gray-500 italic duration-200">
+                  <p className="animate-in fade-in leading-relaxed whitespace-pre-wrap text-gray-500 italic duration-200">
                     {helpContent.content}
                   </p>
                 )}

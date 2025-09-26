@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePosts } from '@/hooks/usePosts';
+import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 import AnswerSection from '@/app/_components/molecules/AnswerSection';
 import NumberPad from '@/app/_components/molecules/NumberPad';
 import ExamCountdown from '@/app/unit-exam/_components/ExamCountdown';
@@ -65,6 +66,8 @@ interface SubmitExamResponse {
 // Unit exam specific interfaces will be handled inline
 
 export default function UnitExamPageContent() {
+  useKeyboardDetection();
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

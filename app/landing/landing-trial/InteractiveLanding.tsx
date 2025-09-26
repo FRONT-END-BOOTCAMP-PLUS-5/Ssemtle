@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import type { JSX, MouseEvent } from 'react';
+import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 
 // 업로드해둔 컴포넌트들
 import ProblemDisplay from '@/app/_components/molecules/ProblemDisplay';
@@ -27,6 +28,8 @@ type Problem = {
 };
 
 export default function InteractiveLanding(): JSX.Element {
+  useKeyboardDetection();
+
   // ===== 마스코트 상태 =====
   const [mood, setMood] = useState<Mood>('neutral');
   const [eyeTarget, setEyeTarget] = useState<EyeTarget>({ x: 0, y: 0 });

@@ -44,10 +44,9 @@ export default async function RootLayout({
               <MainContainer>
                 <ToastContainer
                   position="top-center"
-                  limit={1}
-                  closeButton={true}
-                  autoClose={2500}
-                  hideProgressBar={false}
+                  autoClose={1500}
+                  stacked
+                  pauseOnHover={false}
                 />
                 {children}
               </MainContainer>

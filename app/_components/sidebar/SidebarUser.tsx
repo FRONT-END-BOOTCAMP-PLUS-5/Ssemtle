@@ -74,7 +74,7 @@ export default function SidebarUser() {
             type="button"
             aria-label={item.label}
             title={item.label}
-            onClick={() => signOut({ callbackUrl: '/' })} // ✅ 로그아웃 후 루트로 이동
+            onClick={() => signOut({ redirectTo: '/' })} // ✅ 로그아웃 후 루트로 이동
             className="group cursor-pointer rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">

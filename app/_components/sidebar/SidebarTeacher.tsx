@@ -60,7 +60,7 @@ export default function SidebarTeacher() {
             type="button"
             aria-label={item.label}
             title={item.label}
-            onClick={() => signOut({ callbackUrl: '/' })}
+            onClick={() => signOut({ redirectTo: '/' })}
             className="group cursor-pointer rounded-md text-gray-700 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <div className="mx-auto flex flex-col items-center justify-center text-center transition-transform duration-150 ease-out group-hover:scale-[1.06]">

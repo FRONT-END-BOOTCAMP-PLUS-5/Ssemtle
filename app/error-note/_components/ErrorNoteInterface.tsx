@@ -423,11 +423,24 @@ export default function ErrorNoteInterface() {
           <div className="mb-6 px-4">
             <ContextualHelpSection
               focusZone={focusedProblemId ? 'answer' : 'none'}
-              currentProblem={
-                focusedProblemId
+              currentProblem={(() => {
+                const problem = focusedProblemId
                   ? displayProblems.find((p) => p.id === focusedProblemId)
-                  : undefined
-              }
+                  : undefined;
+                console.log('📱 Mobile Debug:', {
+                  focusedProblemId,
+                  focusZone: focusedProblemId ? 'answer' : 'none',
+                  foundProblem: problem
+                    ? {
+                        id: problem.id,
+                        hasHelpText: !!problem.helpText,
+                        hasVideoUrl: !!problem.videoUrl,
+                      }
+                    : null,
+                  totalProblems: displayProblems.length,
+                });
+                return problem;
+              })()}
               isDraggable
               onExpansionChange={handleHelpExpansionChange}
             />
@@ -541,11 +554,24 @@ export default function ErrorNoteInterface() {
             <div className="sticky top-6">
               <ContextualHelpSection
                 focusZone={focusedProblemId ? 'answer' : 'none'}
-                currentProblem={
-                  focusedProblemId
+                currentProblem={(() => {
+                  const problem = focusedProblemId
                     ? displayProblems.find((p) => p.id === focusedProblemId)
-                    : undefined
-                }
+                    : undefined;
+                  console.log('🖥️ Desktop Debug:', {
+                    focusedProblemId,
+                    focusZone: focusedProblemId ? 'answer' : 'none',
+                    foundProblem: problem
+                      ? {
+                          id: problem.id,
+                          hasHelpText: !!problem.helpText,
+                          hasVideoUrl: !!problem.videoUrl,
+                        }
+                      : null,
+                    totalProblems: displayProblems.length,
+                  });
+                  return problem;
+                })()}
                 isDraggable={false}
                 onExpansionChange={handleHelpExpansionChange}
               />

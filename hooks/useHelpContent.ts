@@ -34,7 +34,20 @@ export function useHelpContent({
   isExpanded,
 }: UseHelpContentProps): HelpContent {
   const helpContent = useMemo(() => {
-    if (!currentProblem || focusZone === 'none') {
+    // Debug logging
+    console.log('🔍 Help Content Debug:', {
+      focusZone,
+      currentProblem: currentProblem
+        ? {
+            id: currentProblem.id,
+            hasHelpText: !!currentProblem.helpText,
+            hasVideoUrl: !!currentProblem.videoUrl,
+          }
+        : null,
+      isExpanded,
+    });
+
+    if (focusZone === 'none' || !currentProblem) {
       return {
         title: isExpanded ? '도움말 접기' : '도움말 펼치기',
         content:

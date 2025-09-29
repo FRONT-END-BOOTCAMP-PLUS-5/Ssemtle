@@ -42,6 +42,11 @@ const DragHandle = forwardRef<HTMLButtonElement, DragHandleProps>(
         } ${className}`}
         ref={ref}
         onClick={onClick}
+        onMouseDown={(e) => {
+          if (!isDraggable) {
+            e.preventDefault(); // Only prevent focus on desktop
+          }
+        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

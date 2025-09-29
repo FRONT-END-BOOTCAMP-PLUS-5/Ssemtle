@@ -1,6 +1,7 @@
 import { callGemini } from '@/backend/common/infrastructures/LLM/callGemini';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
+import { verifyAnswer } from '@/backend/utils/answer-verification';
 import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateSolvesByUnitUsecase';
 
 // GET /api/solves?unit=unitName
@@ -8,6 +9,8 @@ import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateS
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const unit = searchParams.get('unit');
+  const benchmarkParam =
+    searchParams.get('benchmark') ?? searchParams.get('benchmarkPromptLang');
   if (!unit) {
     return NextResponse.json(
       { error: '카테고리를 입력하세요' },
@@ -22,7 +25,9 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const solves = await usecase.execute(unit);
+  const solves = await usecase.execute(unit, {
+    benchmarkPromptLang: benchmarkParam === 'true' || benchmarkParam === '1',
+  });
   return NextResponse.json(solves);
 }
 
@@ -48,7 +53,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const isCorrect = String(userInput).trim() === String(answer).trim();
+    const isCorrect = verifyAnswer(String(userInput), String(answer));
 
     // SolveRepository 주입 및 저장
     const repo = new PrSolveRepository();

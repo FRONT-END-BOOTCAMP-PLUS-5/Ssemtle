@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import ErrorNoteInterface from '@/app/error-note/_components/ErrorNoteInterface';
-import { createMyPageConfig } from '@/app/error-note/_components/createMyPageConfig';
+import ErrorNoteInterface from '@/app/_components/error-note/ErrorNoteInterface';
+import { createMyPageConfig } from '@/app/_components/error-note/createMyPageConfig';
 
 export default function MyPageErrorNoteWrapper() {
   const { data: session, status } = useSession();

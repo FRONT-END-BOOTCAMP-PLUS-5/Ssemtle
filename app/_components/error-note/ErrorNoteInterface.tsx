@@ -8,18 +8,18 @@ import { useGets } from '@/hooks/useGets';
 import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 import { useIsTablet } from '@/hooks/useMediaQuery';
 
-import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
-import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
-import ContextualHelpSection from '@/app/error-note/_components/ContextualHelpSection';
+import ErrorNoteCard from '@/app/_components/error-note/ErrorNoteCard';
+import VirtualKeyboard from '@/app/_components/error-note/VirtualKeyboard';
+import ContextualHelpSection from '@/app/_components/error-note/ContextualHelpSection';
 
 type SubmissionState = 'initial' | 'correct' | 'incorrect';
 
 export interface FilterParams {
-  filterDate?: string;
-  startDate?: string;
-  endDate?: string;
-  category?: string;
-  show?: string;
+  filterDate?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  category?: string | null;
+  show?: string | null;
   unitId?: number;
 }
 

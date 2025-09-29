@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
 import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
+import { useIsTablet } from '@/hooks/useMediaQuery';
 
 import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
 import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
@@ -65,6 +66,7 @@ function ymdToUtcZ(ymd: string, asEnd: boolean) {
 export default function MyPageErrorNote() {
   useKeyboardDetection();
 
+  const isTablet = useIsTablet();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const params = useParams();
@@ -454,84 +456,32 @@ export default function MyPageErrorNote() {
           </div>
         )}
 
-        {/* Mobile */}
-        <div className="tablet:hidden">
-          <div className="mb-6 px-4 text-center">
-            <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-          </div>
+        {/* Mobile - Only render on mobile screens */}
+        {!isTablet && (
+          <div>
+            <div className="mb-6 px-4 text-center">
+              <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+            </div>
 
-          <div className="mb-6 px-4">
-            <ContextualHelpSection
-              focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
-              currentProblem={
-                focusedProblemId
-                  ? displayProblems.find((p) => p.id === focusedProblemId)
-                  : undefined
-              }
-              isDraggable={true}
-              onExpansionChange={handleHelpExpansionChange}
-            />
-          </div>
+            <div className="mb-6 px-4">
+              <ContextualHelpSection
+                focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
+                currentProblem={
+                  focusedProblemId
+                    ? displayProblems.find((p) => p.id === focusedProblemId)
+                    : undefined
+                }
+                isDraggable={true}
+                onExpansionChange={handleHelpExpansionChange}
+              />
+            </div>
 
-          <div
-            className="space-y-6 px-4 transition-all duration-100"
-            style={{
-              paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
-            }}
-          >
-            {displayProblems.map((p) => (
-              <div key={p.id} className="relative">
-                {!canEdit && (
-                  <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
-                )}
-                <div className={canEdit ? '' : 'pointer-events-none'}>
-                  <ErrorNoteCard
-                    problem={p}
-                    onFocus={handleCardFocus}
-                    onBlur={handleCardBlur}
-                    onInputChange={handleInputChange}
-                    userInput={userInputs.get(p.id) || ''}
-                    submissionState={submissionStates.get(p.id) || 'initial'}
-                    onSubmissionResult={handleSubmissionResult}
-                    readOnly={!canEdit}
-                    isFocused={focusedProblemId === p.id}
-                  />
-                </div>
-              </div>
-            ))}
-
-            {isFetchingNextPage && (
-              <div className="flex justify-center py-4">
-                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500" />
-              </div>
-            )}
-            {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
-            {isError && (
-              <div className="flex justify-center py-12">
-                <div className="text-sm text-red-600">
-                  데이터를 불러오는데 실패했습니다
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tablet+ */}
-        <div className="mx-auto hidden w-full gap-12 tablet:flex">
-          <div className="max-h-full flex-1 overflow-y-auto pr-4">
             <div
-              className="space-y-6 transition-all duration-100"
+              className="space-y-6 px-4 transition-all duration-100"
               style={{
                 paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
               }}
             >
-              <div className="mb-6 text-center">
-                <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
-                <p className="mt-2 text-gray-600">
-                  선택한 조건의 오답만 표시됩니다
-                </p>
-              </div>
-
               {displayProblems.map((p) => (
                 <div key={p.id} className="relative">
                   {!canEdit && (
@@ -568,22 +518,80 @@ export default function MyPageErrorNote() {
               )}
             </div>
           </div>
+        )}
 
-          <div className="w-80 flex-shrink-0">
-            <div className="sticky top-6">
-              <ContextualHelpSection
-                focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
-                currentProblem={
-                  focusedProblemId
-                    ? displayProblems.find((p) => p.id === focusedProblemId)
-                    : undefined
-                }
-                isDraggable={false}
-                onExpansionChange={handleHelpExpansionChange}
-              />
+        {/* Tablet+ - Only render on tablet+ screens */}
+        {isTablet && (
+          <div className="mx-auto flex w-full gap-12">
+            <div className="max-h-full flex-1 overflow-y-auto pr-4">
+              <div
+                className="space-y-6 transition-all duration-100"
+                style={{
+                  paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
+                }}
+              >
+                <div className="mb-6 text-center">
+                  <h1 className="text-2xl font-bold text-gray-800">오답노트</h1>
+                  <p className="mt-2 text-gray-600">
+                    선택한 조건의 오답만 표시됩니다
+                  </p>
+                </div>
+
+                {displayProblems.map((p) => (
+                  <div key={p.id} className="relative">
+                    {!canEdit && (
+                      <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
+                    )}
+                    <div className={canEdit ? '' : 'pointer-events-none'}>
+                      <ErrorNoteCard
+                        problem={p}
+                        onFocus={handleCardFocus}
+                        onBlur={handleCardBlur}
+                        onInputChange={handleInputChange}
+                        userInput={userInputs.get(p.id) || ''}
+                        submissionState={
+                          submissionStates.get(p.id) || 'initial'
+                        }
+                        onSubmissionResult={handleSubmissionResult}
+                        readOnly={!canEdit}
+                        isFocused={focusedProblemId === p.id}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {isFetchingNextPage && (
+                  <div className="flex justify-center py-4">
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500" />
+                  </div>
+                )}
+                {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
+                {isError && (
+                  <div className="flex justify-center py-12">
+                    <div className="text-sm text-red-600">
+                      데이터를 불러오는데 실패했습니다
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="w-80 flex-shrink-0">
+              <div className="sticky top-6">
+                <ContextualHelpSection
+                  focusZone={focusedProblemId && canEdit ? 'answer' : 'none'}
+                  currentProblem={
+                    focusedProblemId
+                      ? displayProblems.find((p) => p.id === focusedProblemId)
+                      : undefined
+                  }
+                  isDraggable={false}
+                  onExpansionChange={handleHelpExpansionChange}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <VirtualKeyboard
           isVisible={isVirtualKeyboardVisible && canEdit}

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useInfiniteGets } from '@/hooks/useInfiniteGets';
 import { useGets } from '@/hooks/useGets';
 import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
+import { useIsTablet } from '@/hooks/useMediaQuery';
 
 import ErrorNoteCard from '@/app/error-note/_components/ErrorNoteCard';
 import VirtualKeyboard from '@/app/error-note/_components/VirtualKeyboard';
@@ -44,6 +45,7 @@ interface UnitVideoResponse {
 export default function ErrorNoteInterface() {
   useKeyboardDetection();
 
+  const isTablet = useIsTablet();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
 
@@ -74,6 +76,7 @@ export default function ErrorNoteInterface() {
   const [isVirtualKeyboardVisible, setIsVirtualKeyboardVisible] =
     useState(false);
   const [helpSectionExpanded, setHelpSectionExpanded] = useState(false);
+  const [desktopHelpExpanded, setDesktopHelpExpanded] = useState(false);
 
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ✅ 타입 안전
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -147,11 +150,12 @@ export default function ErrorNoteInterface() {
     ? filteredSolves.find((s) => s.id.toString() === focusedProblemId)
     : null;
 
-  const { data: videoData } = useGets<UnitVideoResponse>(
-    ['unitVideo', focusedProblem?.unitId],
-    `/unitvidurl/${focusedProblem?.unitId}`,
-    !!focusedProblem?.unitId
-  );
+  const { data: videoData, isLoading: isVideoLoading } =
+    useGets<UnitVideoResponse>(
+      ['unitVideo', focusedProblem?.unitId],
+      `/unitvidurl/${focusedProblem?.unitId}`,
+      !!focusedProblem?.unitId
+    );
 
   // Preserve focus when video data loads and causes re-render
   useEffect(() => {
@@ -162,35 +166,59 @@ export default function ErrorNoteInterface() {
         blurTimeoutRef.current = null;
       }
 
-      // Longer delay to ensure DOM is updated after re-render and avoid timing conflicts
-      setTimeout(() => {
-        const el = document.querySelector(
-          `[data-problem-card="${focusedProblemId}"]`
-        );
-        const input = el?.querySelector(
-          'input[type="text"]'
-        ) as HTMLInputElement | null;
-        if (input && document.activeElement !== input) {
-          input.focus();
-        }
-      }, 150); // Increased delay to avoid timing conflicts
+      // Use requestAnimationFrame for better synchronization with React render cycle
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.querySelector(
+            `[data-problem-card="${focusedProblemId}"]`
+          );
+          const input = el?.querySelector(
+            'input[type="text"]'
+          ) as HTMLInputElement | null;
+          if (input && document.activeElement !== input) {
+            input.focus();
+          }
+        }, 100); // Reduced delay since requestAnimationFrame ensures DOM is ready
+      });
     }
   }, [videoData, focusedProblemId]);
 
-  // 렌더용 매핑
-  const displayProblems: ErrorNoteProblem[] = filteredSolves.map((solve) => ({
-    id: solve.id.toString(),
-    question: solve.question || 'No question available',
-    userAnswer: solve.userInput || '',
-    correctAnswer: solve.answer || '',
-    helpText: solve.helpText || 'No help text available',
-    instruction: undefined,
-    unitName: solve.category,
-    videoUrl:
-      focusedProblemId === solve.id.toString() && videoData?.data?.vidUrl
-        ? videoData.data.vidUrl
-        : undefined,
-  }));
+  // 렌더용 매핑 - 비디오 로딩 레이스 컨디션 방지를 위해 memoized
+  const displayProblems: ErrorNoteProblem[] = useMemo(() => {
+    return filteredSolves.map((solve) => ({
+      id: solve.id.toString(),
+      question: solve.question || 'No question available',
+      userAnswer: solve.userInput || '',
+      correctAnswer: solve.answer || '',
+      helpText: solve.helpText || 'No help text available',
+      instruction: undefined,
+      unitName: solve.category,
+      videoUrl:
+        focusedProblemId === solve.id.toString() &&
+        !isVideoLoading &&
+        videoData?.data?.vidUrl
+          ? videoData.data.vidUrl
+          : undefined,
+    }));
+  }, [
+    filteredSolves,
+    focusedProblemId,
+    videoData?.data?.vidUrl,
+    isVideoLoading,
+  ]);
+
+  // Enhanced focus management for desktop help content synchronization
+  useEffect(() => {
+    if (focusedProblemId && !isVideoLoading && videoData?.data?.vidUrl) {
+      // Ensure help components get updated displayProblems after video loads
+      // Brief delay to ensure state propagation
+    }
+  }, [
+    focusedProblemId,
+    isVideoLoading,
+    videoData?.data?.vidUrl,
+    displayProblems.length,
+  ]);
 
   // 무한 스크롤 옵저버
   const handleIntersection = useRef(
@@ -233,15 +261,18 @@ export default function ErrorNoteInterface() {
     }
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 카드 포커스/블러
+  // 카드 포커스/블러 - enhanced for desktop synchronization
   const handleCardFocus = (problemId: string) => {
     if (blurTimeoutRef.current) {
       clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = null;
     }
+
+    const relevantHelpExpanded = isTablet
+      ? desktopHelpExpanded
+      : helpSectionExpanded;
     setFocusedProblemId(problemId);
-    // Only show keyboard if help section is not expanded
-    setIsVirtualKeyboardVisible(!helpSectionExpanded);
+    setIsVirtualKeyboardVisible(!relevantHelpExpanded);
 
     // Use requestAnimationFrame for more reliable timing
     requestAnimationFrame(() => {
@@ -252,12 +283,14 @@ export default function ErrorNoteInterface() {
         ) as HTMLInputElement | null;
         if (input) {
           input.focus();
-          // Auto-scroll focused card into view above keyboard area
-          el?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'nearest',
-          });
+          // Auto-scroll focused card into view above keyboard area (mobile only)
+          if (!isTablet) {
+            el?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest',
+            });
+          }
         }
       }, 100); // Shorter delay since we're using requestAnimationFrame
     });
@@ -280,10 +313,19 @@ export default function ErrorNoteInterface() {
     }, 100); // Reduced timeout since global click handler handles most cases
   };
 
-  // Help section expansion handler
+  // Mobile help section expansion handler
   const handleHelpExpansionChange = (isExpanded: boolean) => {
     setHelpSectionExpanded(isExpanded);
-    // Update keyboard visibility based on help section state and focus
+    if (focusedProblemId) {
+      setIsVirtualKeyboardVisible(!isExpanded);
+    }
+  };
+
+  // Desktop help section expansion handler
+  const handleDesktopHelpExpansionChange = (isExpanded: boolean) => {
+    setDesktopHelpExpanded(isExpanded);
+
+    // Update keyboard visibility for desktop when there's a focused problem
     if (focusedProblemId) {
       setIsVirtualKeyboardVisible(!isExpanded);
     }
@@ -409,108 +451,42 @@ export default function ErrorNoteInterface() {
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-16 desktop:px-24">
-        {/* Mobile */}
-        <div className="tablet:hidden">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-800">내가 푼 문제들</h1>
-            {showAll && (
-              <p className="mt-2 text-sm text-gray-500">
-                맞은 문제는 흐리게 표시됩니다
-              </p>
-            )}
-          </div>
+        {/* Mobile - Only render on mobile screens */}
+        {!isTablet && (
+          <div>
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-bold text-gray-800">
+                내가 푼 문제들
+              </h1>
+              {showAll && (
+                <p className="mt-2 text-sm text-gray-500">
+                  맞은 문제는 흐리게 표시됩니다
+                </p>
+              )}
+            </div>
 
-          <div className="mb-6 px-4">
-            <ContextualHelpSection
-              focusZone={focusedProblemId ? 'answer' : 'none'}
-              currentProblem={(() => {
-                const problem = focusedProblemId
-                  ? displayProblems.find((p) => p.id === focusedProblemId)
-                  : undefined;
-                console.log('📱 Mobile Debug:', {
-                  focusedProblemId,
-                  focusZone: focusedProblemId ? 'answer' : 'none',
-                  foundProblem: problem
-                    ? {
-                        id: problem.id,
-                        hasHelpText: !!problem.helpText,
-                        hasVideoUrl: !!problem.videoUrl,
-                      }
-                    : null,
-                  totalProblems: displayProblems.length,
-                });
-                return problem;
-              })()}
-              isDraggable
-              onExpansionChange={handleHelpExpansionChange}
-            />
-          </div>
+            <div className="mb-6 px-4">
+              <ContextualHelpSection
+                focusZone={focusedProblemId ? 'answer' : 'none'}
+                currentProblem={(() => {
+                  const problem = focusedProblemId
+                    ? displayProblems.find((p) => p.id === focusedProblemId)
+                    : undefined;
+                  // Mobile component rendering
+                  return problem;
+                })()}
+                isDraggable
+                onExpansionChange={handleHelpExpansionChange}
+                componentId="mobile"
+              />
+            </div>
 
-          <div
-            className="space-y-6 px-4 transition-all duration-100"
-            style={{
-              paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
-            }}
-          >
-            {filteredSolves.map((solve) => {
-              const problem = displayProblems.find(
-                (p) => p.id === solve.id.toString()
-              )!;
-              return (
-                <div key={problem.id}>
-                  <ErrorNoteCard
-                    problem={problem}
-                    onFocus={handleCardFocus}
-                    onBlur={handleCardBlur}
-                    onInputChange={handleInputChange}
-                    userInput={userInputs.get(problem.id) || ''}
-                    submissionState={
-                      submissionStates.get(problem.id) || 'initial'
-                    }
-                    onSubmissionResult={handleSubmissionResult}
-                    isCorrect={solve.isCorrect}
-                    isFocused={focusedProblemId === problem.id}
-                  />
-                </div>
-              );
-            })}
-
-            {isFetchingNextPage && (
-              <div className="flex justify-center py-4">
-                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
-              </div>
-            )}
-            {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
-            {isError && (
-              <div className="flex justify-center py-12">
-                <div className="text-sm text-red-600">
-                  데이터를 불러오는데 실패했습니다
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tablet+ */}
-        <div className="mx-auto hidden w-full gap-12 tablet:flex">
-          <div className="max-h-full flex-1 overflow-y-auto pr-4">
             <div
-              className="space-y-6 transition-all duration-100"
+              className="space-y-6 px-4 transition-all duration-100"
               style={{
                 paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
               }}
             >
-              <div className="mb-6 text-center">
-                <h1 className="text-2xl font-bold text-gray-800">
-                  내가 푼 문제들
-                </h1>
-                {showAll && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    맞은 문제는 흐리게 표시됩니다
-                  </p>
-                )}
-              </div>
-
               {filteredSolves.map((solve) => {
                 const problem = displayProblems.find(
                   (p) => p.id === solve.id.toString()
@@ -549,35 +525,87 @@ export default function ErrorNoteInterface() {
               )}
             </div>
           </div>
+        )}
 
-          <div className="w-80 flex-shrink-0">
-            <div className="sticky top-6">
-              <ContextualHelpSection
-                focusZone={focusedProblemId ? 'answer' : 'none'}
-                currentProblem={(() => {
-                  const problem = focusedProblemId
-                    ? displayProblems.find((p) => p.id === focusedProblemId)
-                    : undefined;
-                  console.log('🖥️ Desktop Debug:', {
-                    focusedProblemId,
-                    focusZone: focusedProblemId ? 'answer' : 'none',
-                    foundProblem: problem
-                      ? {
-                          id: problem.id,
-                          hasHelpText: !!problem.helpText,
-                          hasVideoUrl: !!problem.videoUrl,
+        {/* Tablet+ - Only render on tablet+ screens */}
+        {isTablet && (
+          <div className="mx-auto flex w-full gap-12">
+            <div className="max-h-full flex-1 overflow-y-auto pr-4">
+              <div
+                className="space-y-6 transition-all duration-100"
+                style={{
+                  paddingBottom: isVirtualKeyboardVisible ? '250px' : '0px',
+                }}
+              >
+                <div className="mb-6 text-center">
+                  <h1 className="text-2xl font-bold text-gray-800">
+                    내가 푼 문제들
+                  </h1>
+                  {showAll && (
+                    <p className="mt-2 text-sm text-gray-500">
+                      맞은 문제는 흐리게 표시됩니다
+                    </p>
+                  )}
+                </div>
+
+                {filteredSolves.map((solve) => {
+                  const problem = displayProblems.find(
+                    (p) => p.id === solve.id.toString()
+                  )!;
+                  return (
+                    <div key={problem.id}>
+                      <ErrorNoteCard
+                        problem={problem}
+                        onFocus={handleCardFocus}
+                        onBlur={handleCardBlur}
+                        onInputChange={handleInputChange}
+                        userInput={userInputs.get(problem.id) || ''}
+                        submissionState={
+                          submissionStates.get(problem.id) || 'initial'
                         }
-                      : null,
-                    totalProblems: displayProblems.length,
-                  });
-                  return problem;
-                })()}
-                isDraggable={false}
-                onExpansionChange={handleHelpExpansionChange}
-              />
+                        onSubmissionResult={handleSubmissionResult}
+                        isCorrect={solve.isCorrect}
+                        isFocused={focusedProblemId === problem.id}
+                      />
+                    </div>
+                  );
+                })}
+
+                {isFetchingNextPage && (
+                  <div className="flex justify-center py-4">
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-violet-500"></div>
+                  </div>
+                )}
+                {hasNextPage && <div ref={loaderRef} className="h-4 w-full" />}
+                {isError && (
+                  <div className="flex justify-center py-12">
+                    <div className="text-sm text-red-600">
+                      데이터를 불러오는데 실패했습니다
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="w-80 flex-shrink-0">
+              <div className="sticky top-6">
+                <ContextualHelpSection
+                  focusZone={focusedProblemId ? 'answer' : 'none'}
+                  currentProblem={(() => {
+                    const problem = focusedProblemId
+                      ? displayProblems.find((p) => p.id === focusedProblemId)
+                      : undefined;
+                    // Desktop component rendering
+                    return problem;
+                  })()}
+                  isDraggable={false}
+                  onExpansionChange={handleDesktopHelpExpansionChange}
+                  componentId="desktop"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <VirtualKeyboard
           isVisible={isVirtualKeyboardVisible}

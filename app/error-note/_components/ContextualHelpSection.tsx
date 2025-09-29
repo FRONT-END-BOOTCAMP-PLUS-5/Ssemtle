@@ -17,6 +17,7 @@ interface ContextualHelpSectionProps {
   currentProblem?: ErrorNoteProblem;
   isDraggable?: boolean;
   onExpansionChange?: (isExpanded: boolean) => void;
+  componentId?: string;
 }
 
 export default function ContextualHelpSection({
@@ -24,6 +25,7 @@ export default function ContextualHelpSection({
   currentProblem,
   isDraggable = false,
   onExpansionChange,
+  componentId = 'unknown',
 }: ContextualHelpSectionProps) {
   const elementRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +67,7 @@ export default function ContextualHelpSection({
     focusZone,
     currentProblem,
     isExpanded,
+    componentId,
   });
 
   return (
@@ -113,6 +116,7 @@ export default function ContextualHelpSection({
 
       <div
         ref={elementRef}
+        data-clickable-zone
         className={`mx-auto w-full tablet:min-w-sm ${
           isDraggable ? 'fixed top-12 left-0 max-w-sm' : ''
         } ${isDragModeEnabled && !isDragging ? 'wiggle-animation' : ''} ${

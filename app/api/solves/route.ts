@@ -9,8 +9,7 @@ import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateS
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const unit = searchParams.get('unit');
-  const benchmarkParam =
-    searchParams.get('benchmark') ?? searchParams.get('benchmarkPromptLang');
+  // benchmarkParam 은 더 이상 사용하지 않음 (프롬프트 벤치마크 제거)
   if (!unit) {
     return NextResponse.json(
       { error: '카테고리를 입력하세요' },
@@ -25,9 +24,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const solves = await usecase.execute(unit, {
-    benchmarkPromptLang: benchmarkParam === 'true' || benchmarkParam === '1',
-  });
+  const solves = await usecase.execute(unit);
   return NextResponse.json(solves);
 }
 

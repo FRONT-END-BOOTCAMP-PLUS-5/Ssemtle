@@ -5,11 +5,7 @@ import { IUnitExamRepository } from '../../common/domains/repositories/IUnitExam
 import { IUnitQuestionRepository } from '../../common/domains/repositories/IUnitQuestionRepository';
 import { IUnitExamAttemptRepository } from '../../common/domains/repositories/IUnitExamAttemptRepository';
 import { IUnitSolveRepository } from '../../common/domains/repositories/IUnitSolveRepository';
-import {
-  callGemini,
-  callGeminiWithMeta,
-} from '../../common/infrastructures/LLM/callGemini';
-import { performance } from 'node:perf_hooks';
+import { callGemini } from '../../common/infrastructures/LLM/callGemini';
 import {
   GenerateUnitExamRequestDto,
   UnitExamGenerationResult,
@@ -95,115 +91,7 @@ export class GenerateUnitExamUseCase {
         return this.execute(request);
       }
 
-      // 프롬프트 언어 벤치마크(옵션): 한글/영문 각각 호출 시간 측정 후 콘솔 출력
-      if (request.benchmarkPromptLang) {
-        try {
-          // 한글 프롬프트 시간 측정
-          const koreanPrompt = this.createPrompt(
-            request.selectedUnits,
-            request.questionCount
-          );
-          console.log(
-            '[GenerateUnitExamUseCase] 벤치마크 시작 - Korean prompt'
-          );
-          const koreanStart = performance.now();
-          const krRes = await callGeminiWithMeta(koreanPrompt);
-          const koreanElapsedMs = performance.now() - koreanStart;
-          console.log(
-            '한글일 때 실행시간 :',
-            `${Math.round(koreanElapsedMs)}ms`
-          );
-          if (krRes.usage) {
-            console.log(
-              '한글 토큰 사용량: prompt=%d, response=%d, total=%d',
-              krRes.usage.promptTokens ?? -1,
-              krRes.usage.responseTokens ?? -1,
-              krRes.usage.totalTokens ?? -1
-            );
-          }
-
-          // 영문 프롬프트 시간 측정
-          const englishPrompt = this.createPromptEnglish(
-            request.selectedUnits,
-            request.questionCount
-          );
-          console.log(
-            '[GenerateUnitExamUseCase] 벤치마크 시작 - English prompt'
-          );
-          const englishStart = performance.now();
-          const enRes = await callGeminiWithMeta(englishPrompt);
-          const englishElapsedMs = performance.now() - englishStart;
-          console.log(
-            '영문일 때 실행시간 ',
-            `${Math.round(englishElapsedMs)}ms`
-          );
-          if (enRes.usage) {
-            console.log(
-              '영문 토큰 사용량: prompt=%d, response=%d, total=%d',
-              enRes.usage.promptTokens ?? -1,
-              enRes.usage.responseTokens ?? -1,
-              enRes.usage.totalTokens ?? -1
-            );
-          }
-
-          // 절감률(영문 사용 시, 한글 대비) 계산 및 출력
-          if (koreanElapsedMs > 0) {
-            const timeReductionPct =
-              ((koreanElapsedMs - englishElapsedMs) / koreanElapsedMs) * 100;
-            console.log(
-              '실행시간 절감률(영문 대비): %s',
-              `${timeReductionPct.toFixed(1)}%`
-            );
-          }
-          const krTotal = krRes.usage?.totalTokens;
-          const enTotal = enRes.usage?.totalTokens;
-          if (
-            typeof krTotal === 'number' &&
-            krTotal > 0 &&
-            typeof enTotal === 'number'
-          ) {
-            const tokenReductionPct = ((krTotal - enTotal) / krTotal) * 100;
-            console.log(
-              '토큰 절감률(총, 영문 대비): %s (한글=%d, 영문=%d)',
-              `${tokenReductionPct.toFixed(1)}%`,
-              krTotal,
-              enTotal
-            );
-          }
-          const krPrompt = krRes.usage?.promptTokens;
-          const enPrompt = enRes.usage?.promptTokens;
-          if (
-            typeof krPrompt === 'number' &&
-            krPrompt > 0 &&
-            typeof enPrompt === 'number'
-          ) {
-            const promptReductionPct = ((krPrompt - enPrompt) / krPrompt) * 100;
-            console.log(
-              '토큰 절감률(프롬프트, 영문 대비): %s (한글=%d, 영문=%d)',
-              `${promptReductionPct.toFixed(1)}%`,
-              krPrompt,
-              enPrompt
-            );
-          }
-          const krResp = krRes.usage?.responseTokens;
-          const enResp = enRes.usage?.responseTokens;
-          if (
-            typeof krResp === 'number' &&
-            krResp > 0 &&
-            typeof enResp === 'number'
-          ) {
-            const respReductionPct = ((krResp - enResp) / krResp) * 100;
-            console.log(
-              '토큰 절감률(응답, 영문 대비): %s (한글=%d, 영문=%d)',
-              `${respReductionPct.toFixed(1)}%`,
-              krResp,
-              enResp
-            );
-          }
-        } catch (benchError) {
-          console.error('프롬프트 언어 벤치마크 중 오류:', benchError);
-        }
-      }
+      // 프롬프트 언어 벤치마크 기능 제거됨
 
       // AI를 사용하여 문제 생성: 요청 수를 여유분(+5) 포함하여 요청
       const overRequest = request.questionCount + 5;

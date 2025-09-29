@@ -14,6 +14,33 @@ import ContextualHelpSection from '@/app/error-note/_components/ContextualHelpSe
 
 type SubmissionState = 'initial' | 'correct' | 'incorrect';
 
+export interface FilterParams {
+  filterDate?: string;
+  startDate?: string;
+  endDate?: string;
+  category?: string;
+  show?: string;
+  unitId?: number;
+}
+
+export interface ErrorNoteConfig {
+  // API configuration
+  getEndpoint: (params: FilterParams & { effectiveUserId?: string }) => string;
+  buildQueryParams: (
+    filters: FilterParams & { effectiveUserId?: string; showAll?: boolean }
+  ) => Record<string, string>;
+
+  // Permissions & editing
+  canEdit: boolean;
+  targetUserId?: string;
+
+  // UI customization
+  title: string;
+  showAllOption?: boolean;
+  showReadOnlyIndicators?: boolean;
+  readOnlyMessage?: string;
+}
+
 interface ErrorNoteProblem {
   id: string;
   question: string;
@@ -42,12 +69,44 @@ interface UnitVideoResponse {
   data: { id: number; vidUrl: string };
 }
 
-export default function ErrorNoteInterface() {
+interface ErrorNoteInterfaceProps {
+  config?: ErrorNoteConfig;
+}
+
+// Default configuration for own error notes (original behavior)
+const createDefaultConfig = (): ErrorNoteConfig => ({
+  getEndpoint: ({ show }) =>
+    show === 'all' ? '/solves/list' : '/solves/mode/wrong',
+  buildQueryParams: ({ filterDate, startDate, endDate, category, showAll }) => {
+    const base: Record<string, string> = { limit: '20' };
+    if (!showAll) base.only = 'wrong';
+    if (filterDate) {
+      base.start = filterDate;
+      base.end = filterDate;
+    } else {
+      if (startDate) base.start = startDate;
+      if (endDate) base.end = endDate;
+    }
+    if (category) base.category = category;
+    return base;
+  },
+  canEdit: true,
+  title: '내가 푼 문제들',
+  showAllOption: true,
+  showReadOnlyIndicators: false,
+});
+
+export default function ErrorNoteInterface({
+  config,
+}: ErrorNoteInterfaceProps) {
   useKeyboardDetection();
 
   const isTablet = useIsTablet();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
+
+  // Use provided config or create default
+  const finalConfig = config || createDefaultConfig();
 
   // ✅ 쿼리
   const filterDate = searchParams.get('date'); // YYYY-MM-DD
@@ -55,8 +114,10 @@ export default function ErrorNoteInterface() {
   const endDate = searchParams.get('end'); // YYYY-MM-DD
   const category = searchParams.get('category');
   const show = searchParams.get('show'); // 'all' 이면 전부
+  const unitIdStr = searchParams.get('unitId');
+  const unitId = unitIdStr ? Number(unitIdStr) : undefined;
 
-  const showAll = show === 'all'; // ✅
+  const showAll = show === 'all' && finalConfig.showAllOption; // ✅
 
   // KST YYYY-MM-DD
   const toKstYmd = (dLike: string | number | Date) =>
@@ -81,22 +142,31 @@ export default function ErrorNoteInterface() {
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ✅ 타입 안전
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // ✅ API 파라미터 & 엔드포인트 선택
-  const qs = useMemo(() => {
-    const base: Record<string, string> = { limit: '20' };
-    if (!showAll) base.only = 'wrong'; // 기존 동작
-    if (filterDate) {
-      base.start = filterDate;
-      base.end = filterDate;
-    } else {
-      if (startDate) base.start = startDate;
-      if (endDate) base.end = endDate;
-    }
-    if (category) base.category = category;
-    return base;
-  }, [showAll, filterDate, startDate, endDate, category]);
+  // ✅ API 파라미터 & 엔드포인트 선택 (using config)
+  const filters = useMemo(
+    () => ({
+      filterDate,
+      startDate,
+      endDate,
+      category,
+      show,
+      unitId,
+      showAll,
+    }),
+    [filterDate, startDate, endDate, category, show, unitId, showAll]
+  );
 
-  const endpoint = showAll ? '/solves/list' : '/solves/mode/wrong'; // ✅
+  const qs = useMemo(() => {
+    return finalConfig.buildQueryParams({
+      ...filters,
+      effectiveUserId: finalConfig.targetUserId,
+    });
+  }, [finalConfig, filters]);
+
+  const endpoint = finalConfig.getEndpoint({
+    ...filters,
+    effectiveUserId: finalConfig.targetUserId,
+  }); // ✅
 
   // ✅ 데이터 요청 (무한스크롤)
   const {
@@ -451,14 +521,21 @@ export default function ErrorNoteInterface() {
   return (
     <div className="mx-auto w-full">
       <div className="mx-auto pt-6 tablet:px-16 desktop:px-24">
+        {/* Read-only message for MyPage */}
+        {finalConfig.showReadOnlyIndicators && finalConfig.readOnlyMessage && (
+          <div className="mx-4 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 tablet:mx-0">
+            {finalConfig.readOnlyMessage}
+          </div>
+        )}
+
         {/* Mobile - Only render on mobile screens */}
         {!isTablet && (
           <div>
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-bold text-gray-800">
-                내가 푼 문제들
+                {finalConfig.title}
               </h1>
-              {showAll && (
+              {showAll && finalConfig.showAllOption && (
                 <p className="mt-2 text-sm text-gray-500">
                   맞은 문제는 흐리게 표시됩니다
                 </p>
@@ -492,20 +569,31 @@ export default function ErrorNoteInterface() {
                   (p) => p.id === solve.id.toString()
                 )!;
                 return (
-                  <div key={problem.id}>
-                    <ErrorNoteCard
-                      problem={problem}
-                      onFocus={handleCardFocus}
-                      onBlur={handleCardBlur}
-                      onInputChange={handleInputChange}
-                      userInput={userInputs.get(problem.id) || ''}
-                      submissionState={
-                        submissionStates.get(problem.id) || 'initial'
+                  <div key={problem.id} className="relative">
+                    {finalConfig.showReadOnlyIndicators &&
+                      !finalConfig.canEdit && (
+                        <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
+                      )}
+                    <div
+                      className={
+                        finalConfig.canEdit ? '' : 'pointer-events-none'
                       }
-                      onSubmissionResult={handleSubmissionResult}
-                      isCorrect={solve.isCorrect}
-                      isFocused={focusedProblemId === problem.id}
-                    />
+                    >
+                      <ErrorNoteCard
+                        problem={problem}
+                        onFocus={handleCardFocus}
+                        onBlur={handleCardBlur}
+                        onInputChange={handleInputChange}
+                        userInput={userInputs.get(problem.id) || ''}
+                        submissionState={
+                          submissionStates.get(problem.id) || 'initial'
+                        }
+                        onSubmissionResult={handleSubmissionResult}
+                        isCorrect={solve.isCorrect}
+                        isFocused={focusedProblemId === problem.id}
+                        readOnly={!finalConfig.canEdit}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -539,9 +627,9 @@ export default function ErrorNoteInterface() {
               >
                 <div className="mb-6 text-center">
                   <h1 className="text-2xl font-bold text-gray-800">
-                    내가 푼 문제들
+                    {finalConfig.title}
                   </h1>
-                  {showAll && (
+                  {showAll && finalConfig.showAllOption && (
                     <p className="mt-2 text-sm text-gray-500">
                       맞은 문제는 흐리게 표시됩니다
                     </p>
@@ -553,20 +641,31 @@ export default function ErrorNoteInterface() {
                     (p) => p.id === solve.id.toString()
                   )!;
                   return (
-                    <div key={problem.id}>
-                      <ErrorNoteCard
-                        problem={problem}
-                        onFocus={handleCardFocus}
-                        onBlur={handleCardBlur}
-                        onInputChange={handleInputChange}
-                        userInput={userInputs.get(problem.id) || ''}
-                        submissionState={
-                          submissionStates.get(problem.id) || 'initial'
+                    <div key={problem.id} className="relative">
+                      {finalConfig.showReadOnlyIndicators &&
+                        !finalConfig.canEdit && (
+                          <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-amber-300/60" />
+                        )}
+                      <div
+                        className={
+                          finalConfig.canEdit ? '' : 'pointer-events-none'
                         }
-                        onSubmissionResult={handleSubmissionResult}
-                        isCorrect={solve.isCorrect}
-                        isFocused={focusedProblemId === problem.id}
-                      />
+                      >
+                        <ErrorNoteCard
+                          problem={problem}
+                          onFocus={handleCardFocus}
+                          onBlur={handleCardBlur}
+                          onInputChange={handleInputChange}
+                          userInput={userInputs.get(problem.id) || ''}
+                          submissionState={
+                            submissionStates.get(problem.id) || 'initial'
+                          }
+                          onSubmissionResult={handleSubmissionResult}
+                          isCorrect={solve.isCorrect}
+                          isFocused={focusedProblemId === problem.id}
+                          readOnly={!finalConfig.canEdit}
+                        />
+                      </div>
                     </div>
                   );
                 })}
@@ -608,11 +707,11 @@ export default function ErrorNoteInterface() {
         )}
 
         <VirtualKeyboard
-          isVisible={isVirtualKeyboardVisible}
+          isVisible={isVirtualKeyboardVisible && finalConfig.canEdit}
           onNumberClick={handleNumberClick}
           onOperatorClick={handleOperatorClick}
           onClear={handleClear}
-          disabled={false}
+          disabled={!finalConfig.canEdit}
         />
       </div>
     </div>

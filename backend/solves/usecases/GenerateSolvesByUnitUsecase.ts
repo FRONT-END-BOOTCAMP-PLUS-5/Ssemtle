@@ -39,32 +39,11 @@ export class GenerateSolvesByUnitUseCase {
   constructor(private readonly gemini: GeminiGenerator) {}
 
   async execute(unit: string): Promise<SolveResponseDto[]> {
-    const prompt = `
-"${unit}" 유형의 수학 문제 10개를 아래와 같은 JSON 배열 형식으로 출력해줘.
+    // 프롬프트 생성 (영문만 사용)
+    // NOTE(ko): 한글 프롬프트는 현재 사용하지 않음 (검토용 주석만 유지)
+    const englishPrompt = this.buildPromptEnglish(unit);
 
-형식 예시:
-[
-  {
-    "question": "12의 소인수분해는 무엇입니까?",
-    "answer": "2^2x3",
-    "helpText": "12는 1보다 큰 자연수 중에서 더 이상 나눌 수 없는 수인 '소수'들의 곱으로 나타낼 수 있습니다. 12를 소인수분해하면 먼저 2로 나누면 12 ÷ 2 = 6, 다시 2로 나누면 6 ÷ 2 = 3이 됩니다. 이제 3은 더 이상 2로 나눌 수 없고, 3도 소수이므로 여기서 멈춥니다. 따라서 12 = 2 x 2 x 3 = 2² x 3이 됩니다."
-  }
-]
-
-주의사항:
-- 반드시 위 형식처럼 JSON 배열만 출력해줘.
-- 설명, 마크다운, 코드 블록, 주석 없이 순수 JSON으로만 응답해줘.
-- 전과 항상 다른 문제를 생성해줘.
-- 정답은 하나로 작성하고, 답이 여러개가 나오지 않게 해줘.
-- 우리의 입력값이 1~9, +,-,×,/,(),^,√,x,y,π,.,,,이기 때문에, 정답을 이 기호들만 표현할 수 있게 해줘. 따라서 문제에서 a,b,c같은 문자가 나오면 안돼.
-- 정답의 공백을 없애줘(예: "2 x 3" -> "2x3").
-- 문제에서는 x⁸, y²처럼 x,y에 지수가 붙을 수 있지만, 정답에서는 x^2,y^2처럼 ^로 표현해줘.
-- 문제에서 x의 값은? 이라고 물어보면 답은 "x=2"처럼 쓰지 말고, "2"만 써줘.
-- helpText는 문제 해설이고, 풀이과정을 자세하게 적어줘. 기초학력 학생이 이용할테니까 최대한 자세하고 이해하기 쉽게.
-- **키 이름은 반드시 question / answer / helpText만 사용**해줘.
-`;
-
-    const rawText = await this.gemini.generate(prompt);
+    const rawText = await this.gemini.generate(englishPrompt);
 
     const jsonText = extractJsonArray(rawText);
     if (!jsonText) {
@@ -118,5 +97,55 @@ export class GenerateSolvesByUnitUseCase {
     }
 
     return out;
+  }
+
+  // NOTE(ko): 한글 프롬프트 생성기는 현재 미사용. (주석 유지: 규칙 검토용)
+  // private buildPromptKorean(unit: string): string {
+  //   return `...`;
+  // }
+
+  // 영어 프롬프트 생성기
+  private buildPromptEnglish(unit: string): string {
+    // NOTE(ko): 모든 카테고리는 해당 카테고리(단원) 문제만 생성하도록 강제
+    // NOTE(ko): "정수와 유리수의 사칙계산" 단원일 경우 소인수분해 문제만 생성하도록 강제
+    const primeFactorizationClause = unit.includes('정수와 유리수의 사칙계산')
+      ? `
+Additional strict rule for this unit:
+- Generate ONLY prime factorization problems (e.g., "What is the prime factorization of 28?"). Do NOT include any other types such as simplification, arithmetic operations, or equations.
+- For prime factorization answers, use the multiplication sign '×' between factors (not 'x'), e.g., 28 → "2^2×7", 12 → "2^2×3".`
+      : '';
+    const categoryExclusivity = `
+Global rule:
+- Generate problems that STRICTLY belong to the topic "${unit}". Do NOT produce any problems that are outside this topic/category.`;
+
+    return `
+Generate 10 math problems of the type "${unit}" and output them as a JSON array.
+
+Example format:
+[
+  {
+    "question": "What is the prime factorization of 12?",
+    "answer": "2^2×3",
+    "helpText": "Provide a detailed explanation suitable for students building foundational skills."
+  }
+]
+
+Constraints:
+- Respond ONLY with a JSON array in the exact format above.
+- No explanations, markdown, code fences, or comments outside the JSON.
+- Always generate different problems from previous calls.
+ - All textual content must be written in Korean. Write "question" and "helpText" in Korean.
+- Ensure exactly one answer. Do not produce multiple possible answers.
+- Our input supports 1-9, +,-,×,/,(),^,√,x,y,π,.,,, so ensure answers can be expressed with these. Do not introduce variables like a,b,c in answers.
+- Remove spaces in the answer (e.g., "2 x 3" -> "2x3").
+- For prime factorization problems, use the multiplication sign '×' between factors (do not use 'x').
+  Examples: 28 → "2^2×7", 12 → "2^2×3".
+- Problems may use exponents like x⁸,y², but answers must use ^ like x^2,y^2.
+- If the question asks for the value of x, do not answer "x=2"; answer "2" only.
+- helpText must be a detailed explanation, easy to understand for students.
+- Use EXACT keys: question / answer / helpText.
+${primeFactorizationClause}
+${categoryExclusivity}
+`;
   }
 }

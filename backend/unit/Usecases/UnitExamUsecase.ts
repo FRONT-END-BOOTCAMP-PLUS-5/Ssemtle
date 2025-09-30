@@ -22,6 +22,7 @@ import {
   // 조회 결과 DTO는 새로 정의하지 않고 이 UseCase 내부에서 단순 객체로 반환
 } from '../dtos/UnitExamDto';
 import { AIQuestionValidator } from '@/backend/common/domains/entities/AIQuestionValidator';
+import { verifyAnswer } from '@/backend/utils/answer-verification';
 
 export class GenerateUnitExamUseCase {
   private unitExamRepository: IUnitExamRepository;
@@ -89,6 +90,8 @@ export class GenerateUnitExamUseCase {
         // 중복된 경우 재귀적으로 다시 생성
         return this.execute(request);
       }
+
+      // 프롬프트 언어 벤치마크 기능 제거됨
 
       // AI를 사용하여 문제 생성: 요청 수를 여유분(+5) 포함하여 요청
       const overRequest = request.questionCount + 5;
@@ -286,6 +289,8 @@ export class GenerateUnitExamUseCase {
 3.문제는 항상 숫자의 답을 가진 문제를 출제해야한다.
 4.답은 항상 하나의 답만 가져야 한다 예)-5,5 두개의 답을 가질 수 없음. 오로지 하나의 답만 가져야 한다.
 5. 답은 모두 공백을 제거하라. 예) 2x + 6 이렇게 하지 말고, 2x+6 이렇게 해야한다.
+6. 소인수분해 유형의 답에서 곱셈은 반드시 '×' 기호를 사용한다. 예) 28의 소인수분해 → "2^2×7"
+7. 입력으로 허용되는 기호는 다음만 사용하라: 1-9, +, -, ×, /, (, ), ^, √, x, y, π, ., , (쉼표). 이 외의 문자는 문제와 정답 어디에도 사용하지 마라. a,b,c 같은 변수는 절대 쓰지 마라. 변수가 필요한 경우 x 또는 y만 사용하라.
 {
   "unitId": number,
   "question1": string, // 문제 설명 텍스트 (예: "x의 값을 구하시오")
@@ -294,6 +299,35 @@ export class GenerateUnitExamUseCase {
   "help_text": string
 }
 배열 이외의 다른 텍스트나 주석은 절대 포함하지 말고, 모든 항목은 위 단원 목록에 포함된 unitId 중 하나를 사용한다.`;
+  }
+
+  // 영어 프롬프트 생성
+  private createPromptEnglish(
+    selectedUnits: Array<{ unitId: number; unitName: string }>,
+    questionCount: number
+  ): string {
+    const unitsJson = JSON.stringify(selectedUnits);
+
+    return `Generate math problems for foundational skills. Write explanations in detail so that students can easily understand.
+The list of units (including unit names and identifiers) is as follows: ${unitsJson}
+The total number of problems is ${questionCount}. Strictly follow the rules below.
+1) Include at least one problem from each selected unit (by unitId)
+2) Distribute the number of problems as evenly as possible across units (round-robin distribution is allowed)
+Respond ONLY with a JSON array. Each item must follow the schema below.
+3. Every problem must have a numeric answer.
+4) All textual content (question1, question2, help_text) must be written in Korean.
+4. There must be exactly one answer. For example, do not return two alternatives like -5,5. Only a single answer is allowed.
+5. Remove all spaces from the answer. For example, instead of '2x + 6', use '2x+6'.
+6) For prime factorization problems, use the multiplication sign '×' between factors (do not use 'x'). Examples: 28 → "2^2×7", 12 → "2^2×3".
+7. Our input supports ONLY these symbols: 1-9, +, -, ×, /, (, ), ^, √, x, y, π, ., , (comma). Do NOT use any other letters or symbols anywhere in questions or answers. Never use variables like a,b,c. If variables are needed, use only x or y.
+{
+  "unitId": number,
+  "question1": string, // description text (e.g., "Solve for x")
+  "question2": string, // the actual equation (e.g., "2x + 6 = 14")
+  "answer": string,
+  "help_text": string
+}
+Do not include any text or comments other than the array itself, and every item must use a unitId included in the unit list above.`;
   }
 
   // AI 응답 파싱
@@ -669,9 +703,10 @@ export class SubmitAnswersUseCase {
         questionId: a.questionId,
         userId: request.studentId,
         userInput: a.userInput ?? '',
-        isCorrect:
-          (a.userInput ?? '').trim() ===
-          (idToAnswer.get(a.questionId) ?? '').trim(),
+        isCorrect: verifyAnswer(
+          (a.userInput ?? '').toString(),
+          (idToAnswer.get(a.questionId) ?? '').toString()
+        ),
       }));
 
       const saved = await this.unitSolveRepository.createMany(createData);

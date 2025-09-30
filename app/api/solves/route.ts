@@ -1,6 +1,7 @@
 import { callGemini } from '@/backend/common/infrastructures/LLM/callGemini';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrSolveRepository } from '@/backend/common/infrastructures/repositories/PrSolveRepository';
+import { verifyAnswer } from '@/backend/utils/answer-verification';
 import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateSolvesByUnitUsecase';
 
 // GET /api/solves?unit=unitName
@@ -8,6 +9,7 @@ import { GenerateSolvesByUnitUseCase } from '@/backend/solves/usecases/GenerateS
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const unit = searchParams.get('unit');
+  // benchmarkParam 은 더 이상 사용하지 않음 (프롬프트 벤치마크 제거)
   if (!unit) {
     return NextResponse.json(
       { error: '카테고리를 입력하세요' },
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const isCorrect = String(userInput).trim() === String(answer).trim();
+    const isCorrect = verifyAnswer(String(userInput), String(answer));
 
     // SolveRepository 주입 및 저장
     const repo = new PrSolveRepository();

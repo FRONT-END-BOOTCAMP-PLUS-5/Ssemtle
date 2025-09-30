@@ -19,6 +19,7 @@ import {
   CalendarSolvesResponseDto,
   DaySolvesDto,
 } from '../dtos/SolveDto';
+import { verifyAnswer } from '@/backend/utils/answer-verification';
 
 export class ListSolvesUseCase {
   constructor(private repository: ISolveRepository) {}
@@ -247,11 +248,8 @@ export class UpdateSolveUseCase {
       throw new Error('Solve not found');
     }
 
-    // Compare user input with correct answer using numeric tolerance
-    const isCorrect = this.compareAnswers(
-      request.userInput,
-      existingSolve.answer
-    );
+    // 정답 검증 유틸 사용
+    const isCorrect = verifyAnswer(request.userInput, existingSolve.answer);
 
     // Prepare update data
     const updateData: { userInput: string; isCorrect?: boolean } = {
@@ -272,53 +270,7 @@ export class UpdateSolveUseCase {
     };
   }
 
-  private compareAnswers(userInput: string, correctAnswer: string): boolean {
-    // Tolerance values as specified in requirements
-    const ABS_TOL = 0.0005;
-    const REL_TOL = 0.001;
-
-    // Trim inputs
-    const trimmedUserInput = userInput.trim();
-    const trimmedCorrectAnswer = correctAnswer.trim();
-
-    // First try exact string match (case-insensitive)
-    if (trimmedUserInput.toLowerCase() === trimmedCorrectAnswer.toLowerCase()) {
-      return true;
-    }
-
-    // Try numeric comparison with tolerance
-    const userNum = this.parseNumber(trimmedUserInput);
-    const correctNum = this.parseNumber(trimmedCorrectAnswer);
-
-    if (userNum !== null && correctNum !== null) {
-      const absoluteDiff = Math.abs(userNum - correctNum);
-      const relativeDiff = Math.abs(absoluteDiff / correctNum);
-
-      return absoluteDiff <= ABS_TOL || relativeDiff <= REL_TOL;
-    }
-
-    // If not numeric, fall back to exact string comparison
-    return false;
-  }
-
-  private parseNumber(input: string): number | null {
-    // Handle fractions like "1/2", "3/4"
-    if (input.includes('/')) {
-      const parts = input.split('/');
-      if (parts.length === 2) {
-        const numerator = parseFloat(parts[0].trim());
-        const denominator = parseFloat(parts[1].trim());
-        if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-          return numerator / denominator;
-        }
-      }
-      return null;
-    }
-
-    // Handle regular decimal numbers
-    const parsed = parseFloat(input);
-    return isNaN(parsed) ? null : parsed;
-  }
+  // compareAnswers, parseNumber는 유틸로 대체됨
 }
 
 export class GetCalendarSolvesUseCase {

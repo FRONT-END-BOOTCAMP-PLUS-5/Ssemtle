@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import ErrorNoteInterface from './_components/ErrorNoteInterface';
+import ErrorNoteInterface from '@/app/_components/error-note/ErrorNoteInterface';
 
 export default function ErrorNotePage() {
   return (

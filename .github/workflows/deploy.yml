@@ -41,7 +41,7 @@ jobs:
 
       - name: Render manifests with image tag
         run: |
-          sed -i "s#ghcr.io/FRONT-END-BOOTCAMP-PLUS-5/Ssemtle:IMAGE_TAG#${IMAGE}#g" k8s/deployment.yaml
+          sed -i "s#ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG#${IMAGE}#g" k8s/deployment.yaml
 
       - name: Apply manifests & wait for rollout
         env: { KUBECONFIG: ${{ env.KUBECONFIG }} }

@@ -15,14 +15,14 @@ spec:
       terminationGracePeriodSeconds: 30
       initContainers:
         - name: migrate
-          image: ghcr.io/FRONT-END-BOOTCAMP-PLUS-5/Ssemtle:IMAGE_TAG
+          image: ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG
           command: ["npx", "prisma", "migrate", "deploy"]
           envFrom:
             - secretRef:
                 name: ssemtle-env
       containers:
         - name: web
-          image: ghcr.io/FRONT-END-BOOTCAMP-PLUS-5/Ssemtle:IMAGE_TAG   # <-- CI replaces IMAGE_TAG
+          image: ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG   # <-- CI replaces IMAGE_TAG
           ports: [{ containerPort: 3000 }]
           envFrom:
             - secretRef:

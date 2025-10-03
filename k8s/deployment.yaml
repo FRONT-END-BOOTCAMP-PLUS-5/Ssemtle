@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssemtle
+  namespace: apps
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  selector: { matchLabels: { app: ssemtle } }
+  template:
+    metadata: { labels: { app: ssemtle } }
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: web
+          image: ghcr.io/FRONT-END-BOOTCAMP-PLUS-5/Ssemtle:IMAGE_TAG   # <-- CI replaces IMAGE_TAG
+          ports: [{ containerPort: 3000 }]
+          # uncomment if using runtime env from a Secret:
+          # envFrom: [{ secretRef: { name: ssemtle-env } }]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          readinessProbe: { httpGet: { path: /readyz, port: 3000 }, periodSeconds: 5 }
+          livenessProbe:  { httpGet: { path: /healthz, port: 3000 }, periodSeconds: 10 }
+          startupProbe:   { httpGet: { path: /healthz, port: 3000 }, failureThreshold: 30, periodSeconds: 2 }

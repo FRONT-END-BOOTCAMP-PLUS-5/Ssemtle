@@ -4,13 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "Dockerfile"
+      - "dockerfile"
       - "package*.json"
-      - "next.config.js"
-      - "src/**"
+      - "next.config.ts"
       - "app/**"
-      - "pages/**"
       - "public/**"
+      - "libs/**"
+      - "types/**"
+      - "prisma/**"
       - "k8s/**"
 
 jobs:

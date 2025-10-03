@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useKeyboardDetection } from '@/app/_hooks/useKeyboardDetection';
 import ProblemDisplay from '../molecules/ProblemDisplay';
 import AnswerSection, { SubmitState } from '../molecules/AnswerSection';
 import NumberPad from '../molecules/NumberPad';
@@ -29,6 +30,8 @@ export default function UnitInterface({
   loading = false,
   onGenerateNext,
 }: UnitInterfaceProps) {
+  useKeyboardDetection();
+
   const [userInput, setUserInput] = useState('');
   const [submitState, setSubmitState] = useState<SubmitState>('initial');
   const [wasAnswerCorrect, setWasAnswerCorrect] = useState<boolean | undefined>(

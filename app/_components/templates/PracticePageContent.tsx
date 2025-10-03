@@ -91,12 +91,29 @@ export default function PracticePageContent() {
 
     setProblemsLoading(true);
     try {
-      const response = await fetch(
-        `/api/solves?unit=${encodeURIComponent(currentUnit.name)}`
-      );
+      const benchmark =
+        searchParams.get('benchmark') ||
+        searchParams.get('benchmarkPromptLang');
+      const url = new URL(`/api/solves`, window.location.origin);
+      url.searchParams.set('unit', currentUnit.name);
+      if (benchmark) url.searchParams.set('benchmark', benchmark);
+      const response = await fetch(url.toString());
 
       if (!response.ok) {
-        throw new Error('Failed to generate problem');
+        let serverMessage = '';
+        try {
+          const errBody = await response.json();
+          if (errBody && typeof errBody.error === 'string') {
+            serverMessage = errBody.error;
+          }
+        } catch {
+          // ignore json parse error
+        }
+        const composite = serverMessage
+          ? `Failed to generate problem: ${serverMessage}`
+          : 'Failed to generate problem';
+        console.error('[Practice] Problem generation failed:', composite);
+        throw new Error(composite);
       }
 
       const data: SolveResponseDto[] = await response.json();
@@ -120,7 +137,7 @@ export default function PracticePageContent() {
     } finally {
       setProblemsLoading(false);
     }
-  }, [currentUnit, convertToProblem]);
+  }, [currentUnit, convertToProblem, searchParams]);
 
   const handleSubmitAnswer = async (
     userInput: string,

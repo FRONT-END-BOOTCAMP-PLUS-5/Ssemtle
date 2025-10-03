@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import MyPageErrorNote from './MyPageErrorNote';
+import MyPageErrorNoteWrapper from './MyPageErrorNoteWrapper';
 
 function Fallback() {
   return (
@@ -15,7 +15,7 @@ function Fallback() {
 export default function Page() {
   return (
     <Suspense fallback={<Fallback />}>
-      <MyPageErrorNote />
+      <MyPageErrorNoteWrapper />
     </Suspense>
   );
 }

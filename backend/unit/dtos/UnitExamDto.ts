@@ -10,6 +10,8 @@ export interface GenerateUnitExamRequestDto {
   timerMinutes?: number;
   // 하위 호환을 위해 기존 categories를 남겨두되 사용하지 않음
   categories?: string[];
+  // 프롬프트 언어(한글/영문) 벤치마크 수행 여부. true이면 두 언어 모두 호출 후 시간 로그 출력
+  benchmarkPromptLang?: boolean;
 }
 
 export interface GenerateUnitExamResponseDto {

@@ -12,6 +12,8 @@ spec:
   template:
     metadata: { labels: { app: ssemtle } }
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       terminationGracePeriodSeconds: 30
       initContainers:
         - name: migrate

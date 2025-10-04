@@ -1,0 +1,87 @@
+# CloudNativePG Database Cluster for Ssemtle
+# This cluster imports data from the existing PostgreSQL instance
+
+---
+# Secret for old PostgreSQL connection (source for import)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: old-postgres-secret
+  namespace: apps
+type: Opaque
+stringData:
+  password: "1!onesac@"
+
+---
+# New CloudNativePG cluster with import
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ssemtle-db
+  namespace: apps
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  # Define external clusters (inline)
+  externalClusters:
+    - name: old-postgres
+      connectionParameters:
+        host: rland.co.kr
+        port: "5432"
+        user: onesac
+        dbname: onesacdb
+      password:
+        name: old-postgres-secret
+        key: password
+
+  # Import from old PostgreSQL
+  bootstrap:
+    initdb:
+      database: ssemtle
+      owner: ssemtle_user
+      import:
+        type: microservice
+        databases:
+          - onesacdb
+        source:
+          externalCluster: old-postgres
+
+  # Storage configuration
+  storage:
+    size: 20Gi
+    storageClass: local-path
+
+  # Backup configuration (optional - configure later)
+  # backup:
+  #   barmanObjectStore:
+  #     destinationPath: s3://backups/ssemtle-db
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: backup-creds
+  #         key: ACCESS_KEY_ID
+  #       secretAccessKey:
+  #         name: backup-creds
+  #         key: ACCESS_SECRET_KEY
+
+  # Monitoring
+  monitoring:
+    enablePodMonitor: false
+
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      work_mem: "4MB"
+      maintenance_work_mem: "64MB"
+
+  # Resources (adjust based on your needs)
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"

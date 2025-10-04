@@ -1,0 +1,39 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+
+# Build outputs (generated fresh in Docker)
+.next
+out
+build
+app/generated/prisma
+*.tsbuildinfo
+
+# Env files (use k8s secrets)
+.env*
+
+# Git and version control
+.git
+.gitignore
+
+# Docker files
+Dockerfile*
+.dockerignore
+
+# Documentation
+*.md
+
+# CI/CD
+.github
+
+# Testing
+coverage
+jest.config.mjs
+jest.setup.js
+
+# Misc
+.DS_Store
+*.pem
+.vercel
+.cursor

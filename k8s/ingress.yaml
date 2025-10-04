@@ -10,10 +10,17 @@ spec:
   tls:
     - hosts:
         - ssemtle.com
+        - www.ssemtle.com
         - ssemtle.orioriori.duckdns.org
       secretName: ssemtle-tls
   rules:
     - host: ssemtle.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: ssemtle, port: { number: 80 } } }
+    - host: www.ssemtle.com
       http:
         paths:
           - path: /

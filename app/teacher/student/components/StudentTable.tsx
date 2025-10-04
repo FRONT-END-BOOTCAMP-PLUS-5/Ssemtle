@@ -97,7 +97,7 @@ export default function StudentTable({
                 평가분석
               </button>
               <button
-                onClick={() => onViewWorkbook(student.id)}
+                onClick={() => onViewWorkbook(student.userId)}
                 className="flex-1 cursor-pointer rounded bg-indigo-400 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
               >
                 단원평가

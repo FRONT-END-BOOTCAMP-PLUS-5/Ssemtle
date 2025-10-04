@@ -31,7 +31,9 @@ jobs:
 
       - name: Build & push image
         run: |
-          docker build -t "$IMAGE" .
+          docker build \
+            --build-arg NEXT_PUBLIC_BASE_URL=/api \
+            -t "$IMAGE" .
           docker push "$IMAGE"
 
       - name: Load kubeconfig

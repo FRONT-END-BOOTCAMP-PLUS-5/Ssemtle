@@ -1,4 +1,13 @@
 import SignInForm from '@/app/_components/auth/SignInForm';
+import { createMetadata } from '@/libs/metadata';
+
+export const metadata = createMetadata({
+  title: '로그인',
+  description:
+    'SSemtle에 로그인하여 개인 맞춤형 수학 학습을 계속하세요. 학생과 교사 모두 이용 가능합니다.',
+  path: '/signin',
+  keywords: ['로그인', '학생 로그인', '교사 로그인', '계정 접속'],
+});
 
 export default function SignInPage() {
   return (

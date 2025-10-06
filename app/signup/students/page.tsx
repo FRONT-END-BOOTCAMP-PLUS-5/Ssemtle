@@ -1,4 +1,19 @@
 import SignUpForm from '@/app/_components/auth/SignUpForm';
+import { createMetadata } from '@/libs/metadata';
+
+export const metadata = createMetadata({
+  title: '학생 회원가입',
+  description:
+    '학생 계정을 만들고 SSemtle에서 개인 맞춤형 수학 학습을 시작하세요. AI 기반 문제 풀이와 오답노트로 실력을 향상시킬 수 있습니다.',
+  path: '/signup/students',
+  keywords: [
+    '학생 회원가입',
+    '초등학생 가입',
+    '중학생 가입',
+    '고등학생 가입',
+    '학생 계정',
+  ],
+});
 
 function SignUpMessage({
   searchParams,

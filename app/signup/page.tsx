@@ -1,4 +1,13 @@
 import Link from 'next/link';
+import { createMetadata } from '@/libs/metadata';
+
+export const metadata = createMetadata({
+  title: '회원가입',
+  description:
+    'SSemtle에 회원가입하세요. 학생과 교사 계정 중 선택하여 AI 기반 수학 학습을 시작할 수 있습니다.',
+  path: '/signup',
+  keywords: ['회원가입', '학생 가입', '교사 가입', '계정 생성'],
+});
 
 export default function SignUpPage() {
   return (

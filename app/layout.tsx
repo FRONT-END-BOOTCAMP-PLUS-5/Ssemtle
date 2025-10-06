@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next';
+import type { Viewport } from 'next';
 import './globals.css';
 import Providers from '@/libs/providers';
 import RoleBasedSidebar from './_components/sidebar/RoleBasedSidebar';
@@ -6,16 +6,17 @@ import LayoutClient from './_components/layoutclient/LayoutClient';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MainContainer from '@/app/_components/layoutclient/MainContainer';
+import { createMetadata, SITE_CONFIG } from '@/libs/metadata';
 
-export const metadata: Metadata = {
-  title: 'Ssemtle',
-  description: 'Ssemtle web service',
+export const metadata = {
+  ...createMetadata({}),
   icons: {
-    icon: [{ url: '/ssemtle_favicon.png', type: 'image/png' }],
-    shortcut: ['/ssemtle_favicon.png'],
-    apple: [{ url: '/ssemtle_favicon.png' }],
+    icon: [{ url: SITE_CONFIG.favicon, type: 'image/png' }],
+    shortcut: [SITE_CONFIG.favicon],
+    apple: [{ url: SITE_CONFIG.favicon }],
   },
 };
+
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 
 export default async function RootLayout({

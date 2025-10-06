@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next';
+import { getBaseUrl } from '@/libs/metadata';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://ssemtle.com';
+  const baseUrl = getBaseUrl();
 
   return {
     rules: [

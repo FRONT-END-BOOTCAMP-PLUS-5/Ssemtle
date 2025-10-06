@@ -1,4 +1,19 @@
 import TeacherSignUpForm from '@/app/_components/auth/TeacherSignUpForm';
+import { createMetadata } from '@/libs/metadata';
+
+export const metadata = createMetadata({
+  title: '교사 회원가입',
+  description:
+    '교사 계정을 만들고 학생들의 학습을 체계적으로 관리하세요. 단원평가 생성, 학생 진도 관리 등의 기능을 이용할 수 있습니다.',
+  path: '/signup/teacher',
+  keywords: [
+    '교사 회원가입',
+    '선생님 가입',
+    '교사 계정',
+    '학생 관리',
+    '교육 관리',
+  ],
+});
 
 export default function TeacherSignUpPage() {
   return (

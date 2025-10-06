@@ -1,68 +1,13 @@
 import React from 'react';
 import LandingLogo from './landing-logo/LandingLogo';
 import { ScrollNavigation } from './_component/ScrollNavigation';
-import type { Metadata } from 'next';
 import { ProblemSolvingSphere } from './landing-sphere/ProblemSolvingSphere';
 import InteractiveLanding from './landing-trial/InteractiveLanding';
+import { createMetadata, SITE_CONFIG } from '@/libs/metadata';
 
-export const metadata: Metadata = {
-  title: 'SSemtle - 기초학력의 수학 ',
-  description:
-    '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
-  keywords:
-    '기초학력, 수학, 학습, AI, 교육, 개인맞춤, 학습플랫폼, 초등수학, 중등수학',
-  authors: [{ name: 'SSemtle Team' }],
-  creator: 'SSemtle',
-  publisher: 'SSemtle',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://ssemtle.com'),
-  alternates: {
-    canonical: '/landing',
-    languages: {
-      'ko-KR': '/landing',
-    },
-  },
-  openGraph: {
-    title: 'SSemtle - 기초학력의 수학',
-    description:
-      '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
-    url: 'https://ssemtle.com/landing',
-    siteName: 'SSemtle',
-    locale: 'ko_KR',
-    type: 'website',
-    images: [
-      {
-        url: 'https://ssemtle.com/logos/Ssemtle_logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'SSemtle 로고 - 기초학력 학습 플랫폼',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SSemtle - 기초학력의 수학',
-    description:
-      '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
-    images: ['https://ssemtle.com/logos/Ssemtle_logo.png'],
-    creator: '@ssemtle',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-};
+export const metadata = createMetadata({
+  path: '/landing',
+});
 
 const sections = [
   { id: 'hero', label: '홈', icon: '🏠' },
@@ -75,11 +20,11 @@ export default function LandingLogoPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'SSemtle',
-    description: '기초학력 향상을 위한 AI 기반 학습 플랫폼',
-    url: 'https://ssemtle.com',
-    logo: 'https://ssemtle.com/logos/Ssemtle_logo.png',
-    sameAs: ['https://ssemtle.com'],
+    name: SITE_CONFIG.name,
+    description: SITE_CONFIG.description,
+    url: SITE_CONFIG.baseUrl,
+    logo: `${SITE_CONFIG.baseUrl}${SITE_CONFIG.logo}`,
+    sameAs: [SITE_CONFIG.baseUrl],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',

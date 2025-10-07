@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "dockerfile"
+      - "Dockerfile"
       - "package*.json"
       - "next.config.ts"
       - "app/**"
@@ -46,7 +46,8 @@ jobs:
           sed -i "s#ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG#${IMAGE}#g" k8s/deployment.yaml
 
       - name: Apply manifests & wait for rollout
-        env: { KUBECONFIG: ${{ env.KUBECONFIG }} }
+        env:
+          KUBECONFIG: ${{ env.KUBECONFIG }}
         run: |
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/ingress.yaml

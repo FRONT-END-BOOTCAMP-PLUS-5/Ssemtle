@@ -100,7 +100,20 @@ export default function PracticePageContent() {
       const response = await fetch(url.toString());
 
       if (!response.ok) {
-        throw new Error('Failed to generate problem');
+        let serverMessage = '';
+        try {
+          const errBody = await response.json();
+          if (errBody && typeof errBody.error === 'string') {
+            serverMessage = errBody.error;
+          }
+        } catch {
+          // ignore json parse error
+        }
+        const composite = serverMessage
+          ? `Failed to generate problem: ${serverMessage}`
+          : 'Failed to generate problem';
+        console.error('[Practice] Problem generation failed:', composite);
+        throw new Error(composite);
       }
 
       const data: SolveResponseDto[] = await response.json();

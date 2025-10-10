@@ -3,16 +3,6 @@ name: build-and-deploy
 on:
   push:
     branches: [ main ]
-    paths:
-      - "Dockerfile"
-      - "package*.json"
-      - "next.config.ts"
-      - "app/**"
-      - "public/**"
-      - "libs/**"
-      - "types/**"
-      - "prisma/**"
-      - "k8s/**"
 
 jobs:
   deploy:

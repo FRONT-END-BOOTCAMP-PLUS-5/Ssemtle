@@ -40,9 +40,8 @@ jobs:
           echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
 
       - name: Deploy with Helm
-        env:
-          KUBECONFIG: ${{ env.KUBECONFIG }}
         run: |
+          export KUBECONFIG=$(pwd)/kubeconfig
           helm upgrade --install ssemtle ./helm/ssemtle \
             --set image.repository=${{ vars.DOCKERHUB_USERNAME }}/ssemtle \
             --set image.tag=${{ github.sha }} \

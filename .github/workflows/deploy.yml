@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,14 +34,17 @@ jobs:
           build-args: |
             NEXT_PUBLIC_BASE_URL=/api
 
-      - name: Load kubeconfig
-        run: |
-          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > kubeconfig
-          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+  deploy:
+    runs-on: k3s
+    needs: build
+    env:
+      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Deploy with Helm
         run: |
-          export KUBECONFIG=$(pwd)/kubeconfig
           helm upgrade --install ssemtle ./helm/ssemtle \
             --set image.repository=${{ vars.DOCKERHUB_USERNAME }}/ssemtle \
             --set image.tag=${{ github.sha }} \

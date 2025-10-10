@@ -46,10 +46,6 @@ deployment:
     maxSurge: 1
   terminationGracePeriodSeconds: 30
 
-  initContainer:
-    name: migrate
-    command: ["npx", "prisma", "migrate", "deploy"]
-
   container:
     name: web
     port: 3000
@@ -78,7 +74,7 @@ deployment:
       periodSeconds: 2
 
 database:
-  enabled: true
+  enabled: false
   name: ssemtle-db
   instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:16

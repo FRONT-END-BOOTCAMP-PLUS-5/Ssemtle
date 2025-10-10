@@ -210,6 +210,10 @@ export default function UnitExamCodesPage() {
                   if (!ok) return;
                   await deleteCode({ path: `/admin/unit-exam-codes/${code}` });
                 }}
+                onOpenProblems={(code: string) => {
+                  setProblemsForCode(code);
+                  setIsProblemsOpen(true);
+                }}
               />
             )}
 

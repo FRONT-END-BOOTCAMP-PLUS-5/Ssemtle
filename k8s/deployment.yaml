@@ -13,18 +13,18 @@ spec:
     metadata: { labels: { app: ssemtle } }
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: dockerhub-secret
       terminationGracePeriodSeconds: 30
       initContainers:
         - name: migrate
-          image: ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG
+          image: __IMAGE_PLACEHOLDER__
           command: ["npx", "prisma", "migrate", "deploy"]
           envFrom:
             - secretRef:
                 name: ssemtle-env
       containers:
         - name: web
-          image: ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG   # <-- CI replaces IMAGE_TAG
+          image: __IMAGE_PLACEHOLDER__   # <-- CI replaces with actual image
           ports: [{ containerPort: 3000 }]
           envFrom:
             - secretRef:

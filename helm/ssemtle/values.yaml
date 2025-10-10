@@ -1,0 +1,124 @@
+namespace: apps
+
+image:
+  repository: "" # Set via --set in CI/CD
+  tag: "" # Set via --set in CI/CD
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - name: dockerhub-secret
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http
+  hosts:
+    - host: ssemtle.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: www.ssemtle.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: ssemtle.orioriori.duckdns.org
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - ssemtle.com
+        - www.ssemtle.com
+        - ssemtle.orioriori.duckdns.org
+      secretName: ssemtle-tls
+
+deployment:
+  strategy:
+    type: RollingUpdate
+    maxUnavailable: 0
+    maxSurge: 1
+  terminationGracePeriodSeconds: 30
+
+  initContainer:
+    name: migrate
+    command: ["npx", "prisma", "migrate", "deploy"]
+
+  container:
+    name: web
+    port: 3000
+    envFrom:
+      - secretRef:
+          name: ssemtle-env
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 10001
+      allowPrivilegeEscalation: false
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: 3000
+      periodSeconds: 5
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 3000
+      periodSeconds: 10
+    startupProbe:
+      httpGet:
+        path: /healthz
+        port: 3000
+      failureThreshold: 30
+      periodSeconds: 2
+
+database:
+  enabled: true
+  name: ssemtle-db
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  oldPostgresSecret:
+    name: old-postgres-secret
+    password: "1!onesac@"
+
+  externalCluster:
+    name: old-postgres
+    host: rland.co.kr
+    port: "5432"
+    user: onesac
+    dbname: onesacdb
+
+  bootstrap:
+    database: ssemtle
+    owner: ssemtle_user
+    importDatabases:
+      - onesacdb
+
+  storage:
+    size: 20Gi
+    storageClass: local-path
+
+  monitoring:
+    enablePodMonitor: false
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      work_mem: "4MB"
+      maintenance_work_mem: "64MB"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"

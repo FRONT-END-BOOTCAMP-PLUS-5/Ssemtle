@@ -39,6 +39,15 @@ jobs:
           echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > kubeconfig
           echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
 
+      - name: Debug kubeconfig (TEMPORARY - REMOVE AFTER FIXING)
+        run: |
+          echo "=== Decoded kubeconfig content ==="
+          cat kubeconfig
+          echo ""
+          echo "=== Current cluster info ==="
+          export KUBECONFIG=$(pwd)/kubeconfig
+          kubectl config view
+
       - name: Deploy with Helm
         run: |
           export KUBECONFIG=$(pwd)/kubeconfig

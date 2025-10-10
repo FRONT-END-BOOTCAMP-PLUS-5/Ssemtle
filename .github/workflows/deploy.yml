@@ -5,8 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
-    runs-on: k3s
+  build:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -33,6 +33,13 @@ jobs:
           tags: ${{ env.IMAGE }}
           build-args: |
             NEXT_PUBLIC_BASE_URL=/api
+
+  deploy:
+    runs-on: k3s
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Deploy with Helm
         run: |

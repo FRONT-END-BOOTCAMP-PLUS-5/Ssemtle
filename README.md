@@ -175,10 +175,86 @@ DB의 unit 목록에서 해당 unitId의 학습 도움용 영상 URL을 렌더�
 
 <br/>
 
-###  000
+###  학생 관리(선생님)
 
-[PC] 
-[Mobile]
+#### 학생 일괄 등록
+[PC] <br>
+![일괄 등록 - 데탑 - Clipchamp로 제작](https://github.com/user-attachments/assets/b7f4b6d5-9c1d-42be-b221-a048cfbd3483)
+
+[Mobile]<br>
+![일괄 등록 - 모바일 - Clipchamp로 제작](https://github.com/user-attachments/assets/ca37eb04-dd32-41f7-87d0-45ee13755cb3)
+- 로그인 회원가입이 어려운 학생들을 위한 기능
+- 학생 이름 ( , ) 구분하여 여러 사용자 계정 생성
+- 초기 비밀번호 = 1234
+- generateUniqueUserId()로 고유한 6자리 대문자 영문 ID 생성
+
+<br>
+
+#### 학생 등록
+[PC] <br>
+![학생 등록 - 데탑 - Clipchamp로 제작](https://github.com/user-attachments/assets/d55130a7-75b7-40f0-95ec-51198df72dbe)
+
+[Mobile] <br>
+![학생 등록 - 모바일 - Clipchamp로 제작](https://github.com/user-attachments/assets/137354a9-a987-4656-97e6-81cab8947eda)
+
+- 이미 가입된 학생 등록으로 user_id 입력을 통해 학생을 등록
+- 제출 시 로딩/성공/에러 처리, 성공 시 optimistic 또는 재요청으로 목록 갱신
+- 등록된 학생 평가분석, 단원평가 분석을 통해 학생 역량 확인
+
+<br>
+
+#### 내보내기
+<img width="454" height="225" alt="image" src="https://github.com/user-attachments/assets/af4c8bb2-a097-4f8f-9fe6-3486bc8b323b" /><br>
+- 일괄 등록된 학생 계정을 외부에서 확인·공유할 수 있도록 엑셀 파일로 내보내기
+- 일괄 등록 된 학생만 내보내기 기능
+- 기존 학생은 비밀번호 노출로 인해 내보내기 
+<br/>
+
+#### 단원평가 생성
+[PC] <br>
+![단원 평가 생성 - 데탑 - Clipchamp로 제작 (1)](https://github.com/user-attachments/assets/fa3677d8-a22e-4be6-a99e-013fe1d5e06e)
+
+[Mobile] <br>
+![단원 평가 생성 - 데탑 - Clipchamp로 제작 (1)](https://github.com/user-attachments/assets/62deb9c2-c050-4edc-a06f-44d528d4cfdb)
+
+<br>
+<br>
+
+###  선생님 가입 승인/거절(관리자)
+#### 선생님 가입 승인
+[PC] <br>
+![단원 평가 생성 - 데탑 - Clipchamp로 제작 (1)](https://github.com/user-attachments/assets/3a64e4f3-2cd5-4a24-a28b-861b82f37395)
+
+[Mobile] <br>
+![단원 평가 생성 - 데탑 - Clipchamp로 제작 (1)](https://github.com/user-attachments/assets/89ca128d-afc1-4e95-9498-bd384a469bb0)
+- user 역할을 'student'에서 'teacher'로 변경하여 시스템 권한 부여
+
+<br>
+
+#### 선생님 가입 거절
+[PC] <br>
+![선생님 승인 거절 - 데탑 - Clipchamp로 제작](https://github.com/user-attachments/assets/135ce8cc-af35-4d0e-ac5d-48d45b6055e3)
+
+
+[Mobile] <br>
+![선생님 승인 거절 - 모바일](https://github.com/user-attachments/assets/332d6e1f-c8fd-4add-8151-0c16bf4fcd1e)
+-  인증 요청 데이터를 시스템에서 제거하여 요청 거부 처리
+-  DB에서 사용자 데이터 삭제
+-  가입된 Email을 통해서 가입 승인 거절 내용을 사용자에게 알림
+<br/>
+
+###  관목 관리(관리자)
+
+[PC] <br>
+![과목 관리 - 데탑](https://github.com/user-attachments/assets/cb2bc844-4790-4df7-b0af-6eb0ff6b83d3)
+
+[Mobile] <br>
+![과목 관리 - 모바일](https://github.com/user-attachments/assets/3f0b8a67-9559-4d60-8fdb-b085fe8b5b33)
+- 과목 정보(과목명, 영상 URL)
+- 기입 항목을 모두 작성해야 생성 가능
+- 과목 정보 수정, 과목 데이터 변경 시 폼 상태 자동 동기화
+- 과목 삭제, 삭제 확인 모달 제공, 실수 삭제 방지 및 처리 중 상태 버튼 비활성화 
+
 
 <br/>
 
@@ -209,5 +285,5 @@ DB의 unit 목록에서 해당 unitId의 학습 도움용 영상 URL을 렌더�
 | ------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
 | 임정훈 | 팀장 | 클린 아키텍처 원칙으로 UI 계층과 도메인 로직, 인프라(API) 계층을 분리했습니다. <br />상태 관리와 비동기 흐름(로딩/에러/빈 상태)을 표준 컴포넌트로 추상화하여 페이지 간 중복을 제거했습니다. <br /> 성능 최적화(코드 스플리팅, 메모화, 가상 스크롤/지연 렌더)와 접근성 가이드를 적용했습니다. <br />유스케이스/도메인/리포지토리 계층 분리로 평가·문제풀이 도메인의 핵심 규칙을 서버에서 강제했습니다. <br />평가 생성/배포/응시/채점/결과 조회 API를 설계하고, DTO·검증 스키마를 정의하여 타입 안전성과 정합성을 확보했습니다.<br />트랜잭션 관리, 동시성/중복 제출 방지, 성능 병목 쿼리 개선 등 안정성을 강화했습니다. <br />문제풀이 이탈률/완료율/평가 생성-응시 전환율 등의 지표 개선을 목표로 UX와 API 응답 시간을 최적화했습니다.| https://github.com/LeemJungHoon     |
 | 최광민 | 팀원   | 매칭글 카드(매칭 목록 페이지)<br/>매칭 상세 페이지수정                                                                                                             | -   |
-| 형대희 | 팀원   | 매칭글 카드(매칭 목록 페이지)<br/>매칭 상세 페이지수정                                                                                                             | -   |
+| 형대희 | 팀원   | 선생님 페이지( 학생 일괄 등록, 학생 등록, 내보내기 기능),<br> 관리자 페이지(선생님 가입 승인/거절, 관목 생성, 수정, 삭제 기능) ,<br>선생님, 관리자 API 개발,<br> 역할 기반 라우팅/접근 제어  | https://github.com/HyungDaehee   |
 | 권동규 | 팀원   | 매칭글 카드(매칭 목록 페이지)<br/>매칭 상세 페이지수정                                                                                                             | -   |

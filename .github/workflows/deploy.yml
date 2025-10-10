@@ -37,6 +37,8 @@ jobs:
   deploy:
     runs-on: k3s
     needs: build
+    env:
+      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
     steps:
       - uses: actions/checkout@v4

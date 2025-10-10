@@ -26,6 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Change to lowercase
+        run: |
+          echo "IMAGE_LC=${IMAGE,,}" >>${GITHUB_ENV}
+
+      - name: 빌드 앤 푸시
+        uses: docker/build-push-action@v3
+
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
@@ -33,8 +40,8 @@ jobs:
         run: |
           docker build \
             --build-arg NEXT_PUBLIC_BASE_URL=/api \
-            -t "$IMAGE" .
-          docker push "$IMAGE"
+            -t "$IMAGE_LC" .
+          docker push "$IMAGE_LC"
 
       - name: Load kubeconfig
         run: |
@@ -43,7 +50,7 @@ jobs:
 
       - name: Render manifests with image tag
         run: |
-          sed -i "s#ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG#${IMAGE}#g" k8s/deployment.yaml
+          sed -i "s#ghcr.io/front-end-bootcamp-plus-5/ssemtle:IMAGE_TAG#${IMAGE_LC}#g" k8s/deployment.yaml
 
       - name: Apply manifests & wait for rollout
         env:

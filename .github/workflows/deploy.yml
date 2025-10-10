@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: k3s
     permissions:
       contents: read
       packages: write
@@ -34,23 +34,8 @@ jobs:
           build-args: |
             NEXT_PUBLIC_BASE_URL=/api
 
-      - name: Load kubeconfig
-        run: |
-          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > kubeconfig
-          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
-
-      - name: Debug kubeconfig (TEMPORARY - REMOVE AFTER FIXING)
-        run: |
-          echo "=== Decoded kubeconfig content ==="
-          cat kubeconfig
-          echo ""
-          echo "=== Current cluster info ==="
-          export KUBECONFIG=$(pwd)/kubeconfig
-          kubectl config view
-
       - name: Deploy with Helm
         run: |
-          export KUBECONFIG=$(pwd)/kubeconfig
           helm upgrade --install ssemtle ./helm/ssemtle \
             --set image.repository=${{ vars.DOCKERHUB_USERNAME }}/ssemtle \
             --set image.tag=${{ github.sha }} \

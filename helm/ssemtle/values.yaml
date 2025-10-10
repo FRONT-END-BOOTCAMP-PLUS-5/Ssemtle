@@ -78,7 +78,7 @@ deployment:
       periodSeconds: 2
 
 database:
-  enabled: true
+  enabled: false
   name: ssemtle-db
   instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:16

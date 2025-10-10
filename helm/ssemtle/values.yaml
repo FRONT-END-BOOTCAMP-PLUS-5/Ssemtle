@@ -46,10 +46,6 @@ deployment:
     maxSurge: 1
   terminationGracePeriodSeconds: 30
 
-  initContainer:
-    name: migrate
-    command: ["npx", "prisma", "migrate", "deploy"]
-
   container:
     name: web
     port: 3000

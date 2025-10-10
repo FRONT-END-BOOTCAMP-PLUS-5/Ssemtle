@@ -27,6 +27,9 @@ spec:
         - name: {{ .Values.deployment.initContainer.name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           command: {{ toYaml .Values.deployment.initContainer.command | nindent 12 }}
+          env:
+            - name: NPM_CONFIG_CACHE
+              value: /tmp/.npm
           envFrom:
             {{- toYaml .Values.deployment.container.envFrom | nindent 12 }}
       containers:

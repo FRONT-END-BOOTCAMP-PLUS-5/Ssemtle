@@ -36,6 +36,10 @@ COPY --from=build /app/app/generated/prisma ./app/generated/prisma
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 
+# Create user and set ownership of all app files
+RUN adduser -D -u 10001 appuser && \
+    chown -R 10001:10001 /app
+
 USER 10001
 EXPOSE 3000
 CMD ["node", "server.js"]

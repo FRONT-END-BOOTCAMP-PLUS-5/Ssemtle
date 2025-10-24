@@ -6,32 +6,12 @@ import { ProblemSolvingSphere } from './landing-sphere/ProblemSolvingSphere';
 import InteractiveLanding from './landing-trial/InteractiveLanding';
 
 export const metadata: Metadata = {
-  title: 'SSemtle - 기초학력의 수학 ',
-  description:
-    '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
-  keywords:
-    '기초학력, 수학, 학습, AI, 교육, 개인맞춤, 학습플랫폼, 초등수학, 중등수학',
-  authors: [{ name: 'SSemtle Team' }],
-  creator: 'SSemtle',
-  publisher: 'SSemtle',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://ssemtle.com'),
-  alternates: {
-    canonical: '/landing',
-    languages: {
-      'ko-KR': '/landing',
-    },
-  },
   openGraph: {
-    title: 'SSemtle - 기초학력의 수학',
+    title: 'Ssemtle - 기초학력의 수학',
     description:
       '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
     url: 'https://ssemtle.com/landing',
-    siteName: 'SSemtle',
+    siteName: 'Ssemtle',
     locale: 'ko_KR',
     type: 'website',
     images: [
@@ -39,17 +19,9 @@ export const metadata: Metadata = {
         url: 'https://ssemtle.com/logos/Ssemtle_logo.png',
         width: 1200,
         height: 630,
-        alt: 'SSemtle 로고 - 기초학력 학습 플랫폼',
+        alt: 'Ssemtle 로고 - 기초학력 학습 플랫폼',
       },
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'SSemtle - 기초학력의 수학',
-    description:
-      '기초학력 향상을 위한 AI 기반 학습 플랫폼. 개인 맞춤형 수학 학습으로 학생들의 기초 실력을 체계적으로 향상시킵니다.',
-    images: ['https://ssemtle.com/logos/Ssemtle_logo.png'],
-    creator: '@ssemtle',
   },
   robots: {
     index: true,

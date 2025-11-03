@@ -38,7 +38,7 @@ jobs:
     runs-on: k3s
     needs: build
     env:
-      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      KUBECONFIG: $HOME/.kube/config
 
     steps:
       - uses: actions/checkout@v4

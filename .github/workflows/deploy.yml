@@ -38,7 +38,7 @@ jobs:
     runs-on: k3s
     needs: build
     env:
-      KUBECONFIG: $HOME/.kube/config
+      KUBECONFIG: /home/ori/.kube/config
 
     steps:
       - uses: actions/checkout@v4

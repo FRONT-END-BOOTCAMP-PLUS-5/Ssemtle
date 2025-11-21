@@ -14,6 +14,7 @@ const PUBLIC_PREFIXES = [
   '/public',
   '/assets',
   '/signup/teacher/pending',
+  '/robots.txt',
 ];
 
 // 역할별 메인 페이지 매핑

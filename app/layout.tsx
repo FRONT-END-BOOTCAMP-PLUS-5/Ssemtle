@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: '/ssemtle_favicon.png', type: 'image/png' }],
-    shortcut: ['/ssemtle_favicon.png'],
-    apple: [{ url: '/ssemtle_favicon.png' }],
+    icon: [{ url: '/favicon.ico' }],
+    shortcut: ['/favicon.ico'],
+    apple: [{ url: '/favicon.ico' }],
   },
   openGraph: {
     title: 'Ssemtle - 기초학력의 수학',

@@ -7,14 +7,18 @@ import Link from 'next/link';
 export default function NotFoundPage(): React.ReactElement {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden">
-      <Image
-        src="/icons/404-24.png"
-        alt="404 이미지"
-        width={800}
-        height={800}
-        className="max-h-full max-w-full object-contain"
-        priority
-      />
+      <picture>
+        <source srcSet="/icons/404-24.avif" type="image/avif" />
+        <source srcSet="/icons/404-24.webp" type="image/webp" />
+        <Image
+          src="/icons/404-24.png"
+          alt="404 이미지"
+          width={800}
+          height={800}
+          className="max-h-full max-w-full object-contain"
+          priority
+        />
+      </picture>
 
       <Link href="/" className="group relative h-14 w-52">
         <div className="absolute top-0 left-0 h-14 w-52 rounded-[30px] bg-purple-200 shadow-[inset_0px_0px_0px_7px_rgba(255,255,255,1.00)] outline outline-[3px] outline-black transition-all duration-300 group-hover:bg-purple-300" />

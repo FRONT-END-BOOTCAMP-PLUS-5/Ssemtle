@@ -67,14 +67,18 @@ export default function MinimalHeader({
         <nav className="relative flex h-full items-center justify-center">
           <a href={logoHref} className="inline-flex items-center">
             <span className="sr-only">{logoAlt}</span>
-            <Image
-              src={logoSrc}
-              alt={logoAlt}
-              width={200}
-              height={40}
-              className="h-10 w-auto"
-              priority
-            />
+            <picture>
+              <source srcSet="/logos/Ssemtle_logo.avif" type="image/avif" />
+              <source srcSet="/logos/Ssemtle_logo.webp" type="image/webp" />
+              <Image
+                src={logoSrc}
+                alt={logoAlt}
+                width={200}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
+            </picture>
           </a>
         </nav>
       </header>

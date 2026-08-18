@@ -42,8 +42,9 @@ export const prisma = {
         where: { userId?: { startsWith: string }; id?: { in: string[] } };
       }) => {
         if (where.userId?.startsWith) {
+          const startsWith = where.userId.startsWith;
           const toDelete = Array.from(users.entries()).filter(([, user]) =>
-            user.userId.startsWith(where.userId.startsWith)
+            user.userId.startsWith(startsWith)
           );
           toDelete.forEach(([id]) => users.delete(id));
           return { count: toDelete.length };

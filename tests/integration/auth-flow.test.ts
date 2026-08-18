@@ -3,6 +3,7 @@
 
 import { AuthenticateUserUsecase } from '@/backend/auth/usecases/AuthenticateUserUsecase';
 import { PrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAuthRepository';
+import { PrismaClient } from '@/app/generated/prisma/client';
 
 // Create mock Prisma
 const mockPrisma = {
@@ -10,14 +11,16 @@ const mockPrisma = {
     findUnique: jest.fn(),
     create: jest.fn(),
   },
-} as jest.Mocked<{ user: { findUnique: jest.Mock; create: jest.Mock } }>;
+};
 
 describe('Authentication Flow Integration Tests', () => {
   let authUsecase: AuthenticateUserUsecase;
   let authRepository: PrAuthRepository;
 
   beforeEach(() => {
-    authRepository = new PrAuthRepository(mockPrisma);
+    authRepository = new PrAuthRepository(
+      mockPrisma as unknown as PrismaClient
+    );
     authUsecase = new AuthenticateUserUsecase(authRepository);
     jest.clearAllMocks();
   });

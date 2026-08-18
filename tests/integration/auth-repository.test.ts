@@ -3,19 +3,20 @@
 
 import { PrAuthRepository } from '@/backend/common/infrastructures/repositories/PrAuthRepository';
 import { AuthenticationResult } from '@/backend/auth/dtos/UserDto';
+import { PrismaClient } from '@/app/generated/prisma/client';
 
 // Create mock Prisma
 const mockPrisma = {
   user: {
     findUnique: jest.fn(),
   },
-} as jest.Mocked<{ user: { findUnique: jest.Mock } }>;
+};
 
 describe('PrAuthRepository Integration Tests', () => {
   let repository: PrAuthRepository;
 
   beforeEach(() => {
-    repository = new PrAuthRepository(mockPrisma);
+    repository = new PrAuthRepository(mockPrisma as unknown as PrismaClient);
     jest.clearAllMocks();
   });
 

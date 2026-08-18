@@ -24,7 +24,8 @@ describe('Authentication Flow E2E Tests', () => {
       mockSignIn.mockResolvedValue({
         ok: true,
         status: 200,
-        error: null,
+        error: undefined,
+        code: undefined,
         url: 'http://localhost:3000',
       });
 
@@ -51,6 +52,7 @@ describe('Authentication Flow E2E Tests', () => {
         ok: false,
         status: 401,
         error: 'CredentialsSignin',
+        code: undefined,
         url: null,
       });
 

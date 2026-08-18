@@ -5,6 +5,7 @@ import {
   ListSolvesUseCase,
   GetUnitsSummaryUseCase,
   GetCategoryStatsUseCase,
+  UpdateSolveUseCase,
 } from '../../backend/solves/usecases/SolvesUsecases';
 import { ISolveRepository } from '../../backend/common/domains/repositories/SolveRepository';
 import {
@@ -30,6 +31,8 @@ describe('ListSolvesUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findByDateRangeForCalendar: jest.fn(),
+      aggregateByUnit: jest.fn(),
     };
     useCase = new ListSolvesUseCase(mockRepository);
   });
@@ -162,6 +165,8 @@ describe('GetUnitsSummaryUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findByDateRangeForCalendar: jest.fn(),
+      aggregateByUnit: jest.fn(),
     };
     useCase = new GetUnitsSummaryUseCase(mockRepository);
   });
@@ -220,6 +225,8 @@ describe('GetCategoryStatsUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findByDateRangeForCalendar: jest.fn(),
+      aggregateByUnit: jest.fn(),
     };
     useCase = new GetCategoryStatsUseCase(mockRepository);
   });
@@ -271,6 +278,8 @@ describe('UpdateSolveUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findByDateRangeForCalendar: jest.fn(),
+      aggregateByUnit: jest.fn(),
     };
     useCase = new UpdateSolveUseCase(mockRepository);
   });

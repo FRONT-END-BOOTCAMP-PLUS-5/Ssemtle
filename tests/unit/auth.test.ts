@@ -87,6 +87,8 @@ describe('Authentication Utils', () => {
         findByUserId: jest.fn(),
         findById: jest.fn(),
         create: jest.fn(),
+        updateUserId: jest.fn(),
+        updatePasswordHash: jest.fn(),
       };
       useCase = new CheckUserIdDuplicateUseCase(mockRepository);
     });

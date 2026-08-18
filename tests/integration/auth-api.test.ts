@@ -18,6 +18,8 @@ jest.mock(
         findByUserId: jest.fn(),
         findById: jest.fn(),
         create: jest.fn(),
+        updateUserId: jest.fn(),
+        updatePasswordHash: jest.fn(),
       })),
     };
   }
@@ -30,6 +32,8 @@ describe('Auth API Integration Tests', () => {
     findByUserId: jest.Mock;
     findById: jest.Mock;
     create: jest.Mock;
+    updateUserId: jest.Mock;
+    updatePasswordHash: jest.Mock;
   }>;
 
   beforeEach(() => {

@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.19.3",
     "@prisma/extension-accelerate": "^2.0.2",
     "@react-email/render": "^1.2.3",
     "@svgr/webpack": "^8.1.0",

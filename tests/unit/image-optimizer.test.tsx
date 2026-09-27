@@ -4,8 +4,14 @@ import { render, screen } from '@testing-library/react';
 import nextConfig from '@/next.config';
 import TeacherAuthCard from '@/app/admin/teacher-approval/components/TeacherAuthCard';
 
-jest.mock('@/app/admin/teacher-approval/components/TechApproval', () => () => null);
-jest.mock('@/app/admin/teacher-approval/components/TechReject', () => () => null);
+jest.mock(
+  '@/app/admin/teacher-approval/components/TechApproval',
+  () => () => null
+);
+jest.mock(
+  '@/app/admin/teacher-approval/components/TechReject',
+  () => () => null
+);
 
 describe('image optimizer', () => {
   it('does not allow any remote host through /_next/image', () => {
@@ -27,9 +33,8 @@ describe('image optimizer', () => {
       />
     );
 
-    expect(screen.getByAltText('김선생 선생님 인증 이미지')).toHaveAttribute(
-      'src',
-      imgUrl
-    );
+    expect(
+      screen.getByAltText('김선생 선생님 인증 이미지').getAttribute('src')
+    ).toBe(imgUrl);
   });
 });

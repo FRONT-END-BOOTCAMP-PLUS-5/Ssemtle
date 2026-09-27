@@ -28,6 +28,8 @@ export default function TeacherAuthCard({
               alt={`${teacherAuth.name} 선생님 인증 이미지`}
               width={240}
               height={224}
+              // imgUrl is user-supplied: the browser loads it, never the server-side optimizer
+              unoptimized
               className="h-56 w-full rounded-lg border-2 border-gray-300 object-cover"
               onError={(e) => {
                 e.currentTarget.src = '/images/teacher-profile.png';

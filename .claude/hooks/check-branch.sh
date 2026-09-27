@@ -5,17 +5,17 @@
 set -e
 
 # Parse the input JSON to get the command
-COMMAND=$(echo "$1" | jq -r '.command')
+COMMAND=$(jq -r '.tool_input.command // empty')
 
 # Check if trying to commit or push to main/master
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
 if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     if [[ "$COMMAND" =~ ^git\ (commit|push) ]]; then
-        echo "❌ ERROR: Cannot commit or push directly to $CURRENT_BRANCH branch"
-        echo "Rule violation: Your CLAUDE.md requires creating WIP branches for work"
-        echo "Suggested action: Create a WIP branch first with 'git checkout -b wip/your-task'"
-        exit 1
+        echo "❌ ERROR: Cannot commit or push directly to $CURRENT_BRANCH branch" >&2
+        echo "Rule violation: Your CLAUDE.md requires creating WIP branches for work" >&2
+        echo "Suggested action: Create a WIP branch first with 'git checkout -b wip/your-task'" >&2
+        exit 2
     fi
 fi
 

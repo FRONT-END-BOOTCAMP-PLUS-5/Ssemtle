@@ -87,6 +87,8 @@ export default auth((req) => {
 });
 
 export const config = {
+  // auth.ts pulls in the Prisma client, which uses Node.js APIs unavailable in the Edge runtime
+  runtime: 'nodejs',
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|signin|signup|landing|logos).*)',
   ],

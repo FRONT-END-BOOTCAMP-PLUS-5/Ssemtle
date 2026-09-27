@@ -5,9 +5,9 @@
 set -e
 
 # Parse the input JSON
-INPUT_JSON="$1"
-TOOL=$(echo "$INPUT_JSON" | jq -r '.tool')
-FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.file_path // empty')
+INPUT_JSON=$(cat)
+TOOL=$(echo "$INPUT_JSON" | jq -r '.tool_name')
+FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_input.file_path // empty')
 
 # Skip if no file path (like pure reads)
 if [[ -z "$FILE_PATH" ]]; then
@@ -27,12 +27,12 @@ fi
 # Check if this is a new feature or bugfix by looking for certain patterns
 CONTENT=""
 if [[ "$TOOL" == "Edit" ]]; then
-    NEW_STRING=$(echo "$INPUT_JSON" | jq -r '.new_string // empty')
+    NEW_STRING=$(echo "$INPUT_JSON" | jq -r '.tool_input.new_string // empty')
     CONTENT="$NEW_STRING"
 elif [[ "$TOOL" == "Write" ]]; then
-    CONTENT=$(echo "$INPUT_JSON" | jq -r '.content // empty')
+    CONTENT=$(echo "$INPUT_JSON" | jq -r '.tool_input.content // empty')
 elif [[ "$TOOL" == "MultiEdit" ]]; then
-    CONTENT=$(echo "$INPUT_JSON" | jq -r '.edits[].new_string // empty' | tr '\n' ' ')
+    CONTENT=$(echo "$INPUT_JSON" | jq -r '.tool_input.edits[]?.new_string // empty' | tr '\n' ' ')
 fi
 
 # Look for signs this is adding functionality (not just refactoring)
@@ -66,12 +66,12 @@ if [[ "$CONTENT" =~ (function|def|class|export|const.*=|let.*=|var.*=) ]]; then
     done
     
     if [[ "$TESTS_FOUND" == "false" ]]; then
-        echo "❌ ERROR: Code changes require tests"
-        echo "Rule violation: Your CLAUDE.md requires TDD - write failing tests first"
-        echo "Detected new functionality in: $FILE_PATH"
-        echo "Required: Create tests before implementing features"
-        echo "Exception: Add 'I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME' to CLAUDE.md"
-        exit 1
+        echo "❌ ERROR: Code changes require tests" >&2
+        echo "Rule violation: Your CLAUDE.md requires TDD - write failing tests first" >&2
+        echo "Detected new functionality in: $FILE_PATH" >&2
+        echo "Required: Create tests before implementing features" >&2
+        echo "Exception: Add 'I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME' to CLAUDE.md" >&2
+        exit 2
     fi
 fi
 

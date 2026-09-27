@@ -5,7 +5,8 @@
 set -e
 
 # Key rules from CLAUDE.md to inject as reminders
-RULES_REMINDER=$(cat << 'EOF'
+# Plain heredoc, not $(cat << 'EOF'): bash 3.2 cannot parse the apostrophe in "we're" inside $()
+IFS= read -r -d '' RULES_REMINDER << 'EOF' || true
 
 🔴 CRITICAL REMINDERS FROM YOUR CLAUDE.MD:
 • Rule #1: Get explicit permission before breaking ANY rule
@@ -22,10 +23,9 @@ RULES_REMINDER=$(cat << 'EOF'
 • Document insights in journal before forgetting them
 
 EOF
-)
 
 # Only inject on complex prompts (longer than 50 chars) to avoid spam
-USER_PROMPT=$(echo "$1" | jq -r '.prompt // empty')
+USER_PROMPT=$(jq -r '.prompt // empty')
 if [[ ${#USER_PROMPT} -gt 50 ]]; then
     echo "$RULES_REMINDER"
 fi

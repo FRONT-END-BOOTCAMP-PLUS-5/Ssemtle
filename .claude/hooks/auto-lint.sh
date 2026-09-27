@@ -5,8 +5,8 @@
 set -e
 
 # Parse the input JSON
-INPUT_JSON="$1"
-FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.file_path // empty')
+INPUT_JSON=$(cat)
+FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_input.file_path // empty')
 
 # Skip if no file path
 if [[ -z "$FILE_PATH" ]]; then

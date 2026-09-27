@@ -24,7 +24,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "@tanstack/react-query": "^5.84.1",
     "@types/bcryptjs": "^2.4.6",
-    "axios": "^1.11.0",
+    "axios": "^1.18.0",
     "bcryptjs": "^3.0.2",
     "canvas-confetti": "^1.9.3",
     "framer-motion": "^12.23.12",

@@ -5,9 +5,9 @@
 set -e
 
 # Parse the input JSON
-INPUT_JSON="$1"
-FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.file_path // empty')
-TOOL=$(echo "$INPUT_JSON" | jq -r '.tool')
+INPUT_JSON=$(cat)
+FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_input.file_path // empty')
+TOOL=$(echo "$INPUT_JSON" | jq -r '.tool_name')
 
 # Skip if no file path
 if [[ -z "$FILE_PATH" ]]; then
@@ -27,10 +27,10 @@ fi
 # Check if this might be an architectural change
 CONTENT=""
 if [[ "$TOOL" == "Edit" ]]; then
-    NEW_STRING=$(echo "$INPUT_JSON" | jq -r '.new_string // empty')
+    NEW_STRING=$(echo "$INPUT_JSON" | jq -r '.tool_input.new_string // empty')
     CONTENT="$NEW_STRING"
 elif [[ "$TOOL" == "Write" ]]; then
-    CONTENT=$(echo "$INPUT_JSON" | jq -r '.content // empty')
+    CONTENT=$(echo "$INPUT_JSON" | jq -r '.tool_input.content // empty')
 fi
 
 # Look for patterns that suggest architectural significance

@@ -4,7 +4,7 @@
 
 set -e
 
-USER_PROMPT=$(echo "$1" | jq -r '.prompt // empty')
+USER_PROMPT=$(jq -r '.prompt // empty')
 
 # Check if this is a /compact command
 if [[ "$USER_PROMPT" =~ ^/compact ]]; then
